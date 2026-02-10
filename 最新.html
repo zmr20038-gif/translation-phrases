@@ -97,17 +97,73 @@
             },
             gaming: {
                 hero: { en: "Roguelike", zh: "肉鸽（随机生成地牢类）", detail: "以随机性、永久死亡为核心特征的游戏类型。", context: "Genre" },
-                cards: [
-                    { id: 'g1', en: "Critical Hit", zh: "会心一击", detail: "游戏中的暴击机制。", context: "Combat" },
-                    { id: 'g2', en: "Localisation", zh: "本地化", detail: "不仅仅是翻译，更是文化适配。", context: "Industry" }
+               cards: [
+                    { id: 'g1', en: "Fog of War", zh: "战争迷雾", detail: "地图上未探索区域被黑色覆盖，或已探索但无视野区域被阴影覆盖的机制。", context: "Strategy/MOBA" },
+                    { id: 'g2', en: "Cooldown", zh: "冷却时间 (CD)", detail: "技能、道具使用后，再次使用前必须等待的一段时间。", context: "Mechanics" },
+                    { id: 'g3', en: "Aggro / Threat", zh: "仇恨值", detail: "衡量怪物对玩家攻击欲望的数值，决定怪物的攻击目标。", context: "MMORPG" },
+                    { id: 'g4', en: "Buff / Debuff", zh: "增益状态 / 减益状态", detail: "由于技能或环境导致的正面或负面属性影响。", context: "General" },
+                    { id: 'g5', en: "Easter Egg", zh: "彩蛋", detail: "开发者在游戏中隐藏的惊喜信息、秘密关卡或幽默内容。", context: "Content" },
+                    { id: 'g6', en: "Hitbox", zh: "碰撞框", detail: "用于检测角色或物体是否受到攻击或发生碰撞的隐形几何体。", context: "Combat" },
+                    { id: 'g7', en: "Proc", zh: "触发", detail: "指某种随机或特定概率的效果（如暴击、特效）被成功激活。", context: "Mechanics" },
+                    { id: 'g8', en: "Loot Box", zh: "开箱 / 抽奖盒", detail: "包含随机虚拟奖励的虚拟容器。", context: "Monetization" },
+                    { id: 'g9', en: "Fast Travel", zh: "快速旅行", detail: "允许玩家在已发现的地点之间瞬间移动的机制。", context: "Exploration" },
+                    { id: 'g10', en: "Permadeath", zh: "永久死亡", detail: "角色一旦死亡，该存档或进度即告失效，无法复活。", context: "Roguelike" },
+                    { id: 'g11', en: "Quality of Life (QoL)", zh: "游戏体验优化", detail: "指那些不改变核心玩法，但能让玩家操作更便捷的小改动。", context: "Development" },
+                    { id: 'g12', en: "NPC (Non-Player Character)", zh: "非玩家角色", detail: "游戏中由电脑控制的、可以对话或交易的角色。", context: "General" },
+                    { id: 'g13', en: "Meta", zh: "主流策略", detail: "在当前版本下，玩家公认的最优玩法、装备或职业搭配。", context: "Competitive" },
+                    { id: 'g14', en: "New Game Plus (NG+)", zh: "二周目 / 新游戏+", detail: "通关后带着等级和装备重新开始游戏的模式。", context: "Progression" },
+                    { id: 'g15', en: "Microtransaction", zh: "内购", detail: "在游戏内购买皮肤、道具等小额消费行为。", context: "Monetization" },
+                    { id: 'g16', en: "Sandbox", zh: "沙盒", detail: "强调高自由度、允许玩家改变环境或创造内容的玩法。", context: "Genre" },
+                    { id: 'g17', en: "Vertical Slice", zh: "垂直切片", detail: "游戏开发中，用于展示最终成品质感的完整关卡原型。", context: "Industry" },
+                    { id: 'g18', en: "Spawn / Respawn", zh: "生成 / 重生", detail: "角色或物体在地图上出现或再次出现的过程。", context: "Mechanics" },
+                    { id: 'g19', en: "Gacha", zh: "抽卡 / 扭蛋", detail: "起源于日本，通过消耗货币随机获取稀有奖励的玩法。", context: "Monetization" },
+                    { id: 'g20', en: "Haptic Feedback", zh: "触觉反馈", detail: "控制器根据游戏情节发出的细腻震动效果。", context: "Hardware" },
+                    { id: 'g21', en: "Skill Tree", zh: "技能树", detail: "展示角色成长路径和分支能力的树状图。", context: "Progression" },
+                    { id: 'g22', en: "Ray Tracing", zh: "光线追踪", detail: "模拟光线物理行为以实现逼真阴影和反射的技术。", context: "Graphics" },
+                    { id: 'g23', en: "Grinding", zh: "刷怪 / 枯燥重复", detail: "为了升级或获取素材而进行的机械性重复战斗。", context: "General" },
+                    { id: 'g24', en: "Early Access", zh: "抢先体验", detail: "游戏尚未正式完工即开放购买，允许玩家参与测试。", context: "Industry" },
+                    { id: 'g25', en: "Speedrun", zh: "速通", detail: "以最快速度完成整个游戏或特定关卡的极限玩法。", context: "Competitive" },
+                    { id: 'g26', en: "Dynamic Weather", zh: "动态天气", detail: "游戏世界中会随时间自动变化的气象系统。", context: "Environment" },
+                    { id: 'g27', en: "Mana / MP", zh: "法力值 / 魔力值", detail: "施放魔法或特殊技能所消耗的能量资源。", context: "Attributes" },
+                    { id: 'g28', en: "Side Quest", zh: "支线任务", detail: "相对于主线剧情，可选择性完成的额外任务。", context: "Progression" },
+                    { id: 'g29', en: "DLC (Downloadable Content)", zh: "下载内容 / 扩展包", detail: "游戏发售后额外发布的数字版内容。", context: "Monetization" },
+                    { id: 'g30', en: "Mod (Modification)", zh: "模组", detail: "由玩家或第三方开发的，用于修改游戏内容或功能的插件。", context: "Community" }
                 ],
                 theme: "bg-gaming", accent: "#7c3aed"
             },
             food: {
                 hero: { en: "Umami", zh: "鲜味", detail: "酸甜苦咸之外的第五种基本味道。", context: "Flavor" },
                 cards: [
-                    { id: 'f1', en: "Wok Hei", zh: "锅气", detail: "镬气，中餐烹饪的灵魂。", context: "Technique" },
-                    { id: 'f2', en: "Blanch", zh: "焯水", detail: "基础烹饪步骤。", context: "Culinary" }
+                    { id: 'f1', en: "Maillard Reaction", zh: "美拉德反应", detail: "食物在高温下产生的褐变反应，是肉类、面包产生焦香味的关键。", context: "Science" },
+                    { id: 'f2', en: "Stir-fry", zh: "煸炒", detail: "中餐最基础的技法，在少量热油中快速翻炒食材。", context: "Technique" },
+                    { id: 'f3', en: "Al Dente", zh: "弹牙 / 有嚼劲", detail: "意大利语，常用来形容意面或米饭煮得恰到好处，核心稍硬。", context: "Texture" },
+                    { id: 'f4', en: "Aroma Wheel", zh: "风味轮", detail: "用于系统描述咖啡、红酒或巧克力气味和味道的工具图谱。", context: "Tasting" },
+                    { id: 'f5', en: "Red-braised", zh: "红烧", detail: "中餐特有技法，利用酱油、冰糖等使食材呈现红润色泽和浓郁咸甜味。", context: "Technique" },
+                    { id: 'f6', en: "Farm-to-table", zh: "从农场到餐桌", detail: "强调食材来源新鲜、当地且减少中间环节的饮食理念。", context: "Concept" },
+                    { id: 'f7', en: "Acidity", zh: "酸度", detail: "咖啡或葡萄酒中令人愉悦的明亮酸感，区别于变质的酸味。", context: "Tasting" },
+                    { id: 'f8', en: "Simmer", zh: "文火慢炖", detail: "用微小的火力让液体保持在接近沸点但未沸腾的状态。", context: "Technique" },
+                    { id: 'f9', en: "Palate Cleanser", zh: "清口菜 / 爽口物", detail: "两道主菜之间食用（如冰沙），旨在清除前一道菜的余味。", context: "Dining" },
+                    { id: 'f10', en: "Wok Hei", zh: "镬气 / 锅气", detail: "高温翻炒中食材与金属锅底接触产生的复杂焦香，中餐的灵魂。", context: "Technique" },
+                    { id: 'f11', en: "Mouthfeel", zh: "口感", detail: "食物在口腔内产生的物理感受，如丝滑、粗糙、干涩等。", context: "Tasting" },
+                    { id: 'f12', en: "Deep-fry", zh: "油炸", detail: "将食材完全浸入高温油脂中烹饪，以获得酥脆外皮。", context: "Technique" },
+                    { id: 'f13', en: "Umami", zh: "鲜味", detail: "除了酸甜苦咸之外的第五种基本味道，源自谷氨酸盐。", context: "Tasting" },
+                    { id: 'f14', en: "Sous-vide", zh: "低温慢煮", detail: "将食物真空包装后放入恒温水浴中长时间加热的分子料理技法。", context: "Molecular" },
+                    { id: 'f15', en: "Blanch", zh: "焯水 / 烫洗", detail: "将食材短暂放入沸水中，随即捞出放入冰水，以保持颜色或去腥。", context: "Technique" },
+                    { id: 'f16', en: "Sommelier", zh: "侍酒师", detail: "餐厅中负责酒水采购、储存及为客人提供配酒建议的专家。", context: "Profession" },
+                    { id: 'f17', en: "Infusion", zh: "浸渍 / 萃取", detail: "通过将食材（如香草、茶）浸泡在液体中提取风味的过程。", context: "Technique" },
+                    { id: 'f18', en: "Zest", zh: "（柑橘类）皮屑", detail: "柠檬、橙子等水果最外层的彩色果皮，富含芳香油。", context: "Ingredient" },
+                    { id: 'f19', en: "Dim Sum", zh: "点心", detail: "尤指粤式早茶中的精致小吃，字面意思是“点动心弦”。", context: "Cuisine" },
+                    { id: 'f20', en: "Decant", zh: "醒酒", detail: "将葡萄酒倒入醒酒器，使其与空气接触以释放香气并分离沉淀。", context: "Tasting" },
+                    { id: 'f21', en: "Crispy vs Crunchy", zh: "酥脆 vs 嘎嘣脆", detail: "前者指易碎的薄脆（如薯片），后者指坚硬的爽脆（如胡萝卜）。", context: "Texture" },
+                    { id: 'f22', en: "Garnish", zh: "盘饰", detail: "摆在成品菜肴上用于点缀或增加风味的少量食材。", context: "Presentation" },
+                    { id: 'f23', en: "Steaming", zh: "蒸", detail: "利用水蒸气作为热介质烹饪食物，最大程度保留原味和营养。", context: "Technique" },
+                    { id: 'f24', en: "Tannin", zh: "单宁", detail: "葡萄酒中产生的涩感来源，主要来自葡萄皮、籽及橡木桶。", context: "Tasting" },
+                    { id: 'f25', en: "Fermentation", zh: "发酵", detail: "通过微生物转化食物成分的过程，如泡菜、奶酪、面包。", context: "Science" },
+                    { id: 'f26', en: "Velveting", zh: "上浆 / 走油", detail: "中餐技巧，肉类烹饪前包裹淀粉/蛋白以保持鲜嫩质感。", context: "Technique" },
+                    { id: 'f27', en: "Body", zh: "醇厚度 / 酒体", detail: "描述饮料在口中的重量感或浓稠度（如全脂奶比水更有Body）。", context: "Tasting" },
+                    { id: 'f28', en: "Glaze", zh: "挂汁 / 淋浆", detail: "在食物表面涂上一层发亮的液体（如糖浆、肉汁）。", context: "Presentation" },
+                    { id: 'f29', en: "Offal", zh: "内脏 / 杂碎", detail: "动物的可食用内脏器官。", context: "Ingredient" },
+                    { id: 'f30', en: "Aftertaste", zh: "余韵 / 回甘", detail: "食物或饮料吞咽后留在口腔和喉咙里的持续风味。", context: "Tasting" }
                 ],
                 theme: "bg-food", accent: "#d97706"
             }
@@ -187,3 +243,4 @@
 </body>
 
 </html>
+
