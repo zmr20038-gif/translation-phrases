@@ -3,30 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LexiFlow Pro v7.Final</title>
+    <title>LexiFlow Ultimate v8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #F8FAFC; --text: #1E293B; --card: #FFFFFF; --accent: #6366F1; }
         .dark { --bg: #0F172A; --text: #F1F5F9; --card: #1E293B; --accent: #818CF8; }
-        body { background-color: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.3s; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.3s; overflow-x: hidden; }
 
-        /* 侧边栏 */
+        /* 侧边栏与层级 */
         #settings-sidebar { transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         #settings-sidebar.open { transform: translateX(0); }
 
-        /* 学习卡片 */
-        .card-container { perspective: 1000px; width: 100%; height: 450px; }
+        /* 学习卡片翻转 */
+        .card-container { perspective: 1000px; width: 100%; height: 480px; position: relative; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .flipped .flip-card-inner { transform: rotateY(180deg); }
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; background: var(--card); box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); }
         .card-back { transform: rotateY(180deg); border: 2px solid var(--accent); overflow-y: auto; }
 
-        .stat-bar { height: 8px; border-radius: 4px; background: #E2E8F0; overflow: hidden; }
-        .stat-fill { height: 100%; background: var(--accent); transition: width 0.5s; }
-        .hide { display: none !important; }
-        .active-tab { color: var(--accent); font-weight: 800; }
+        /* 隐藏滚动条 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .hide { display: none !important; }
+        .active-tab { color: var(--accent); transform: translateY(-2px); }
+
+        /* 书架样式 */
+        .book-cover { box-shadow: 2px 4px 12px rgba(0,0,0,0.15); transition: transform 0.2s; }
+        .book-cover:active { transform: scale(0.95); }
+
+        /* 批量选择样式 */
+        .checkbox-wrapper input:checked + div { background-color: var(--accent); border-color: var(--accent); }
+        .checkbox-wrapper input:checked + div svg { display: block; }
     </style>
 </head>
 <body class="pb-24">
@@ -34,45 +41,94 @@
     <header class="max-w-md mx-auto px-6 pt-10 flex justify-between items-center">
         <div>
             <h1 class="text-3xl font-[900] tracking-tighter italic">LexiFlow<span class="text-indigo-500">.</span></h1>
-            <p id="rank-tag" class="text-[9px] font-black opacity-40 uppercase tracking-widest text-indigo-600">词汇学徒 Lv.1</p>
+            <p id="current-book-label" class="text-[9px] font-black opacity-40 uppercase tracking-widest text-indigo-600">当前词书：默认词库</p>
         </div>
         <button onclick="toggleSidebar(true)" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm">⚙️</button>
     </header>
 
     <main id="view-home" class="max-w-md mx-auto px-6 mt-8">
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div onclick="openStudy('new')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-sm active:scale-95 transition-all">
-                <span class="text-[9px] font-black opacity-30 uppercase tracking-widest">需学习</span>
-                <p id="num-new" class="text-4xl font-black mt-1 text-indigo-500">0</p>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div onclick="openStudy('new')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-sm active:scale-95 transition-all border-b-4 border-indigo-50 dark:border-slate-700">
+                <span class="text-[9px] font-black opacity-30 uppercase tracking-widest">需学习 New</span>
+                <p id="num-new" class="text-4xl font-black mt-2 text-indigo-500">0</p>
             </div>
-            <div onclick="openStudy('review')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-sm active:scale-95 transition-all">
-                <span class="text-[9px] font-black opacity-30 uppercase tracking-widest">待复习</span>
-                <p id="num-review" class="text-4xl font-black mt-1 text-emerald-500">0</p>
+            <div onclick="openStudy('review')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-sm active:scale-95 transition-all border-b-4 border-emerald-50 dark:border-slate-700">
+                <span class="text-[9px] font-black opacity-30 uppercase tracking-widest">待复习 Review</span>
+                <p id="num-review" class="text-4xl font-black mt-2 text-emerald-500">0</p>
             </div>
         </div>
-        <div class="bg-indigo-600 p-8 rounded-[3rem] text-white shadow-xl shadow-indigo-100">
-            <h3 class="font-black text-[10px] opacity-60 uppercase mb-4">今日进度</h3>
-            <div class="stat-bar bg-white/20 mb-4"><div id="home-progress" class="stat-fill bg-white" style="width: 0%"></div></div>
-            <p class="text-sm italic opacity-90">"The limit of your language is the limit of your world."</p>
+
+        <div onclick="switchTab('learned')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-sm active:scale-95 transition-all flex justify-between items-center border border-slate-50 dark:border-slate-700">
+            <div>
+                <span class="text-[9px] font-black opacity-30 uppercase tracking-widest">已学习 Learned</span>
+                <p id="num-learned" class="text-2xl font-black mt-1 text-slate-700 dark:text-slate-300">0</p>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-700 flex items-center justify-center text-xl">🎓</div>
+        </div>
+
+        <div class="mt-8 px-4 opacity-50 text-center">
+            <p class="text-xs font-serif italic">"Language is the road map of a culture."</p>
+        </div>
+    </main>
+
+    <main id="view-books" class="max-w-md mx-auto px-6 mt-8 hide">
+        <div class="flex items-center mb-8">
+            <button onclick="switchTab('home')" class="mr-4 text-xl">←</button>
+            <h2 class="text-2xl font-black">我的书架 Library</h2>
+        </div>
+        <div class="grid grid-cols-2 gap-6">
+            <div onclick="selectBook('default')" class="flex flex-col items-center">
+                <div class="book-cover w-full aspect-[3/4] bg-gradient-to-br from-indigo-500 to-purple-600 rounded-r-2xl rounded-l-md mb-3 flex items-center justify-center text-white font-black text-xl shadow-lg relative overflow-hidden">
+                    <div class="absolute inset-0 bg-white/10 skew-x-12 -translate-x-10"></div>
+                    <span class="relative z-10 text-center px-2">Lexi<br>Core</span>
+                </div>
+                <span class="text-xs font-bold opacity-70">默认核心词库</span>
+            </div>
+            <div onclick="selectBook('gift2025')" class="flex flex-col items-center">
+                <div class="book-cover w-full aspect-[3/4] bg-gradient-to-br from-emerald-400 to-teal-600 rounded-r-2xl rounded-l-md mb-3 flex items-center justify-center text-white font-black text-lg shadow-lg">
+                    <span class="text-center px-2">最后的<br>礼物<br>2025</span>
+                </div>
+                <span class="text-xs font-bold opacity-70">最后的礼物2025版</span>
+            </div>
+            <div class="flex flex-col items-center opacity-40">
+                <div class="book-cover w-full aspect-[3/4] bg-slate-200 dark:bg-slate-700 rounded-r-2xl rounded-l-md mb-3 flex items-center justify-center text-3xl text-slate-400 border-2 border-dashed border-slate-300">
+                    +
+                </div>
+                <span class="text-xs font-bold">导入更多书籍...</span>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-learned" class="max-w-md mx-auto px-6 mt-8 hide h-screen flex flex-col">
+        <div class="flex justify-between items-center mb-6 shrink-0">
+            <h2 class="text-2xl font-black">已掌握单词</h2>
+            <button onclick="toggleEditMode()" id="btn-edit" class="text-xs font-bold bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full">批量管理</button>
+        </div>
+        
+        <div id="learned-list" class="flex-1 overflow-y-auto space-y-3 pb-32">
+            </div>
+
+        <div id="batch-bar" class="fixed bottom-24 left-6 right-6 bg-white dark:bg-slate-800 shadow-2xl rounded-2xl p-4 flex justify-between items-center border border-slate-100 dark:border-slate-700 hide z-50">
+            <span class="text-xs font-bold ml-2">已选 <span id="selected-count" class="text-indigo-500">0</span> 个</span>
+            <button onclick="moveToTrash()" class="bg-red-50 text-red-500 px-6 py-2 rounded-xl text-xs font-black flex items-center gap-2">
+                <span>🗑️</span> 移入熟词本(不再复习)
+            </button>
         </div>
     </main>
 
     <main id="view-explore" class="max-w-md mx-auto px-6 mt-8 hide">
-        <div class="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
-            <button onclick="setFilter('all')" class="px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">全部</button>
-            <button onclick="setFilter('legal')" class="px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">⚖️ 法律</button>
-            <button onclick="setFilter('gaming')" class="px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">🎮 游戏</button>
-            <button onclick="setFilter('food')" class="px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">🍳 食物</button>
+        <div class="flex gap-2 mb-6 overflow-x-auto no-scrollbar pb-2">
+            <button onclick="setFilter('all')" class="cat-btn px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm whitespace-nowrap active-tab">全部</button>
+            <button onclick="setFilter('medical')" class="cat-btn px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm whitespace-nowrap">💊 医学</button>
+            <button onclick="setFilter('chemistry')" class="cat-btn px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm whitespace-nowrap">🧪 化学</button>
+            <button onclick="setFilter('geo')" class="cat-btn px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm whitespace-nowrap">🌍 地理</button>
+            <button onclick="setFilter('daily')" class="cat-btn px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm whitespace-nowrap">🏠 日用</button>
+            <button onclick="setFilter('idiom')" class="cat-btn px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm whitespace-nowrap">💬 俗语</button>
+            <button onclick="setFilter('politics')" class="cat-btn px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm whitespace-nowrap">🏛️ 政治</button>
+            <button onclick="setFilter('religion')" class="cat-btn px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm whitespace-nowrap">🛐 宗教</button>
+            <button onclick="setFilter('lit')" class="cat-btn px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm whitespace-nowrap">📜 文学</button>
         </div>
-        <div id="explore-list" class="space-y-4 pb-12"></div>
-    </main>
-
-    <main id="view-stats" class="max-w-md mx-auto px-6 mt-8 hide">
-        <h2 class="text-2xl font-black mb-6">数据分析</h2>
-        <div class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] mb-6 shadow-sm">
-            <p class="text-[10px] font-black opacity-30 uppercase tracking-widest mb-4">记忆力分布 (Level 0-8)</p>
-            <div id="ebbinghaus-stats" class="space-y-4"></div>
-        </div>
+        <div id="explore-list" class="space-y-4 pb-24"></div>
     </main>
 
     <section id="study-layer" class="fixed inset-0 bg-white dark:bg-slate-900 z-[200] hide flex flex-col p-8">
@@ -91,10 +147,11 @@
                     </div>
                     <div class="card-face card-back">
                         <h3 id="card-zh" class="text-2xl font-bold text-indigo-500 mb-2">翻译</h3>
-                        <p id="card-d" class="text-xs opacity-50 text-center mb-6 px-4">详细解释</p>
-                        <div class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-left">
-                            <span class="text-[8px] font-black opacity-30 uppercase block mb-1 italic">🎬 AI 场景联想</span>
-                            <p id="card-example" class="text-[11px] leading-relaxed font-medium"></p>
+                        <p id="card-d" class="text-xs opacity-60 text-center mb-6 px-4">详细解释</p>
+                        <div class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-left border border-slate-100 dark:border-slate-700">
+                            <span class="text-[8px] font-black opacity-30 uppercase block mb-2 italic">🎬 AI Scenario</span>
+                            <p id="scene-en" class="text-xs font-bold text-slate-700 dark:text-slate-200 mb-1 leading-relaxed">English sentence...</p>
+                            <p id="scene-zh" class="text-[10px] text-slate-400 leading-relaxed">中文翻译...</p>
                         </div>
                     </div>
                 </div>
@@ -108,64 +165,170 @@
     </section>
 
     <div id="settings-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/10 backdrop-blur-sm z-[300] hide"></div>
-    <aside id="settings-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 z-[301] shadow-2xl p-8">
+    <aside id="settings-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 z-[301] shadow-2xl p-8 flex flex-col">
         <h2 class="text-2xl font-black mb-10 tracking-tighter">Settings</h2>
-        <div class="space-y-8">
+        <div class="space-y-8 flex-1">
+            <div onclick="switchTab('books'); toggleSidebar(false);" class="bg-indigo-50 dark:bg-slate-800 p-4 rounded-2xl flex items-center justify-between cursor-pointer border border-indigo-100 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">📚</span>
+                    <div>
+                        <p class="text-xs font-black uppercase text-indigo-500">Current Book</p>
+                        <p id="setting-book-name" class="text-sm font-bold">默认核心词库</p>
+                    </div>
+                </div>
+                <span class="text-indigo-400">→</span>
+            </div>
+
             <div>
                 <label class="text-[10px] font-black opacity-30 uppercase block mb-3">Interface</label>
                 <button onclick="toggleDarkMode()" class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl flex justify-between font-bold text-sm">
                     <span>外观模式</span><span id="mode-icon">🌞</span>
                 </button>
             </div>
+            
             <div>
                 <label class="text-[10px] font-black opacity-30 uppercase block mb-3">Daily Goal</label>
                 <div class="flex justify-between font-black text-indigo-500 mb-2"><span id="goal-val">10</span><span>词/天</span></div>
                 <input type="range" min="5" max="50" step="5" value="10" oninput="updateGoal(this.value)" class="w-full h-1.5 bg-slate-100 rounded-full appearance-none accent-indigo-600">
             </div>
-            <div class="pt-10">
-                <button onclick="clearData()" class="w-full py-4 text-red-500 text-[10px] font-black uppercase rounded-2xl border border-red-50">重置所有数据</button>
-            </div>
+        </div>
+        <div class="pt-6">
+            <button onclick="clearData()" class="w-full py-4 text-red-500 text-[10px] font-black uppercase rounded-2xl border border-red-50">重置所有数据</button>
         </div>
     </aside>
 
-    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-72 h-20 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl flex items-center justify-around z-[100]">
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-72 h-20 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl flex items-center justify-around z-[100] border border-white/20">
         <button onclick="switchTab('home')" id="btn-home" class="p-3 active-tab text-2xl">🏠</button>
         <button onclick="switchTab('explore')" id="btn-explore" class="p-3 opacity-30 text-2xl">🔍</button>
-        <button onclick="switchTab('stats')" id="btn-stats" class="p-3 opacity-30 text-2xl">📈</button>
     </nav>
 
     <script>
-        // 词库 A-Z
+        // 核心词库：包含新分类和双语例句
+        // 数据结构：id, cat, en, zh, d, scene: {en, zh}
         const RAW_LIB = [
-            { id:'g1', cat:'gaming', en:'Aggro', zh:'仇恨值', d:'衡量怪物对不同玩家攻击欲望的数值。', scenes: ["《头号玩家》：在这种等级的副本里，千万别乱拉 Aggro。"] },
-            { id:'f1', cat:'food', en:'Al Dente', zh:'弹牙', d:'形容意面或米饭中心保留一丝嚼劲。', scenes: ["《美食总动员》：完美的意大利面必须保持 Al Dente 的口感。"] },
-            { id:'l1', cat:'legal', en:'Bona Fide', zh:'善意', d:'法律术语，指主观出于真诚、无欺诈意图。', scenes: ["《金装律师》：Harvey 质疑对方是否 Bona Fide 履行合同。"] },
-            { id:'l3', cat:'legal', en:'Due Diligence', zh:'尽职调查', d:'对资产及风险的全面调查。', scenes: ["《初入职场的我们》：一份合格的尽职调查是投行的基本功。"] },
-            { id:'g2', cat:'gaming', en:'Fog of War', zh:'战争迷雾', d:'遮蔽未探索区域的视觉效果。', scenes: ["《魔兽争霸》：迷雾中可能隐藏着敌人的伏兵。"] },
-            { id:'l2', cat:'legal', en:'Force Majeure', zh:'不可抗力', d:'不能预见、避免且克服的客观情况。', scenes: ["《生活大爆炸》：Sheldon 的租房协议里写满了不可抗力。"] },
-            { id:'f2', cat:'food', en:'Maillard Reaction', zh:'美拉德反应', d:'加热时发生的褐变反应，香气之源。', scenes: ["《顶级厨师》：牛排的香气来自于完美的美拉德反应。"] },
-            { id:'g3', cat:'gaming', en:'Metagame', zh:'元游戏', d:'当前最高效的战术组合趋势。', scenes: ["《英雄联盟》：你需要适应这个版本的 Metagame。"] },
-            { id:'l4', cat:'legal', en:'Statute of Limitations', zh:'诉讼时效', d:'法律规定权利行使的时间限制。', scenes: ["《破产姐妹》：即便过了诉讼时效，良心也不会安宁。"] },
-            { id:'f3', cat:'food', en:'Umami', zh:'鲜味', d:'除了酸甜苦咸之外的第五种基本味道。', scenes: ["《深夜食堂》：这碗汤的 Umami 层次非常丰富。"] }
+            // --- 默认分类 ---
+            { id:'g1', cat:'gaming', en:'Aggro', zh:'仇恨值', d:'衡量怪物攻击欲望的数值。', scene: {en: "Don't pull aggro from the boss yet!", zh: "先别乱拉 Boss 的仇恨值！"} },
+            { id:'f1', cat:'food', en:'Al Dente', zh:'弹牙', d:'意面中心保留一丝嚼劲。', scene: {en: "The pasta should be cooked al dente.", zh: "意面应该煮到弹牙的程度。"} },
+            
+            // --- Medical 医学 ---
+            { id:'m1', cat:'medical', en:'Placebo', zh:'安慰剂', d:'无效但能产生心理安慰的药剂。', scene: {en: "The patient improved due to the placebo effect.", zh: "病人因安慰剂效应而好转。"} },
+            { id:'m2', cat:'medical', en:'Diagnosis', zh:'诊断', d:'对疾病性质的判断。', scene: {en: "The doctor gave a diagnosis of mild flu.", zh: "医生诊断为轻微流感。"} },
+            { id:'m3', cat:'medical', en:'Symptom', zh:'症状', d:'疾病表现出的异常状态。', scene: {en: "Fever is a common symptom of infection.", zh: "发烧是感染的常见症状。"} },
+            { id:'m4', cat:'medical', en:'Prescription', zh:'处方', d:'医生开具的药方。', scene: {en: "You need a prescription to buy this medicine.", zh: "你需要处方才能买这种药。"} },
+            { id:'m5', cat:'medical', en:'Anesthesia', zh:'麻醉', d:'使身体失去知觉的手段。', scene: {en: "The surgery was performed under local anesthesia.", zh: "手术是在局部麻醉下进行的。"} },
+
+            // --- Chemistry 化学 ---
+            { id:'c1', cat:'chemistry', en:'Catalyst', zh:'催化剂', d:'加速化学反应的物质。', scene: {en: "Enzymes act as catalysts in digestion.", zh: "酶在消化过程中起催化剂作用。"} },
+            { id:'c2', cat:'chemistry', en:'Molecule', zh:'分子', d:'保持物质化学性质的最小粒子。', scene: {en: "Water is composed of hydrogen and oxygen molecules.", zh: "水由氢分子和氧分子组成。"} },
+            { id:'c3', cat:'chemistry', en:'Solvent', zh:'溶剂', d:'能溶解其他物质的液体。', scene: {en: "Water is known as the universal solvent.", zh: "水被称为万能溶剂。"} },
+            { id:'c4', cat:'chemistry', en:'Isotope', zh:'同位素', d:'质子数相同但中子数不同的原子。', scene: {en: "Carbon-14 is a radioactive isotope.", zh: "碳-14 是一种放射性同位素。"} },
+            { id:'c5', cat:'chemistry', en:'Polymer', zh:'聚合物', d:'由重复单元组成的大分子。', scene: {en: "Plastic is a type of synthetic polymer.", zh: "塑料是一种合成聚合物。"} },
+
+            // --- Geography 地理 ---
+            { id:'geo1', cat:'geo', en:'Peninsula', zh:'半岛', d:'三面环水的陆地。', scene: {en: "Korea is a peninsula in East Asia.", zh: "朝鲜是东亚的一个半岛。"} },
+            { id:'geo2', cat:'geo', en:'Latitude', zh:'纬度', d:'地球表面南北向的坐标。', scene: {en: "The city is located at a high latitude.", zh: "这座城市位于高纬度地区。"} },
+            { id:'geo3', cat:'geo', en:'Tributary', zh:'支流', d:'流入干流的河流。', scene: {en: "The Ohio River is a tributary of the Mississippi.", zh: "俄亥俄河是密西西比河的支流。"} },
+            { id:'geo4', cat:'geo', en:'Hemisphere', zh:'半球', d:'地球的一半。', scene: {en: "Australia is in the Southern Hemisphere.", zh: "澳大利亚位于南半球。"} },
+            { id:'geo5', cat:'geo', en:'Archipelago', zh:'群岛', d:'成群的岛屿。', scene: {en: "Indonesia is the world's largest archipelago.", zh: "印度尼西亚是世界上最大的群岛。"} },
+
+            // --- Daily 日用 ---
+            { id:'d1', cat:'daily', en:'Groceries', zh:'杂货/食品', d:'超市购买的日常食品。', scene: {en: "I need to pick up some groceries on my way home.", zh: "我回家路上得买点杂货。"} },
+            { id:'d2', cat:'daily', en:'Commute', zh:'通勤', d:'上下班往返的过程。', scene: {en: "My daily commute takes about an hour.", zh: "我每天通勤大约需要一小时。"} },
+            { id:'d3', cat:'daily', en:'Detergent', zh:'洗涤剂', d:'用于清洗衣物或餐具的液体。', scene: {en: "We ran out of laundry detergent.", zh: "我们的洗衣液用完了。"} },
+            { id:'d4', cat:'daily', en:'Appliance', zh:'家用电器', d:'家庭使用的电力器具。', scene: {en: "The kitchen is equipped with modern appliances.", zh: "厨房配备了现代化家电。"} },
+            { id:'d5', cat:'daily', en:'Utensil', zh:'器皿/餐具', d:'厨房用的工具。', scene: {en: "Please wash the cooking utensils after use.", zh: "用完烹饪器具后请清洗。"} },
+
+            // --- Idiom 俗语 ---
+            { id:'i1', cat:'idiom', en:'Break a leg', zh:'祝你好运', d:'用于演出前祝愿成功。', scene: {en: "Break a leg on your performance tonight!", zh: "祝你今晚演出成功！"} },
+            { id:'i2', cat:'idiom', en:'Piece of cake', zh:'小菜一碟', d:'形容事情非常容易。', scene: {en: "The exam was a piece of cake.", zh: "这次考试简直是小菜一碟。"} },
+            { id:'i3', cat:'idiom', en:'Cold turkey', zh:'突然戒断', d:'突然完全停止某种习惯。', scene: {en: "He quit smoking cold turkey.", zh: "他突然彻底戒烟了。"} },
+            { id:'i4', cat:'idiom', en:'Bite the bullet', zh:'咬紧牙关', d:'强忍痛苦去做困难的事。', scene: {en: "I have to bite the bullet and apologize.", zh: "我必须硬着头皮去道歉。"} },
+            { id:'i5', cat:'idiom', en:'Cost an arm and a leg', zh:'极其昂贵', d:'花费巨大的代价。', scene: {en: "This car costs an arm and a leg.", zh: "这辆车贵得离谱。"} },
+
+            // --- Politics 政治 ---
+            { id:'p1', cat:'politics', en:'Ballot', zh:'选票', d:'投票用的纸张或票据。', scene: {en: "They are counting the ballots now.", zh: "他们正在计票。"} },
+            { id:'p2', cat:'politics', en:'Legislation', zh:'立法', d:'制定法律的过程或法律本身。', scene: {en: "New legislation was passed to protect the environment.", zh: "通过了保护环境的新立法。"} },
+            { id:'p3', cat:'politics', en:'Diplomacy', zh:'外交', d:'国家间处理关系的艺术。', scene: {en: "Diplomacy is key to avoiding war.", zh: "外交是避免战争的关键。"} },
+            { id:'p4', cat:'politics', en:'Constituency', zh:'选区', d:'选民所在的区域。', scene: {en: "He represents a large rural constituency.", zh: "他代表一个庞大的农村选区。"} },
+            { id:'p5', cat:'politics', en:'Referendum', zh:'全民公投', d:'全体公民对议题进行直接投票。', scene: {en: "The country held a referendum on independence.", zh: "该国举行了独立公投。"} },
+
+            // --- Religion 宗教 ---
+            { id:'r1', cat:'religion', en:'Pilgrimage', zh:'朝圣', d:'前往圣地的宗教旅程。', scene: {en: "Thousands go on a pilgrimage to Mecca every year.", zh: "每年有成千上万的人去麦加朝圣。"} },
+            { id:'r2', cat:'religion', en:'Scripture', zh:'经文', d:'宗教的神圣典籍。', scene: {en: "He quoted a passage from the scripture.", zh: "他引用了一段经文。"} },
+            { id:'r3', cat:'religion', en:'Deity', zh:'神', d:'神明或女神。', scene: {en: "Zeus was a major deity in Greek mythology.", zh: "宙斯是希腊神话中的主神。"} },
+            { id:'r4', cat:'religion', en:'Congregation', zh:'会众', d:'聚集在一起礼拜的人群。', scene: {en: "The priest addressed the congregation.", zh: "牧师向会众致辞。"} },
+            { id:'r5', cat:'religion', en:'Sacrament', zh:'圣礼', d:'具有神圣意义的宗教仪式。', scene: {en: "Baptism is a Christian sacrament.", zh: "洗礼是基督教的一种圣礼。"} },
+
+            // --- Literature 文学 ---
+            { id:'lit1', cat:'lit', en:'Metaphor', zh:'隐喻', d:'一种修辞手法，用一事物暗喻另一事物。', scene: {en: "Time is a thief' is a metaphor.", zh: "“时间是小偷”是一个隐喻。"} },
+            { id:'lit2', cat:'lit', en:'Protagonist', zh:'主角', d:'故事中的主要人物。', scene: {en: "Harry Potter is the protagonist of the series.", zh: "哈利·波特是该系列的主角。"} },
+            { id:'lit3', cat:'lit', en:'Prologue', zh:'序幕', d:'文学作品的开场部分。', scene: {en: "The prologue sets the scene for the story.", zh: "序幕为故事设定了背景。"} },
+            { id:'lit4', cat:'lit', en:'Anthology', zh:'选集', d:'诗歌或短篇小说的集合。', scene: {en: "I bought an anthology of American poetry.", zh: "我买了一本美国诗歌选集。"} },
+            { id:'lit5', cat:'lit', en:'Soliloquy', zh:'独白', d:'剧中人物自言自语的段落。', scene: {en: "Hamlet's famous soliloquy begins with 'To be or not to be'.", zh: "哈姆雷特的著名独白以“生存还是毁灭”开始。"} }
         ].sort((a,b) => a.en.localeCompare(b.en));
 
         let state = {
-            mem: JSON.parse(localStorage.getItem('lexi_v8_mem') || '{}'),
-            notes: JSON.parse(localStorage.getItem('lexi_v8_notes') || '{}'),
-            goal: parseInt(localStorage.getItem('lexi_v8_goal') || '10'),
-            dark: localStorage.getItem('lexi_v8_dark') === 'true',
-            filter: 'all', queue: [], idx: 0
+            mem: JSON.parse(localStorage.getItem('lexi_v9_mem') || '{}'), // mem结构: {id: {lv: 0-99, next: timestamp}}
+            notes: JSON.parse(localStorage.getItem('lexi_v9_notes') || '{}'),
+            goal: parseInt(localStorage.getItem('lexi_v9_goal') || '10'),
+            dark: localStorage.getItem('lexi_v9_dark') === 'true',
+            book: localStorage.getItem('lexi_v9_book') || 'default',
+            filter: 'all', queue: [], idx: 0, 
+            editMode: false, selectedItems: new Set()
         };
 
-        // --- 学习系统 ---
+        // --- 初始化 ---
+        function init() {
+            if(state.dark) document.body.classList.add('dark');
+            document.getElementById('goal-val').innerText = state.goal;
+            updateBookLabel();
+            autoAllocate();
+            updateDashboard();
+        }
+
+        // --- 词书选择 ---
+        function selectBook(bookId) {
+            state.book = bookId;
+            localStorage.setItem('lexi_v9_book', bookId);
+            updateBookLabel();
+            switchTab('home');
+            // 这里仅仅是逻辑切换，实际应用中可以根据 bookId 加载不同数据源
+            alert(`已切换至：${bookId === 'default' ? '默认核心词库' : '最后的礼物2025版'}`);
+        }
+
+        function updateBookLabel() {
+            const name = state.book === 'default' ? '默认核心词库' : '最后的礼物2025版';
+            document.getElementById('current-book-label').innerText = `当前词书：${name}`;
+            document.getElementById('setting-book-name').innerText = name;
+        }
+
+        // --- 学习与复习逻辑 ---
+        function autoAllocate() {
+            // 获取当前活跃学习（lv=0）的数量
+            let active = Object.keys(state.mem).filter(id => state.mem[id].lv === 0).length;
+            if(active < state.goal) {
+                // 排除已学(lv>0)和已熟词(lv=99)
+                let pool = RAW_LIB.filter(i => !state.mem[i.id]);
+                pool.sort(() => Math.random() - 0.5);
+                for(let i=0; i < Math.min(state.goal - active, pool.length); i++) {
+                    state.mem[pool[i].id] = { lv: 0, next: 0 };
+                }
+                save();
+            }
+        }
+
         function openStudy(type) {
             const now = Date.now();
-            state.queue = RAW_LIB.filter(i => {
-                const m = state.mem[i.id];
-                return type === 'new' ? (m && m.lv === 0) : (m && m.lv > 0 && now >= m.next);
-            }).slice(0, state.goal);
-            
-            if(!state.queue.length) return alert("当前没有可学习的词条！");
+            if(type === 'new') {
+                state.queue = RAW_LIB.filter(i => state.mem[i.id] && state.mem[i.id].lv === 0);
+            } else {
+                state.queue = RAW_LIB.filter(i => {
+                    const m = state.mem[i.id];
+                    // 排除 lv=99 (熟词)
+                    return m && m.lv > 0 && m.lv < 99 && now >= m.next;
+                });
+            }
+            if(!state.queue.length) return alert("当前队列为空！");
             state.idx = 0;
             document.getElementById('study-layer').classList.remove('hide');
             showCard();
@@ -178,7 +341,11 @@
             document.getElementById('card-zh').innerText = item.zh;
             document.getElementById('card-d').innerText = item.d;
             document.getElementById('card-cat').innerText = item.cat;
-            document.getElementById('card-example').innerText = item.scenes[0];
+            
+            // 双语例句
+            document.getElementById('scene-en').innerText = item.scene.en;
+            document.getElementById('scene-zh').innerText = item.scene.zh;
+
             document.getElementById('study-progress').innerText = `${state.idx+1} / ${state.queue.length}`;
             document.getElementById('study-controls').style.pointerEvents = 'auto';
         }
@@ -188,24 +355,95 @@
             document.getElementById('study-controls').style.pointerEvents = 'none';
             const item = state.queue[state.idx];
             const m = state.mem[item.id];
-            if(score === 3) m.lv += 1; else if(score === 1) m.lv = Math.max(1, m.lv - 1);
-            const intervals = [0, 0.1, 1, 2, 4, 7, 15, 30, 60];
+            
+            if(score === 3) m.lv += 1; // 认识 -> 升级
+            else if(score === 1) m.lv = Math.max(1, m.lv - 1); // 忘了 -> 降级
+
+            // 简单间隔算法
+            const intervals = [0, 0.1, 1, 2, 4, 7, 15, 30, 60]; 
             m.next = Date.now() + (intervals[Math.min(m.lv, 8)] * 86400000);
             save();
+
             setTimeout(() => {
                 state.idx++;
                 if(state.idx < state.queue.length) showCard(); else closeStudy();
             }, 1200);
         }
 
-        // --- 探索页 (修复分类与笔记) ---
-        function setFilter(cat) { state.filter = cat; renderExplore(); }
+        // --- 熟词/已学习管理 ---
+        function renderLearned() {
+            const container = document.getElementById('learned-list');
+            // 显示所有 lv > 0 且 lv < 99 的词条
+            const learnedItems = RAW_LIB.filter(i => state.mem[i.id] && state.mem[i.id].lv > 0 && state.mem[i.id].lv < 99);
+            
+            if(learnedItems.length === 0) {
+                container.innerHTML = '<div class="text-center opacity-30 mt-20">暂无学习记录</div>';
+                return;
+            }
+
+            container.innerHTML = learnedItems.map(i => `
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl flex items-center justify-between border border-slate-50 dark:border-slate-700">
+                    <div class="flex items-center gap-4">
+                        <label class="checkbox-wrapper cursor-pointer ${state.editMode ? '' : 'hide'}">
+                            <input type="checkbox" class="hidden" onchange="toggleSelect('${i.id}')" ${state.selectedItems.has(i.id) ? 'checked' : ''}>
+                            <div class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center transition-colors">
+                                <svg class="w-3 h-3 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                        </label>
+                        <div>
+                            <h4 class="text-lg font-black">${i.en}</h4>
+                            <p class="text-xs opacity-50">${i.zh}</p>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black opacity-20 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">Lv.${state.mem[i.id].lv}</span>
+                </div>
+            `).join('');
+            document.getElementById('num-learned').innerText = learnedItems.length;
+        }
+
+        function toggleEditMode() {
+            state.editMode = !state.editMode;
+            document.getElementById('btn-edit').innerText = state.editMode ? '取消' : '批量管理';
+            document.getElementById('batch-bar').classList.toggle('hide', !state.editMode);
+            state.selectedItems.clear();
+            renderLearned();
+            updateBatchBar();
+        }
+
+        function toggleSelect(id) {
+            if(state.selectedItems.has(id)) state.selectedItems.delete(id);
+            else state.selectedItems.add(id);
+            updateBatchBar();
+        }
+
+        function updateBatchBar() {
+            document.getElementById('selected-count').innerText = state.selectedItems.size;
+        }
+
+        function moveToTrash() {
+            if(!confirm(`确定将这 ${state.selectedItems.size} 个单词移入熟词本？它们将不再出现。`)) return;
+            state.selectedItems.forEach(id => {
+                if(state.mem[id]) state.mem[id].lv = 99; // 99代表熟词/垃圾箱
+            });
+            save();
+            toggleEditMode();
+            renderLearned();
+            updateDashboard();
+        }
+
+        // --- 探索页 Filter ---
+        function setFilter(cat) { 
+            state.filter = cat; 
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active-tab'));
+            event.target.classList.add('active-tab');
+            renderExplore(); 
+        }
 
         function renderExplore() {
             const container = document.getElementById('explore-list');
             const filtered = RAW_LIB.filter(i => state.filter === 'all' || i.cat === state.filter);
             container.innerHTML = filtered.map(i => `
-                <div class="bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-sm">
+                <div class="bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-sm mb-4">
                     <div class="flex justify-between items-start" onclick="toggleDetail('${i.id}')">
                         <div>
                             <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest">${i.cat}</span>
@@ -218,8 +456,10 @@
                     <div id="detail-${i.id}" class="hide mt-4 pt-4 border-t border-slate-50 dark:border-slate-700">
                         <p class="text-sm font-bold text-indigo-500 mb-2">${i.zh}</p>
                         <p class="text-[11px] opacity-60 leading-relaxed mb-4">${i.d}</p>
-                        <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-xl">
-                            <textarea onchange="saveNote('${i.id}', this.value)" placeholder="在这里输入你的笔记..." class="w-full bg-transparent text-xs outline-none min-h-[60px]">${state.notes[i.id] || ''}</textarea>
+                        <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                            <p class="text-[10px] text-slate-400 mb-1">例句：</p>
+                            <p class="text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">${i.scene.en}</p>
+                            <p class="text-[10px] text-slate-400">${i.scene.zh}</p>
                         </div>
                     </div>
                 </div>
@@ -230,80 +470,48 @@
 
         // --- 基础辅助 ---
         function switchTab(tab) {
-            ['home', 'explore', 'stats'].forEach(t => {
-                document.getElementById('view-'+t).classList.toggle('hide', t !== tab);
-                document.getElementById('btn-'+t).classList.toggle('active-tab', t === tab);
-                document.getElementById('btn-'+t).classList.toggle('opacity-30', t !== tab);
+            ['home', 'explore', 'books', 'learned'].forEach(t => {
+                const el = document.getElementById('view-'+t);
+                if(el) el.classList.toggle('hide', t !== tab);
+                const btn = document.getElementById('btn-'+t);
+                if(btn) {
+                    btn.classList.toggle('active-tab', t === tab);
+                    btn.classList.toggle('opacity-30', t !== tab);
+                }
             });
             if(tab === 'explore') renderExplore();
-            if(tab === 'stats') renderStats();
+            if(tab === 'learned') renderLearned();
         }
 
         function updateGoal(val) {
             state.goal = parseInt(val);
             document.getElementById('goal-val').innerText = val;
-            localStorage.setItem('lexi_v8_goal', val);
+            localStorage.setItem('lexi_v9_goal', val);
             autoAllocate();
             updateDashboard();
         }
 
-        function autoAllocate() {
-            let learning = Object.keys(state.mem).filter(id => state.mem[id].lv === 0);
-            if(learning.length < state.goal) {
-                let pool = RAW_LIB.filter(i => !state.mem[i.id]).sort(() => Math.random() - 0.5);
-                for(let i=0; i < Math.min(state.goal - learning.length, pool.length); i++) {
-                    state.mem[pool[i].id] = { lv: 0, next: 0 };
-                }
-                save();
-            }
-        }
-
         function updateDashboard() {
+            const now = Date.now();
             const news = RAW_LIB.filter(i => state.mem[i.id]?.lv === 0).length;
-            const reviews = RAW_LIB.filter(i => state.mem[i.id]?.lv > 0 && Date.now() >= state.mem[i.id].next).length;
+            // 排除 lv=99
+            const reviews = RAW_LIB.filter(i => state.mem[i.id]?.lv > 0 && state.mem[i.id]?.lv < 99 && now >= state.mem[i.id].next).length;
+            const learned = RAW_LIB.filter(i => state.mem[i.id]?.lv > 0 && state.mem[i.id]?.lv < 99).length;
+            
             document.getElementById('num-new').innerText = news;
             document.getElementById('num-review').innerText = reviews;
-            document.getElementById('home-progress').style.width = Math.min(100, ( (state.goal-news)/state.goal ) * 100) + '%';
-        }
-
-        function renderStats() {
-            const levels = new Array(9).fill(0);
-            Object.values(state.mem).forEach(m => levels[Math.min(m.lv, 8)]++);
-            document.getElementById('ebbinghaus-stats').innerHTML = levels.map((count, i) => `
-                <div>
-                    <div class="flex justify-between text-[10px] font-bold mb-1 opacity-50"><span>LEVEL ${i}</span><span>${count} 词条</span></div>
-                    <div class="stat-bar"><div class="stat-fill" style="width: ${(count/RAW_LIB.length)*100}%"></div></div>
-                </div>
-            `).join('');
-            const rank = Math.min(Math.floor(Object.keys(state.mem).length / 3), 4);
-            const titles = ["词汇学徒", "语言行者", "律政先锋", "博学者", "语言大师"];
-            document.getElementById('rank-tag').innerText = titles[rank] + ` Lv.${rank+1}`;
-        }
-
-        function toggleSidebar(show) {
-            document.getElementById('settings-sidebar').classList.toggle('open', show);
-            document.getElementById('settings-overlay').classList.toggle('hide', !show);
-        }
-
-        function toggleDarkMode() {
-            state.dark = !state.dark;
-            document.body.classList.toggle('dark', state.dark);
-            document.getElementById('mode-icon').innerText = state.dark ? '🌙' : '🌞';
-            localStorage.setItem('lexi_v8_dark', state.dark);
+            document.getElementById('num-learned').innerText = learned;
         }
 
         function addToPlan(e, id) { e.stopPropagation(); state.mem[id] = { lv: 0, next: 0 }; save(); renderExplore(); updateDashboard(); }
-        function saveNote(id, val) { state.notes[id] = val; localStorage.setItem('lexi_v8_notes', JSON.stringify(state.notes)); }
-        function save() { localStorage.setItem('lexi_v8_mem', JSON.stringify(state.mem)); }
+        function save() { localStorage.setItem('lexi_v9_mem', JSON.stringify(state.mem)); }
         function speakWord() { window.speechSynthesis.speak(new SpeechSynthesisUtterance(state.queue[state.idx].en)); }
         function closeStudy() { document.getElementById('study-layer').classList.add('hide'); updateDashboard(); }
-        function clearData() { if(confirm("重置所有进度？")) { localStorage.clear(); location.reload(); } }
+        function toggleSidebar(show) { document.getElementById('settings-sidebar').classList.toggle('open', show); document.getElementById('settings-overlay').classList.toggle('hide', !show); }
+        function toggleDarkMode() { state.dark = !state.dark; document.body.classList.toggle('dark', state.dark); localStorage.setItem('lexi_v9_dark', state.dark); }
+        function clearData() { if(confirm("重置？")) { localStorage.clear(); location.reload(); } }
 
-        // 初始化
-        if(state.dark) { document.body.classList.add('dark'); document.getElementById('mode-icon').innerText = '🌙'; }
-        document.getElementById('goal-val').innerText = state.goal;
-        autoAllocate();
-        updateDashboard();
+        init();
     </script>
 </body>
 </html>
