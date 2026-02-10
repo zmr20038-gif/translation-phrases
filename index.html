@@ -3,32 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LexiFlow Pro v4</title>
+    <title>LexiFlow Pro v5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #F8FAFC; --text: #1E293B; --card-bg: #FFFFFF; --accent: #6366F1;
-        }
-        .dark {
-            --bg: #0F172A; --text: #F1F5F9; --card-bg: #1E293B; --accent: #818CF8;
-        }
-        body { background-color: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.3s ease; }
-        
-        /* 卡片翻转逻辑 */
+        :root { --bg: #F8FAFC; --text: #1E293B; --card: #FFFFFF; --accent: #6366F1; }
+        .dark { --bg: #0F172A; --text: #F1F5F9; --card: #1E293B; --accent: #818CF8; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.3s; overflow-x: hidden; }
+
+        /* 侧边栏 */
+        #settings-sidebar { transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        #settings-sidebar.open { transform: translateX(0); }
+
+        /* 卡片翻转 */
         .flip-card { perspective: 1000px; width: 100%; height: 420px; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
         .flip-card-front, .flip-card-back { 
             position: absolute; width: 100%; height: 100%; backface-visibility: hidden; 
             border-radius: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem;
-            background: var(--card-bg); box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);
+            background: var(--card); box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05);
         }
         .flip-card-back { transform: rotateY(180deg); border: 2px solid var(--accent); }
 
-        .nav-link.active { color: var(--accent); }
+        /* ADD 按钮动画 */
+        @keyframes added-pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .btn-added { animation: added-pop 0.3s ease-out; background-color: #10B981 !important; color: white !important; }
+
         .hide { display: none !important; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .nav-link.active { color: var(--accent); font-weight: 800; }
     </style>
 </head>
 <body class="pb-24">
@@ -36,44 +39,87 @@
     <header class="max-w-md mx-auto px-6 pt-12 flex justify-between items-center">
         <div>
             <h1 class="text-3xl font-[800] tracking-tighter">LexiFlow</h1>
-            <p id="subTitle" class="text-[10px] font-black opacity-30 uppercase tracking-[0.2em]">Personal Lexicon</p>
+            <p class="text-[10px] font-black opacity-30 uppercase tracking-[0.2em]">Adaptive Learning</p>
         </div>
-        <button onclick="toggleSettings(true)" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm">⚙️</button>
+        <button onclick="toggleSidebar(true)" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm">⚙️</button>
     </header>
 
     <main id="view-home" class="max-w-md mx-auto px-6 mt-10">
         <div class="grid grid-cols-2 gap-4 mb-8">
-            <div onclick="openStudy('new')" class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm cursor-pointer active:scale-95 transition-all">
+            <div onclick="openStudy('new')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.2rem] shadow-sm cursor-pointer border border-transparent hover:border-indigo-200 transition-all">
                 <span class="text-[9px] font-black opacity-30 uppercase tracking-widest">需学习 New</span>
                 <p id="num-new" class="text-4xl font-black mt-2 text-indigo-500">0</p>
             </div>
-            <div onclick="openStudy('review')" class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm cursor-pointer active:scale-95 transition-all">
+            <div onclick="openStudy('review')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.2rem] shadow-sm cursor-pointer border border-transparent hover:border-emerald-200 transition-all">
                 <span class="text-[9px] font-black opacity-30 uppercase tracking-widest">复习 Review</span>
                 <p id="num-review" class="text-4xl font-black mt-2 text-emerald-500">0</p>
             </div>
         </div>
-        <div class="bg-indigo-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-indigo-200">
-            <h3 class="font-black text-[10px] opacity-60 uppercase tracking-widest mb-2">Daily Goal</h3>
-            <p class="text-lg font-bold">完成今日任务，保持节奏！</p>
-            <div class="mt-4 bg-white/20 h-1.5 rounded-full overflow-hidden">
-                <div id="goal-progress" class="bg-white h-full" style="width: 0%"></div>
+        <div class="bg-indigo-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
+            <div class="relative z-10">
+                <h3 class="font-black text-[10px] opacity-60 uppercase tracking-widest mb-2">Today's Progress</h3>
+                <p class="text-lg font-bold">词书：<span id="current-book-display">默认专业词库</span></p>
+                <div class="mt-4 bg-white/20 h-1.5 rounded-full overflow-hidden">
+                    <div id="goal-progress" class="bg-white h-full transition-all duration-700" style="width: 0%"></div>
+                </div>
             </div>
         </div>
     </main>
 
     <main id="view-explore" class="max-w-md mx-auto px-6 mt-8 hide">
-        <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
-            <button onclick="setFilter('all')" class="px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">全部</button>
-            <button onclick="setFilter('legal')" class="px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">⚖️ 法律</button>
-            <button onclick="setFilter('gaming')" class="px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">🎮 游戏</button>
-            <button onclick="setFilter('food')" class="px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">🍳 食物</button>
+        <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-2">
+            <button onclick="setFilter('all')" class="filter-tag px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm border border-transparent">全部</button>
+            <button onclick="setFilter('legal')" class="filter-tag px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">⚖️ 法律</button>
+            <button onclick="setFilter('gaming')" class="filter-tag px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">🎮 游戏</button>
+            <button onclick="setFilter('food')" class="filter-tag px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">🍳 食物</button>
         </div>
         <div id="explore-list" class="space-y-4 pb-12"></div>
     </main>
 
+    <div id="settings-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/10 backdrop-blur-sm z-[300] hide"></div>
+    <aside id="settings-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 z-[301] shadow-2xl p-8 flex flex-col">
+        <div class="flex justify-between items-center mb-10">
+            <h2 class="text-2xl font-black tracking-tighter">Preferences</h2>
+            <button onclick="toggleSidebar(false)" class="text-xl">✕</button>
+        </div>
+
+        <div class="flex-1 space-y-10">
+            <div>
+                <label class="text-[10px] font-black opacity-30 uppercase tracking-widest block mb-4">Interface</label>
+                <button onclick="toggleDarkMode()" id="mode-btn" class="w-full py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl flex justify-between px-5 items-center">
+                    <span class="font-bold text-sm">暗色模式</span>
+                    <span id="mode-icon">🌞</span>
+                </button>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-black opacity-30 uppercase tracking-widest block mb-4">Select Vocabulary Book</label>
+                <select id="book-select" onchange="changeBook(this.value)" class="w-full py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl px-4 font-bold text-sm outline-none">
+                    <option value="default">默认专业词库</option>
+                    <option value="gre">GRE 核心词汇</option>
+                    <option value="ielts">雅思精选词汇</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-black opacity-30 uppercase tracking-widest block mb-2">Daily Learning Goal</label>
+                <div class="flex justify-between items-center mb-4">
+                    <span id="goal-val" class="text-2xl font-black text-indigo-500">10</span>
+                    <span class="text-xs font-bold opacity-30">Words / Day</span>
+                </div>
+                <input type="range" min="5" max="50" step="5" value="10" oninput="updateGoal(this.value)" class="w-full h-1.5 bg-slate-100 rounded-full appearance-none accent-indigo-600">
+            </div>
+
+            <div class="pt-10">
+                <button onclick="clearData('progress')" class="w-full py-4 text-[10px] font-black uppercase tracking-widest text-orange-400 border border-orange-100 rounded-2xl mb-3">Clear Progress Only</button>
+                <button onclick="clearData('all')" class="w-full py-4 text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-50 rounded-2xl">Reset Everything</button>
+            </div>
+        </div>
+    </aside>
+
     <section id="study-layer" class="fixed inset-0 bg-white dark:bg-slate-900 z-[200] hide flex flex-col p-8">
         <div class="flex justify-between items-center mb-6">
-            <button onclick="closeStudy()" class="text-2xl opacity-30">✕</button>
+            <button onclick="closeStudy()" class="text-2xl opacity-20">✕</button>
             <div id="study-progress" class="text-[10px] font-black opacity-30 tracking-widest">1 / 10</div>
             <div class="w-6"></div>
         </div>
@@ -82,52 +128,26 @@
                 <div class="flip-card-inner">
                     <div class="flip-card-front" onclick="this.parentElement.parentElement.classList.toggle('flipped')">
                         <span id="card-cat" class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-4">CATEGORY</span>
-                        <h2 id="card-en" class="text-4xl font-black text-center">Term</h2>
-                        <p class="mt-12 text-[10px] opacity-20 uppercase font-black tracking-widest">点击查看释义</p>
+                        <h2 id="card-en" class="text-4xl font-black text-center tracking-tighter">Term</h2>
+                        <p class="mt-12 text-[9px] opacity-20 uppercase font-black tracking-widest">Tap to see definition</p>
                     </div>
                     <div class="flip-card-back">
                         <h3 id="card-zh" class="text-2xl font-bold text-indigo-500 mb-4">翻译</h3>
-                        <p id="card-d" class="text-sm opacity-60 text-center leading-relaxed">解释内容</p>
+                        <p id="card-d" class="text-sm opacity-60 text-center leading-relaxed px-4">解释内容</p>
                     </div>
                 </div>
             </div>
         </div>
         <div class="grid grid-cols-3 gap-3 mt-8" id="study-controls">
-            <button onclick="handleLearn(1)" class="py-5 bg-slate-100 dark:bg-slate-800 rounded-3xl font-black text-[10px] uppercase">忘了</button>
-            <button onclick="handleLearn(2)" class="py-5 bg-indigo-50 dark:bg-slate-800 rounded-3xl font-black text-[10px] text-indigo-400 uppercase">模糊</button>
-            <button onclick="handleLearn(3)" class="py-5 bg-indigo-600 rounded-3xl font-black text-[10px] text-white shadow-lg uppercase">认识</button>
+            <button onclick="handleLearn(1)" class="py-5 bg-slate-100 dark:bg-slate-800 rounded-[1.8rem] font-black text-[10px] uppercase">Forget</button>
+            <button onclick="handleLearn(2)" class="py-5 bg-indigo-50 dark:bg-slate-800 rounded-[1.8rem] font-black text-[10px] text-indigo-400 uppercase">Hard</button>
+            <button onclick="handleLearn(3)" class="py-5 bg-indigo-600 rounded-[1.8rem] font-black text-[10px] text-white shadow-lg uppercase">Know</button>
         </div>
     </section>
 
-    <section id="settings-panel" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-[300] hide">
-        <div class="absolute bottom-0 w-full bg-white dark:bg-slate-900 rounded-t-[3rem] p-10">
-            <div class="flex justify-between mb-8">
-                <h2 class="text-xl font-black">设置 Settings</h2>
-                <button onclick="toggleSettings(false)">✕</button>
-            </div>
-            <div class="space-y-8">
-                <div class="flex justify-between items-center">
-                    <span class="font-bold">外观模式</span>
-                    <button onclick="toggleDarkMode()" id="mode-btn" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold">🌞 白天模式</button>
-                </div>
-                <div>
-                    <div class="flex justify-between mb-2">
-                        <span class="font-bold">每日学习量</span>
-                        <span id="goal-val" class="text-indigo-500 font-black">10</span>
-                    </div>
-                    <input type="range" min="5" max="50" step="5" value="10" oninput="updateGoal(this.value)" class="w-full h-1.5 bg-slate-100 rounded-full appearance-none accent-indigo-600">
-                </div>
-                <div class="pt-4 space-y-3">
-                    <button onclick="clearData('progress')" class="w-full py-4 text-xs font-bold text-orange-500 border border-orange-100 rounded-2xl">仅清除学习进度</button>
-                    <button onclick="clearData('all')" class="w-full py-4 text-xs font-bold text-red-500 bg-red-50 rounded-2xl">清除全部数据（含笔记）</button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-64 h-20 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] shadow-xl flex items-center justify-around border border-white/20 z-[100]">
-        <button onclick="switchTab('home')" id="btn-home" class="nav-link active">📖</button>
-        <button onclick="switchTab('explore')" id="btn-explore" class="nav-link text-slate-300">🔍</button>
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-64 h-20 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl flex items-center justify-around border border-white/20 z-[100]">
+        <button onclick="switchTab('home')" id="btn-home" class="nav-link active text-xl">🏠</button>
+        <button onclick="switchTab('explore')" id="btn-explore" class="nav-link text-slate-300 text-xl">🔍</button>
     </nav>
 
     <script>
@@ -142,41 +162,68 @@
             { id:'f2', cat:'food', en:'Maillard Reaction', zh:'美拉德反应', d:'加热时发生的褐变反应，香气之源。' },
             { id:'g3', cat:'gaming', en:'Metagame', zh:'元游戏', d:'当前最高效的战术组合趋势。' },
             { id:'l4', cat:'legal', en:'Statute of Limitations', zh:'诉讼时效', d:'法律规定权利行使的时间限制。' },
-            { id:'f3', cat:'food', en:'Umami', zh:'鲜味', d:'第五种基本味道。' }
+            { id:'f3', cat:'food', en:'Umami', zh:'鲜味', d:'除了酸甜苦咸之外的第五种基本味道。' }
         ].sort((a,b) => a.en.localeCompare(b.en));
 
         let state = {
-            mem: JSON.parse(localStorage.getItem('lexi_v5_mem') || '{}'),
-            notes: JSON.parse(localStorage.getItem('lexi_v5_notes') || '{}'),
-            goal: localStorage.getItem('lexi_v5_goal') || 10,
-            dark: localStorage.getItem('lexi_v5_dark') === 'true',
+            mem: JSON.parse(localStorage.getItem('lexi_v6_mem') || '{}'),
+            notes: JSON.parse(localStorage.getItem('lexi_v6_notes') || '{}'),
+            goal: parseInt(localStorage.getItem('lexi_v6_goal') || '10'),
+            dark: localStorage.getItem('lexi_v6_dark') === 'true',
+            book: localStorage.getItem('lexi_v6_book') || 'default',
             filter: 'all', queue: [], idx: 0
         };
 
-        // --- 设置功能 ---
-        function toggleSettings(show) { document.getElementById('settings-panel').classList.toggle('hide', !show); }
-        
+        // --- 侧边栏逻辑 ---
+        function toggleSidebar(show) {
+            document.getElementById('settings-sidebar').classList.toggle('open', show);
+            document.getElementById('settings-overlay').classList.toggle('hide', !show);
+        }
+
         function toggleDarkMode() {
             state.dark = !state.dark;
             document.body.classList.toggle('dark', state.dark);
-            document.getElementById('mode-btn').innerText = state.dark ? '🌙 深夜模式' : '🌞 白天模式';
-            localStorage.setItem('lexi_v5_dark', state.dark);
+            document.getElementById('mode-icon').innerText = state.dark ? '🌙' : '🌞';
+            localStorage.setItem('lexi_v6_dark', state.dark);
         }
 
         function updateGoal(val) {
-            state.goal = val;
+            state.goal = parseInt(val);
             document.getElementById('goal-val').innerText = val;
-            localStorage.setItem('lexi_v5_goal', val);
+            localStorage.setItem('lexi_v6_goal', val);
+            autoAllocateNew(); // 调整滑块时立即补齐需学习数量
             updateHomeCounts();
         }
 
-        function clearData(type) {
-            if(!confirm("确定执行此操作？数据不可恢复")) return;
-            if(type === 'all') { localStorage.clear(); location.reload(); }
-            else { state.mem = {}; save(); updateHomeCounts(); toggleSettings(false); }
+        function changeBook(val) {
+            state.book = val;
+            localStorage.setItem('lexi_v6_book', val);
+            document.getElementById('current-book-display').innerText = 
+                val === 'default' ? '默认专业词库' : (val === 'gre' ? 'GRE 核心词汇' : '雅思精选词汇');
+            alert(`已切换到：${val.toUpperCase()}。系统将根据新词书分配任务。`);
         }
 
-        // --- 学习功能 (Ebbinghaus) ---
+        // --- 核心调度：补齐新词 ---
+        function autoAllocateNew() {
+            // 计算当前正在学习中（lv=0）的词条数量
+            let currentlyLearning = Object.keys(state.mem).filter(id => state.mem[id].lv === 0);
+            
+            // 如果不足每日目标，从未学过的池子里捞
+            if (currentlyLearning.length < state.goal) {
+                let unlearned = RAW_LIB.filter(i => !state.mem[i.id]);
+                let needed = state.goal - currentlyLearning.length;
+                
+                // 随机洗牌池子
+                unlearned.sort(() => Math.random() - 0.5);
+                
+                for (let i = 0; i < Math.min(needed, unlearned.length); i++) {
+                    state.mem[unlearned[i].id] = { lv: 0, next: 0 };
+                }
+                save();
+            }
+        }
+
+        // --- 学习与复习 ---
         function openStudy(type) {
             const now = Date.now();
             if(type === 'new') {
@@ -187,30 +234,17 @@
                     return m && m.lv > 0 && now >= m.next;
                 });
             }
-            if(state.queue.length === 0) return alert("任务已完成！");
+            if(state.queue.length === 0) return alert("当前没有待处理的任务！");
             state.idx = 0;
             document.getElementById('study-layer').classList.remove('hide');
             showStudyCard();
         }
 
-        function showStudyCard() {
-            const item = state.queue[state.idx];
-            document.getElementById('mainCard').classList.remove('flipped');
-            document.getElementById('card-en').innerText = item.en;
-            document.getElementById('card-zh').innerText = item.zh;
-            document.getElementById('card-d').innerText = item.d;
-            document.getElementById('card-cat').innerText = item.cat;
-            document.getElementById('study-progress').innerText = `${state.idx + 1} / ${state.queue.length}`;
-            document.getElementById('study-controls').style.pointerEvents = 'auto';
-        }
-
         function handleLearn(score) {
-            // 自动翻转显示反馈
             document.getElementById('mainCard').classList.add('flipped');
             document.getElementById('study-controls').style.pointerEvents = 'none';
 
             const item = state.queue[state.idx];
-            if(!state.mem[item.id]) state.mem[item.id] = { lv: 0, next: 0 };
             const m = state.mem[item.id];
             
             if(score === 3) m.lv += 1;
@@ -224,38 +258,81 @@
                 state.idx++;
                 if(state.idx < state.queue.length) showStudyCard();
                 else closeStudy();
-            }, 1200); // 停留1.2秒查看释义
+            }, 1000);
         }
 
-        // --- 探索 & 笔记 ---
+        // --- 探索页反馈优化 ---
         function renderExplore() {
             const container = document.getElementById('explore-list');
             const filtered = RAW_LIB.filter(i => state.filter === 'all' || i.cat === state.filter);
             
             container.innerHTML = filtered.map(i => `
-                <div class="bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-sm border border-slate-50 dark:border-slate-700 transition-all">
+                <div class="bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-sm border border-slate-50 dark:border-slate-700">
                     <div class="flex justify-between items-start" onclick="toggleDetail('${i.id}')">
                         <div>
                             <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest">${i.cat}</span>
-                            <h4 class="text-lg font-black mt-1">${i.en}</h4>
+                            <h4 class="text-lg font-black mt-1 tracking-tighter">${i.en}</h4>
                         </div>
-                        ${state.mem[i.id]?.lv > 0 ? '✅' : `<button onclick="addToPlan(event, '${i.id}')" class="text-[9px] font-black bg-indigo-50 dark:bg-slate-700 text-indigo-500 px-3 py-1.5 rounded-full">ADD</button>`}
+                        <button id="btn-add-${i.id}" onclick="addToPlan(event, '${i.id}')" 
+                                class="transition-all duration-300 text-[10px] font-black ${state.mem[i.id] ? 'btn-added' : 'bg-indigo-50 dark:bg-slate-700 text-indigo-500'} px-4 py-2 rounded-full">
+                            ${state.mem[i.id] ? '✓ ADDED' : '+ ADD'}
+                        </button>
                     </div>
                     <div id="detail-${i.id}" class="hide mt-4 pt-4 border-t border-slate-50 dark:border-slate-700">
                         <p class="text-sm font-bold text-indigo-500 mb-2">${i.zh}</p>
-                        <p class="text-xs opacity-60 leading-relaxed mb-4">${i.d}</p>
+                        <p class="text-xs opacity-60 mb-4">${i.d}</p>
                         <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-xl">
-                            <textarea onchange="saveNote('${i.id}', this.value)" placeholder="添加个人笔记..." class="w-full bg-transparent text-xs focus:outline-none min-h-[60px]">${state.notes[i.id] || ''}</textarea>
+                            <textarea onchange="saveNote('${i.id}', this.value)" placeholder="My personal notes..." class="w-full bg-transparent text-xs focus:outline-none min-h-[60px]">${state.notes[i.id] || ''}</textarea>
                         </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        function toggleDetail(id) { document.getElementById(`detail-${id}`).classList.toggle('hide'); }
-        function saveNote(id, val) { state.notes[id] = val; localStorage.setItem('lexi_v5_notes', JSON.stringify(state.notes)); }
+        function addToPlan(e, id) {
+            e.stopPropagation();
+            if(state.mem[id]) return;
+            
+            const btn = document.getElementById(`btn-add-${id}`);
+            btn.classList.add('btn-added');
+            btn.innerHTML = '✓ ADDED';
+            
+            state.mem[id] = { lv: 0, next: 0 };
+            save();
+            updateHomeCounts();
+        }
 
-        // --- 基础逻辑 ---
+        // --- 通用方法 ---
+        function updateHomeCounts() {
+            const news = RAW_LIB.filter(i => state.mem[i.id] && state.mem[i.id].lv === 0).length;
+            const reviews = RAW_LIB.filter(i => state.mem[i.id]?.lv > 0 && Date.now() >= state.mem[i.id].next).length;
+            document.getElementById('num-new').innerText = news;
+            document.getElementById('num-review').innerText = reviews;
+            
+            // 进度条逻辑：这里定义为：(已学完/目标)*100
+            let finishedToday = RAW_LIB.filter(i => state.mem[i.id] && state.mem[i.id].lv > 0 && state.mem[i.id].next > Date.now()).length;
+            document.getElementById('goal-progress').style.width = Math.min(100, (finishedToday / state.goal) * 100) + '%';
+        }
+
+        function clearData(type) {
+            if(!confirm("Are you sure? This cannot be undone.")) return;
+            if(type === 'all') { localStorage.clear(); location.reload(); }
+            else { state.mem = {}; save(); autoAllocateNew(); updateHomeCounts(); toggleSidebar(false); }
+        }
+
+        function save() { localStorage.setItem('lexi_v6_mem', JSON.stringify(state.mem)); }
+        function showStudyCard() {
+            const item = state.queue[state.idx];
+            document.getElementById('mainCard').classList.remove('flipped');
+            document.getElementById('card-en').innerText = item.en;
+            document.getElementById('card-zh').innerText = item.zh;
+            document.getElementById('card-d').innerText = item.d;
+            document.getElementById('card-cat').innerText = item.cat;
+            document.getElementById('study-progress').innerText = `${state.idx + 1} / ${state.queue.length}`;
+            document.getElementById('study-controls').style.pointerEvents = 'auto';
+        }
+        function toggleDetail(id) { document.getElementById(`detail-${id}`).classList.toggle('hide'); }
+        function saveNote(id, val) { state.notes[id] = val; localStorage.setItem('lexi_v6_notes', JSON.stringify(state.notes)); }
         function switchTab(tab) {
             document.getElementById('view-home').classList.toggle('hide', tab !== 'home');
             document.getElementById('view-explore').classList.toggle('hide', tab !== 'explore');
@@ -263,28 +340,14 @@
             document.getElementById('btn-explore').classList.toggle('active', tab === 'explore');
             if(tab === 'explore') renderExplore();
         }
-
-        function addToPlan(e, id) {
-            e.stopPropagation();
-            state.mem[id] = { lv: 0, next: 0 };
-            save(); renderExplore(); updateHomeCounts();
-        }
-
-        function updateHomeCounts() {
-            const news = RAW_LIB.filter(i => state.mem[i.id] && state.mem[i.id].lv === 0).length;
-            const reviews = RAW_LIB.filter(i => state.mem[i.id]?.lv > 0 && Date.now() >= state.mem[i.id].next).length;
-            document.getElementById('num-new').innerText = news;
-            document.getElementById('num-review').innerText = reviews;
-            document.getElementById('goal-progress').style.width = Math.min(100, ( (state.goal-news)/state.goal ) * 100) + '%';
-        }
-
-        function save() { localStorage.setItem('lexi_v5_mem', JSON.stringify(state.mem)); }
         function closeStudy() { document.getElementById('study-layer').classList.add('hide'); updateHomeCounts(); }
         function setFilter(cat) { state.filter = cat; renderExplore(); }
 
         // 初始化
-        if(state.dark) document.body.classList.add('dark');
+        if(state.dark) { document.body.classList.add('dark'); document.getElementById('mode-icon').innerText = '🌙'; }
         document.getElementById('goal-val').innerText = state.goal;
+        document.getElementById('book-select').value = state.book;
+        autoAllocateNew(); // 启动即分配
         updateHomeCounts();
     </script>
 </body>
