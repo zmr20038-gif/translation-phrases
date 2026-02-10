@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LexiFlow Pro v5</title>
+    <title>LexiFlow Ultimate v6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -15,340 +15,343 @@
         #settings-sidebar { transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         #settings-sidebar.open { transform: translateX(0); }
 
-        /* 卡片翻转 */
-        .flip-card { perspective: 1000px; width: 100%; height: 420px; }
-        .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
-        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
-        .flip-card-front, .flip-card-back { 
-            position: absolute; width: 100%; height: 100%; backface-visibility: hidden; 
-            border-radius: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem;
-            background: var(--card); box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05);
-        }
-        .flip-card-back { transform: rotateY(180deg); border: 2px solid var(--accent); }
+        /* 卡片动画与手势 */
+        .card-container { perspective: 1000px; width: 100%; height: 450px; position: relative; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; cursor: pointer; }
+        .flipped .flip-card-inner { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; background: var(--card); box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); }
+        .card-back { transform: rotateY(180deg); border: 2px solid var(--accent); }
 
-        /* ADD 按钮动画 */
-        @keyframes added-pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        .btn-added { animation: added-pop 0.3s ease-out; background-color: #10B981 !important; color: white !important; }
+        /* 统计图表占位 */
+        .stat-bar { height: 8px; border-radius: 4px; background: #E2E8F0; overflow: hidden; }
+        .stat-fill { height: 100%; background: var(--accent); transition: width 0.5s ease; }
 
         .hide { display: none !important; }
-        .nav-link.active { color: var(--accent); font-weight: 800; }
+        .active-tab { color: var(--accent); transform: translateY(-4px); }
     </style>
 </head>
 <body class="pb-24">
 
-    <header class="max-w-md mx-auto px-6 pt-12 flex justify-between items-center">
+    <header class="max-w-md mx-auto px-6 pt-10 flex justify-between items-center">
         <div>
-            <h1 class="text-3xl font-[800] tracking-tighter">LexiFlow</h1>
-            <p class="text-[10px] font-black opacity-30 uppercase tracking-[0.2em]">Adaptive Learning</p>
+            <h1 class="text-3xl font-[900] tracking-tighter italic">LexiFlow<span class="text-indigo-500">.</span></h1>
+            <p id="rank-tag" class="text-[9px] font-black opacity-40 uppercase tracking-widest text-indigo-600">律政先锋 Lv.1</p>
         </div>
-        <button onclick="toggleSidebar(true)" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm">⚙️</button>
+        <div class="flex gap-3">
+            <button onclick="switchTab('stats')" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm text-sm">📊</button>
+            <button onclick="toggleSidebar(true)" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm">⚙️</button>
+        </div>
     </header>
 
-    <main id="view-home" class="max-w-md mx-auto px-6 mt-10">
-        <div class="grid grid-cols-2 gap-4 mb-8">
-            <div onclick="openStudy('new')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.2rem] shadow-sm cursor-pointer border border-transparent hover:border-indigo-200 transition-all">
-                <span class="text-[9px] font-black opacity-30 uppercase tracking-widest">需学习 New</span>
-                <p id="num-new" class="text-4xl font-black mt-2 text-indigo-500">0</p>
+    <main id="view-home" class="max-w-md mx-auto px-6 mt-8">
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div onclick="openStudy('new')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-sm active:scale-95 transition-all border-b-4 border-indigo-100 dark:border-slate-700">
+                <span class="text-[9px] font-black opacity-30 uppercase tracking-widest">需学习</span>
+                <p id="num-new" class="text-4xl font-black mt-1 text-indigo-500">0</p>
             </div>
-            <div onclick="openStudy('review')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.2rem] shadow-sm cursor-pointer border border-transparent hover:border-emerald-200 transition-all">
-                <span class="text-[9px] font-black opacity-30 uppercase tracking-widest">复习 Review</span>
-                <p id="num-review" class="text-4xl font-black mt-2 text-emerald-500">0</p>
+            <div onclick="openStudy('review')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-sm active:scale-95 transition-all border-b-4 border-emerald-100 dark:border-slate-700">
+                <span class="text-[9px] font-black opacity-30 uppercase tracking-widest">待复习</span>
+                <p id="num-review" class="text-4xl font-black mt-1 text-emerald-500">0</p>
             </div>
         </div>
-        <div class="bg-indigo-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
-            <div class="relative z-10">
-                <h3 class="font-black text-[10px] opacity-60 uppercase tracking-widest mb-2">Today's Progress</h3>
-                <p class="text-lg font-bold">词书：<span id="current-book-display">默认专业词库</span></p>
-                <div class="mt-4 bg-white/20 h-1.5 rounded-full overflow-hidden">
-                    <div id="goal-progress" class="bg-white h-full transition-all duration-700" style="width: 0%"></div>
-                </div>
+
+        <div class="bg-indigo-600 p-8 rounded-[3rem] text-white shadow-xl shadow-indigo-200 relative overflow-hidden">
+            <div class="flex justify-between items-start mb-6">
+                <h3 class="font-black text-[10px] opacity-60 uppercase tracking-widest">Next Review</h3>
+                <span id="countdown" class="text-[10px] font-bold bg-white/20 px-3 py-1 rounded-full italic">准备就绪</span>
             </div>
+            <p class="text-xl font-bold leading-tight mb-4">"Words are our most inexhaustible source of magic."</p>
+            <div class="stat-bar bg-white/20"><div id="home-progress" class="stat-fill bg-white" style="width: 30%"></div></div>
+        </div>
+    </main>
+
+    <main id="view-stats" class="max-w-md mx-auto px-6 mt-8 hide">
+        <h2 class="text-2xl font-black mb-6">记忆数据中心</h2>
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] mb-6 shadow-sm">
+            <p class="text-[10px] font-black opacity-30 uppercase tracking-widest mb-4">艾宾浩斯分布 (记忆持久度)</p>
+            <div id="ebbinghaus-stats" class="space-y-4">
+                </div>
+        </div>
+        <div class="bg-emerald-500 p-6 rounded-[2.5rem] text-white">
+            <p class="text-xs opacity-80">累计掌握词条</p>
+            <p id="total-mastered" class="text-4xl font-black">0</p>
         </div>
     </main>
 
     <main id="view-explore" class="max-w-md mx-auto px-6 mt-8 hide">
-        <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-2">
-            <button onclick="setFilter('all')" class="filter-tag px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm border border-transparent">全部</button>
-            <button onclick="setFilter('legal')" class="filter-tag px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">⚖️ 法律</button>
-            <button onclick="setFilter('gaming')" class="filter-tag px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">🎮 游戏</button>
-            <button onclick="setFilter('food')" class="filter-tag px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">🍳 食物</button>
+        <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
+            <button onclick="setFilter('all')" class="px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">全部</button>
+            <button onclick="setFilter('legal')" class="px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">⚖️ 法律</button>
+            <button onclick="setFilter('gaming')" class="px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">🎮 游戏</button>
+            <button onclick="setFilter('food')" class="px-5 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold shadow-sm">🍳 食物</button>
         </div>
-        <div id="explore-list" class="space-y-4 pb-12"></div>
+        <div id="explore-list" class="space-y-4 pb-20"></div>
     </main>
-
-    <div id="settings-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/10 backdrop-blur-sm z-[300] hide"></div>
-    <aside id="settings-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 z-[301] shadow-2xl p-8 flex flex-col">
-        <div class="flex justify-between items-center mb-10">
-            <h2 class="text-2xl font-black tracking-tighter">Preferences</h2>
-            <button onclick="toggleSidebar(false)" class="text-xl">✕</button>
-        </div>
-
-        <div class="flex-1 space-y-10">
-            <div>
-                <label class="text-[10px] font-black opacity-30 uppercase tracking-widest block mb-4">Interface</label>
-                <button onclick="toggleDarkMode()" id="mode-btn" class="w-full py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl flex justify-between px-5 items-center">
-                    <span class="font-bold text-sm">暗色模式</span>
-                    <span id="mode-icon">🌞</span>
-                </button>
-            </div>
-
-            <div>
-                <label class="text-[10px] font-black opacity-30 uppercase tracking-widest block mb-4">Select Vocabulary Book</label>
-                <select id="book-select" onchange="changeBook(this.value)" class="w-full py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl px-4 font-bold text-sm outline-none">
-                    <option value="default">默认专业词库</option>
-                    <option value="gre">GRE 核心词汇</option>
-                    <option value="ielts">雅思精选词汇</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="text-[10px] font-black opacity-30 uppercase tracking-widest block mb-2">Daily Learning Goal</label>
-                <div class="flex justify-between items-center mb-4">
-                    <span id="goal-val" class="text-2xl font-black text-indigo-500">10</span>
-                    <span class="text-xs font-bold opacity-30">Words / Day</span>
-                </div>
-                <input type="range" min="5" max="50" step="5" value="10" oninput="updateGoal(this.value)" class="w-full h-1.5 bg-slate-100 rounded-full appearance-none accent-indigo-600">
-            </div>
-
-            <div class="pt-10">
-                <button onclick="clearData('progress')" class="w-full py-4 text-[10px] font-black uppercase tracking-widest text-orange-400 border border-orange-100 rounded-2xl mb-3">Clear Progress Only</button>
-                <button onclick="clearData('all')" class="w-full py-4 text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-50 rounded-2xl">Reset Everything</button>
-            </div>
-        </div>
-    </aside>
 
     <section id="study-layer" class="fixed inset-0 bg-white dark:bg-slate-900 z-[200] hide flex flex-col p-8">
         <div class="flex justify-between items-center mb-6">
             <button onclick="closeStudy()" class="text-2xl opacity-20">✕</button>
             <div id="study-progress" class="text-[10px] font-black opacity-30 tracking-widest">1 / 10</div>
-            <div class="w-6"></div>
+            <button onclick="speakWord()" class="text-xl">🔊</button>
         </div>
+        
         <div class="flex-1 flex items-center justify-center">
-            <div class="flip-card" id="mainCard">
-                <div class="flip-card-inner">
-                    <div class="flip-card-front" onclick="this.parentElement.parentElement.classList.toggle('flipped')">
-                        <span id="card-cat" class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-4">CATEGORY</span>
-                        <h2 id="card-en" class="text-4xl font-black text-center tracking-tighter">Term</h2>
-                        <p class="mt-12 text-[9px] opacity-20 uppercase font-black tracking-widest">Tap to see definition</p>
+            <div class="card-container" id="studyCard">
+                <div class="flip-card-inner" onclick="this.parentElement.classList.toggle('flipped')">
+                    <div class="card-face card-front">
+                        <span id="card-cat" class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-4">Category</span>
+                        <h2 id="card-en" class="text-5xl font-[900] tracking-tighter text-center">Word</h2>
+                        <p class="mt-20 text-[9px] opacity-20 font-black tracking-widest uppercase animate-bounce">点击或滑动</p>
                     </div>
-                    <div class="flip-card-back">
-                        <h3 id="card-zh" class="text-2xl font-bold text-indigo-500 mb-4">翻译</h3>
-                        <p id="card-d" class="text-sm opacity-60 text-center leading-relaxed px-4">解释内容</p>
+                    <div class="card-face card-back">
+                        <h3 id="card-zh" class="text-2xl font-bold text-indigo-500 mb-2">翻译</h3>
+                        <p id="card-d" class="text-sm opacity-50 text-center leading-relaxed mb-6 px-4 italic">详细定义...</p>
+                        <div class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+                            <span class="text-[8px] font-black opacity-30 uppercase block mb-1">🎬 AI 场景联想</span>
+                            <p id="card-example" class="text-xs leading-relaxed font-medium">Loading classic scene...</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="grid grid-cols-3 gap-3 mt-8" id="study-controls">
-            <button onclick="handleLearn(1)" class="py-5 bg-slate-100 dark:bg-slate-800 rounded-[1.8rem] font-black text-[10px] uppercase">Forget</button>
-            <button onclick="handleLearn(2)" class="py-5 bg-indigo-50 dark:bg-slate-800 rounded-[1.8rem] font-black text-[10px] text-indigo-400 uppercase">Hard</button>
-            <button onclick="handleLearn(3)" class="py-5 bg-indigo-600 rounded-[1.8rem] font-black text-[10px] text-white shadow-lg uppercase">Know</button>
+
+        <div class="grid grid-cols-3 gap-3 mt-8">
+            <button onclick="handleLearn(1)" class="py-5 bg-slate-100 dark:bg-slate-800 rounded-[2rem] font-black text-[10px] uppercase">Forget</button>
+            <button onclick="handleLearn(2)" class="py-5 bg-indigo-50 dark:bg-slate-800 rounded-[2rem] font-black text-[10px] text-indigo-400 uppercase">Hard</button>
+            <button onclick="handleLearn(3)" class="py-5 bg-indigo-600 rounded-[2rem] font-black text-[10px] text-white shadow-lg uppercase">Know</button>
         </div>
     </section>
 
-    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-64 h-20 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl flex items-center justify-around border border-white/20 z-[100]">
-        <button onclick="switchTab('home')" id="btn-home" class="nav-link active text-xl">🏠</button>
-        <button onclick="switchTab('explore')" id="btn-explore" class="nav-link text-slate-300 text-xl">🔍</button>
+    <div id="settings-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/10 backdrop-blur-sm z-[300] hide"></div>
+    <aside id="settings-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 z-[301] shadow-2xl p-8 overflow-y-auto">
+        <h2 class="text-2xl font-black mb-10">Lexi Settings</h2>
+        
+        <div class="space-y-8">
+            <div>
+                <label class="text-[10px] font-black opacity-30 uppercase mb-3 block tracking-widest">Interface</label>
+                <button onclick="toggleDarkMode()" class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl flex justify-between font-bold text-sm">
+                    <span>外观模式</span><span id="mode-icon">🌞</span>
+                </button>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-black opacity-30 uppercase mb-3 block tracking-widest">Import Dictionary (.txt)</label>
+                <input type="file" id="fileInput" onchange="handleFileUpload(event)" class="text-xs font-bold block w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-indigo-50 file:text-indigo-600">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-black opacity-30 uppercase mb-2 block tracking-widest">Daily Goal</label>
+                <div class="flex justify-between font-black text-indigo-500 mb-2"><span id="goal-val">10</span><span>Words</span></div>
+                <input type="range" min="5" max="50" step="5" value="10" oninput="updateGoal(this.value)" class="w-full h-1.5 bg-slate-100 rounded-full appearance-none accent-indigo-600">
+            </div>
+
+            <div class="pt-6 space-y-3">
+                <button onclick="exportData()" class="w-full py-4 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase rounded-2xl tracking-widest">Export Backup (JSON)</button>
+                <button onclick="clearData()" class="w-full py-4 text-red-500 text-[10px] font-black uppercase rounded-2xl tracking-widest border border-red-50">Reset All Data</button>
+            </div>
+        </div>
+    </aside>
+
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-72 h-20 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl flex items-center justify-around z-[100] px-4">
+        <button onclick="switchTab('home')" id="btn-home" class="nav-link text-2xl p-3 active-tab">🏠</button>
+        <button onclick="switchTab('explore')" id="btn-explore" class="nav-link text-2xl p-3 opacity-30">🔍</button>
+        <button onclick="switchTab('stats')" id="btn-stats" class="nav-link text-2xl p-3 opacity-30">📈</button>
     </nav>
 
     <script>
-        // 词库 A-Z
-        const RAW_LIB = [
-            { id:'g1', cat:'gaming', en:'Aggro', zh:'仇恨值', d:'衡量怪物对不同玩家攻击欲望的数值。' },
-            { id:'f1', cat:'food', en:'Al Dente', zh:'弹牙', d:'形容意面或米饭中心保留一丝嚼劲。' },
-            { id:'l1', cat:'legal', en:'Bona Fide', zh:'善意', d:'法律术语，指主观出于真诚、无欺诈意图。' },
-            { id:'l3', cat:'legal', en:'Due Diligence', zh:'尽职调查', d:'对资产及风险的全面调查。' },
-            { id:'g2', cat:'gaming', en:'Fog of War', zh:'战争迷雾', d:'遮蔽未探索区域的视觉效果。' },
-            { id:'l2', cat:'legal', en:'Force Majeure', zh:'不可抗力', d:'不能预见、避免且克服的客观情况。' },
-            { id:'f2', cat:'food', en:'Maillard Reaction', zh:'美拉德反应', d:'加热时发生的褐变反应，香气之源。' },
-            { id:'g3', cat:'gaming', en:'Metagame', zh:'元游戏', d:'当前最高效的战术组合趋势。' },
-            { id:'l4', cat:'legal', en:'Statute of Limitations', zh:'诉讼时效', d:'法律规定权利行使的时间限制。' },
-            { id:'f3', cat:'food', en:'Umami', zh:'鲜味', d:'除了酸甜苦咸之外的第五种基本味道。' }
-        ].sort((a,b) => a.en.localeCompare(b.en));
+        // 核心词库
+        let RAW_LIB = [
+            { id:'l1', cat:'legal', en:'Bona Fide', zh:'善意', d:'主观出于真诚、无欺诈意图。', scenes: ["《金装律师》：Harvey 质疑对方是否 Bona Fide 履行合同。"] },
+            { id:'g1', cat:'gaming', en:'Aggro', zh:'仇恨值', d:'怪物对玩家攻击欲望的数值。', scenes: ["《头号玩家》：在这种等级的副本里，千万别乱拉 Aggro。"] },
+            { id:'f1', cat:'food', en:'Al Dente', zh:'弹牙', d:'意面中心保留一丝嚼劲。', scenes: ["《美食总动员》：完美的意大利面必须保持 Al Dente 的口感。"] },
+            { id:'l2', cat:'legal', en:'Pro Bono', zh:'公益服务', d:'为公众利益提供的免费法律服务。', scenes: ["《傲骨贤妻》：Alicia 决定接手这个 Pro Bono 案件。"] },
+            { id:'l3', cat:'legal', en:'Subpoena', zh:'传票', d:'法院传唤证人到庭的命令。', scenes: ["《纸牌屋》：他收到了一份来自国会的 Subpoena。"] }
+        ];
 
         let state = {
-            mem: JSON.parse(localStorage.getItem('lexi_v6_mem') || '{}'),
-            notes: JSON.parse(localStorage.getItem('lexi_v6_notes') || '{}'),
-            goal: parseInt(localStorage.getItem('lexi_v6_goal') || '10'),
-            dark: localStorage.getItem('lexi_v6_dark') === 'true',
-            book: localStorage.getItem('lexi_v6_book') || 'default',
+            mem: JSON.parse(localStorage.getItem('lexi_v7_mem') || '{}'),
+            notes: JSON.parse(localStorage.getItem('lexi_v7_notes') || '{}'),
+            goal: parseInt(localStorage.getItem('lexi_v7_goal') || '10'),
+            dark: localStorage.getItem('lexi_v7_dark') === 'true',
             filter: 'all', queue: [], idx: 0
         };
 
-        // --- 侧边栏逻辑 ---
-        function toggleSidebar(show) {
-            document.getElementById('settings-sidebar').classList.toggle('open', show);
-            document.getElementById('settings-overlay').classList.toggle('hide', !show);
+        // --- 初始化 & 联动 ---
+        function init() {
+            if(state.dark) document.body.classList.add('dark');
+            document.getElementById('goal-val').innerText = state.goal;
+            autoAllocate();
+            updateDashboard();
+            renderStats();
         }
 
-        function toggleDarkMode() {
-            state.dark = !state.dark;
-            document.body.classList.toggle('dark', state.dark);
-            document.getElementById('mode-icon').innerText = state.dark ? '🌙' : '🌞';
-            localStorage.setItem('lexi_v6_dark', state.dark);
-        }
-
-        function updateGoal(val) {
-            state.goal = parseInt(val);
-            document.getElementById('goal-val').innerText = val;
-            localStorage.setItem('lexi_v6_goal', val);
-            autoAllocateNew(); // 调整滑块时立即补齐需学习数量
-            updateHomeCounts();
-        }
-
-        function changeBook(val) {
-            state.book = val;
-            localStorage.setItem('lexi_v6_book', val);
-            document.getElementById('current-book-display').innerText = 
-                val === 'default' ? '默认专业词库' : (val === 'gre' ? 'GRE 核心词汇' : '雅思精选词汇');
-            alert(`已切换到：${val.toUpperCase()}。系统将根据新词书分配任务。`);
-        }
-
-        // --- 核心调度：补齐新词 ---
-        function autoAllocateNew() {
-            // 计算当前正在学习中（lv=0）的词条数量
-            let currentlyLearning = Object.keys(state.mem).filter(id => state.mem[id].lv === 0);
-            
-            // 如果不足每日目标，从未学过的池子里捞
-            if (currentlyLearning.length < state.goal) {
-                let unlearned = RAW_LIB.filter(i => !state.mem[i.id]);
-                let needed = state.goal - currentlyLearning.length;
-                
-                // 随机洗牌池子
-                unlearned.sort(() => Math.random() - 0.5);
-                
-                for (let i = 0; i < Math.min(needed, unlearned.length); i++) {
-                    state.mem[unlearned[i].id] = { lv: 0, next: 0 };
+        function autoAllocate() {
+            let learning = Object.keys(state.mem).filter(id => state.mem[id].lv === 0);
+            if(learning.length < state.goal) {
+                let pool = RAW_LIB.filter(i => !state.mem[i.id]).sort(() => Math.random() - 0.5);
+                for(let i=0; i < Math.min(state.goal - learning.length, pool.length); i++) {
+                    state.mem[pool[i].id] = { lv: 0, next: 0 };
                 }
                 save();
             }
         }
 
-        // --- 学习与复习 ---
+        // --- 学习逻辑 (含 AI 场景) ---
         function openStudy(type) {
             const now = Date.now();
-            if(type === 'new') {
-                state.queue = RAW_LIB.filter(i => state.mem[i.id] && state.mem[i.id].lv === 0).slice(0, state.goal);
-            } else {
-                state.queue = RAW_LIB.filter(i => {
-                    const m = state.mem[i.id];
-                    return m && m.lv > 0 && now >= m.next;
-                });
-            }
-            if(state.queue.length === 0) return alert("当前没有待处理的任务！");
+            state.queue = RAW_LIB.filter(i => {
+                const m = state.mem[i.id];
+                return type === 'new' ? (m && m.lv === 0) : (m && m.lv > 0 && now >= m.next);
+            }).slice(0, state.goal);
+            
+            if(!state.queue.length) return alert("暂无待处理词条！");
             state.idx = 0;
             document.getElementById('study-layer').classList.remove('hide');
-            showStudyCard();
+            showCard();
         }
 
-        function handleLearn(score) {
-            document.getElementById('mainCard').classList.add('flipped');
-            document.getElementById('study-controls').style.pointerEvents = 'none';
-
+        function showCard() {
             const item = state.queue[state.idx];
-            const m = state.mem[item.id];
-            
-            if(score === 3) m.lv += 1;
-            else if(score === 1) m.lv = Math.max(1, m.lv - 1);
-
-            const intervals = [0, 0.1, 1, 2, 4, 7, 15, 30, 60];
-            m.next = Date.now() + (intervals[Math.min(m.lv, 8)] * 86400000);
-            save();
-
-            setTimeout(() => {
-                state.idx++;
-                if(state.idx < state.queue.length) showStudyCard();
-                else closeStudy();
-            }, 1000);
-        }
-
-        // --- 探索页反馈优化 ---
-        function renderExplore() {
-            const container = document.getElementById('explore-list');
-            const filtered = RAW_LIB.filter(i => state.filter === 'all' || i.cat === state.filter);
-            
-            container.innerHTML = filtered.map(i => `
-                <div class="bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-sm border border-slate-50 dark:border-slate-700">
-                    <div class="flex justify-between items-start" onclick="toggleDetail('${i.id}')">
-                        <div>
-                            <span class="text-[9px] font-black text-indigo-400 uppercase tracking-widest">${i.cat}</span>
-                            <h4 class="text-lg font-black mt-1 tracking-tighter">${i.en}</h4>
-                        </div>
-                        <button id="btn-add-${i.id}" onclick="addToPlan(event, '${i.id}')" 
-                                class="transition-all duration-300 text-[10px] font-black ${state.mem[i.id] ? 'btn-added' : 'bg-indigo-50 dark:bg-slate-700 text-indigo-500'} px-4 py-2 rounded-full">
-                            ${state.mem[i.id] ? '✓ ADDED' : '+ ADD'}
-                        </button>
-                    </div>
-                    <div id="detail-${i.id}" class="hide mt-4 pt-4 border-t border-slate-50 dark:border-slate-700">
-                        <p class="text-sm font-bold text-indigo-500 mb-2">${i.zh}</p>
-                        <p class="text-xs opacity-60 mb-4">${i.d}</p>
-                        <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-xl">
-                            <textarea onchange="saveNote('${i.id}', this.value)" placeholder="My personal notes..." class="w-full bg-transparent text-xs focus:outline-none min-h-[60px]">${state.notes[i.id] || ''}</textarea>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function addToPlan(e, id) {
-            e.stopPropagation();
-            if(state.mem[id]) return;
-            
-            const btn = document.getElementById(`btn-add-${id}`);
-            btn.classList.add('btn-added');
-            btn.innerHTML = '✓ ADDED';
-            
-            state.mem[id] = { lv: 0, next: 0 };
-            save();
-            updateHomeCounts();
-        }
-
-        // --- 通用方法 ---
-        function updateHomeCounts() {
-            const news = RAW_LIB.filter(i => state.mem[i.id] && state.mem[i.id].lv === 0).length;
-            const reviews = RAW_LIB.filter(i => state.mem[i.id]?.lv > 0 && Date.now() >= state.mem[i.id].next).length;
-            document.getElementById('num-new').innerText = news;
-            document.getElementById('num-review').innerText = reviews;
-            
-            // 进度条逻辑：这里定义为：(已学完/目标)*100
-            let finishedToday = RAW_LIB.filter(i => state.mem[i.id] && state.mem[i.id].lv > 0 && state.mem[i.id].next > Date.now()).length;
-            document.getElementById('goal-progress').style.width = Math.min(100, (finishedToday / state.goal) * 100) + '%';
-        }
-
-        function clearData(type) {
-            if(!confirm("Are you sure? This cannot be undone.")) return;
-            if(type === 'all') { localStorage.clear(); location.reload(); }
-            else { state.mem = {}; save(); autoAllocateNew(); updateHomeCounts(); toggleSidebar(false); }
-        }
-
-        function save() { localStorage.setItem('lexi_v6_mem', JSON.stringify(state.mem)); }
-        function showStudyCard() {
-            const item = state.queue[state.idx];
-            document.getElementById('mainCard').classList.remove('flipped');
+            const card = document.getElementById('studyCard');
+            card.classList.remove('flipped');
             document.getElementById('card-en').innerText = item.en;
             document.getElementById('card-zh').innerText = item.zh;
             document.getElementById('card-d').innerText = item.d;
             document.getElementById('card-cat').innerText = item.cat;
-            document.getElementById('study-progress').innerText = `${state.idx + 1} / ${state.queue.length}`;
-            document.getElementById('study-controls').style.pointerEvents = 'auto';
+            document.getElementById('study-progress').innerText = `${state.idx+1} / ${state.queue.length}`;
+            
+            // 模拟影视场景生成
+            const scenePool = item.scenes || ["《老友记》中某个日常对话语境。"];
+            document.getElementById('card-example').innerText = scenePool[Math.floor(Math.random()*scenePool.length)];
         }
-        function toggleDetail(id) { document.getElementById(`detail-${id}`).classList.toggle('hide'); }
-        function saveNote(id, val) { state.notes[id] = val; localStorage.setItem('lexi_v6_notes', JSON.stringify(state.notes)); }
-        function switchTab(tab) {
-            document.getElementById('view-home').classList.toggle('hide', tab !== 'home');
-            document.getElementById('view-explore').classList.toggle('hide', tab !== 'explore');
-            document.getElementById('btn-home').classList.toggle('active', tab === 'home');
-            document.getElementById('btn-explore').classList.toggle('active', tab === 'explore');
-            if(tab === 'explore') renderExplore();
-        }
-        function closeStudy() { document.getElementById('study-layer').classList.add('hide'); updateHomeCounts(); }
-        function setFilter(cat) { state.filter = cat; renderExplore(); }
 
-        // 初始化
-        if(state.dark) { document.body.classList.add('dark'); document.getElementById('mode-icon').innerText = '🌙'; }
-        document.getElementById('goal-val').innerText = state.goal;
-        document.getElementById('book-select').value = state.book;
-        autoAllocateNew(); // 启动即分配
-        updateHomeCounts();
+        function handleLearn(score) {
+            // Haptic feedback
+            if(window.navigator.vibrate) window.navigator.vibrate(10);
+            
+            const item = state.queue[state.idx];
+            const m = state.mem[item.id];
+            if(score === 3) m.lv += 1; else if(score === 1) m.lv = Math.max(1, m.lv - 1);
+            
+            const intervals = [0, 0.1, 1, 2, 4, 7, 15, 30, 60];
+            m.next = Date.now() + (intervals[Math.min(m.lv, 8)] * 86400000);
+            save();
+
+            document.getElementById('studyCard').classList.add('flipped');
+            setTimeout(() => {
+                state.idx++;
+                if(state.idx < state.queue.length) showCard(); else closeStudy();
+            }, 1200);
+        }
+
+        function speakWord() {
+            const msg = new SpeechSynthesisUtterance(state.queue[state.idx].en);
+            msg.lang = 'en-US';
+            window.speechSynthesis.speak(msg);
+        }
+
+        // --- 数据与统计 ---
+        function renderStats() {
+            const levels = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+            Object.values(state.mem).forEach(m => levels[Math.min(m.lv, 8)]++);
+            
+            const container = document.getElementById('ebbinghaus-stats');
+            container.innerHTML = levels.map((count, i) => `
+                <div>
+                    <div class="flex justify-between text-[10px] font-bold mb-1 uppercase opacity-50">
+                        <span>Level ${i} ${i===8?'(Mastered)':''}</span><span>${count} words</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill" style="width: ${(count/RAW_LIB.length)*100}%"></div></div>
+                </div>
+            `).join('');
+            
+            document.getElementById('total-mastered').innerText = levels[8];
+            
+            // 称号系统
+            const titles = ["词汇学徒", "语言行者", "律政先锋", "博学者", "语言大师"];
+            const rank = Math.min(Math.floor(levels.reduce((a,b)=>a+b, 0)/5), 4);
+            document.getElementById('rank-tag').innerText = `${titles[rank]} Lv.${rank+1}`;
+        }
+
+        // --- 侧边栏功能 ---
+        function toggleSidebar(show) {
+            document.getElementById('settings-sidebar').classList.toggle('open', show);
+            document.getElementById('settings-overlay').classList.toggle('hide', !show);
+        }
+
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const lines = event.target.result.split('\n');
+                lines.forEach(line => {
+                    if(line.trim()) {
+                        const [en, zh] = line.split(',');
+                        RAW_LIB.push({ id: 'custom_'+Date.now()+Math.random(), cat: 'custom', en: en.trim(), zh: zh?.trim()||'未定义', d: '用户上传词条' });
+                    }
+                });
+                alert("词书上传成功！已加入词库。");
+                renderExplore();
+            };
+            reader.readAsText(file);
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "lexiflow_backup.json");
+            downloadAnchorNode.click();
+        }
+
+        // --- 基础辅助 ---
+        function switchTab(tab) {
+            ['home', 'explore', 'stats'].forEach(t => {
+                document.getElementById('view-'+t).classList.toggle('hide', t !== tab);
+                document.getElementById('btn-'+t).classList.toggle('active-tab', t === tab);
+                document.getElementById('btn-'+t).classList.toggle('opacity-30', t !== tab);
+            });
+            if(tab === 'explore') renderExplore();
+            if(tab === 'stats') renderStats();
+        }
+
+        function updateDashboard() {
+            const now = Date.now();
+            const news = RAW_LIB.filter(i => state.mem[i.id]?.lv === 0).length;
+            const reviews = RAW_LIB.filter(i => state.mem[i.id]?.lv > 0 && now >= state.mem[i.id].next).length;
+            document.getElementById('num-new').innerText = news;
+            document.getElementById('num-review').innerText = reviews;
+        }
+
+        function save() { localStorage.setItem('lexi_v7_mem', JSON.stringify(state.mem)); }
+        function closeStudy() { document.getElementById('study-layer').classList.add('hide'); updateDashboard(); }
+        function toggleDarkMode() {
+            state.dark = !state.dark;
+            document.body.classList.toggle('dark', state.dark);
+            localStorage.setItem('lexi_v7_dark', state.dark);
+        }
+
+        function renderExplore() {
+            const container = document.getElementById('explore-list');
+            const filtered = RAW_LIB.filter(i => state.filter === 'all' || i.cat === state.filter);
+            container.innerHTML = filtered.map(i => `
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm flex justify-between items-center">
+                    <div>
+                        <span class="text-[8px] font-black opacity-30 uppercase">${i.cat}</span>
+                        <h4 class="text-lg font-black">${i.en}</h4>
+                        <p class="text-xs opacity-50">${i.zh}</p>
+                    </div>
+                    ${state.mem[i.id] ? '✅' : `<button onclick="addToPlan('${i.id}')" class="bg-indigo-50 dark:bg-slate-700 text-indigo-500 text-[10px] font-black px-4 py-2 rounded-full">ADD</button>`}
+                </div>
+            `).join('');
+        }
+
+        function addToPlan(id) {
+            state.mem[id] = { lv: 0, next: 0 };
+            save(); renderExplore(); updateDashboard();
+        }
+
+        init();
     </script>
 </body>
 </html>
