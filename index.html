@@ -3,207 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LexiFlow MTI v11</title>
+    <title>LexiFlow MTI v12.1 Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #F8FAFC; --text: #1E293B; --card: #FFFFFF; --accent: #4F46E5; }
         .dark { --bg: #0F172A; --text: #F1F5F9; --card: #1E293B; --accent: #818CF8; }
-        body { background-color: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; transition: background 0.3s; }
         .serif { font-family: 'Noto Serif SC', serif; }
         
-        /* 布局适配 */
-        .safe-area-bottom { padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
-        
-        /* 侧边栏 */
+        /* 侧边栏平滑抽屉 */
         #settings-sidebar { transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         #settings-sidebar.open { transform: translateX(0); }
 
-        /* 学习卡片 */
+        /* 卡片物理翻转 */
         .card-container { perspective: 1000px; width: 100%; height: 100%; position: relative; }
-        .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .flipped .flip-card-inner { transform: rotateY(180deg); }
-        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; background: var(--card); box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 2.5rem; display: flex; flex-direction: column; padding: 2rem; background: var(--card); box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05); }
         .card-back { transform: rotateY(180deg); border: 2px solid var(--accent); overflow-y: auto; }
 
         .hide { display: none !important; }
-        .active-tab { color: var(--accent) !important; opacity: 1 !important; font-weight: 800; border-bottom: 2px solid var(--accent); }
+        .active-tab { color: var(--accent) !important; opacity: 1 !important; font-weight: 800; border-bottom: 3px solid var(--accent); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* 复选框样式 */
-        .checkbox-wrapper input:checked + div { background-color: var(--accent); border-color: var(--accent); }
-        .checkbox-wrapper input:checked + div svg { display: block; }
+        /* 复选框美化 */
+        .checkbox-custom input:checked + div { background-color: #4F46E5; border-color: #4F46E5; }
+        .checkbox-custom input:checked + div svg { display: block; }
     </style>
 </head>
-<body class="select-none min-h-screen">
+<body class="select-none min-h-screen pb-28">
 
-    <header class="max-w-xl mx-auto px-6 pt-12 pb-4 flex justify-between items-center">
+    <header class="max-w-md mx-auto px-6 pt-10 pb-4 flex justify-between items-center">
         <div>
-            <h1 class="text-3xl font-[900] tracking-tighter italic text-slate-800 dark:text-white">Lexi<span class="text-indigo-600">MTI</span>.</h1>
-            <p class="text-[10px] font-bold opacity-40 uppercase tracking-widest mt-1">2026 Master of Translation</p>
+            <h1 class="text-3xl font-[900] tracking-tighter italic text-slate-800 dark:text-white">Lexi<span class="text-indigo-600">MTI</span></h1>
+            <p class="text-[10px] font-black opacity-30 uppercase tracking-[0.2em] mt-1">Professional Revision</p>
         </div>
-        <button onclick="toggleSidebar(true)" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm text-xl active:scale-90 transition-transform">⚙️</button>
+        <button onclick="toggleSidebar(true)" class="w-12 h-12 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center text-xl active:scale-90 transition-transform">⚙️</button>
     </header>
 
-    <main id="view-home" class="max-w-xl mx-auto px-6 space-y-6">
+    <main id="view-home" class="max-w-md mx-auto px-6 space-y-6">
         <div class="grid grid-cols-2 gap-4">
-            <div onclick="openStudy('new')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-sm border-b-4 border-indigo-50 dark:border-slate-700 active:scale-95 transition-all">
-                <span class="text-[10px] font-black opacity-40 uppercase tracking-widest">需学习 New</span>
+            <div onclick="openStudy('new')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-sm border-b-4 border-indigo-100 dark:border-slate-700 active:scale-95 transition-all">
+                <span class="text-[10px] font-black opacity-40 uppercase">New Words</span>
                 <p id="num-new" class="text-4xl font-black mt-2 text-indigo-600">0</p>
+                <p class="text-[10px] opacity-40 mt-1">需学习</p>
             </div>
-            <div onclick="openStudy('review')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-sm border-b-4 border-emerald-50 dark:border-slate-700 active:scale-95 transition-all">
-                <span class="text-[10px] font-black opacity-40 uppercase tracking-widest">待复习 Review</span>
+            <div onclick="openStudy('review')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-sm border-b-4 border-emerald-100 dark:border-slate-700 active:scale-95 transition-all">
+                <span class="text-[10px] font-black opacity-40 uppercase">Review</span>
                 <p id="num-review" class="text-4xl font-black mt-2 text-emerald-500">0</p>
+                <p class="text-[10px] opacity-40 mt-1">待复习</p>
             </div>
         </div>
 
-        <div onclick="switchTab('learned')" class="bg-white dark:bg-slate-800 p-5 rounded-[2rem] shadow-sm active:scale-95 transition-all flex justify-between items-center border border-slate-100 dark:border-slate-700">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">🎓</div>
+        <div onclick="switchTab('learned')" class="bg-white dark:bg-slate-800 p-5 rounded-[2rem] shadow-sm flex justify-between items-center border border-slate-50 dark:border-slate-700 active:scale-95 transition-all">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center text-xl">🎓</div>
                 <div>
                     <p class="text-sm font-bold">已掌握词条库</p>
-                    <p class="text-[10px] opacity-40 uppercase">Learned Vocabulary</p>
+                    <p class="text-[10px] opacity-40 uppercase font-black">Archive</p>
                 </div>
             </div>
-            <p id="num-learned-dash" class="text-xl font-black text-slate-400 mr-2">0</p>
+            <p id="num-learned-dash" class="text-xl font-black text-slate-300 mr-2">0</p>
         </div>
 
-        <div class="bg-indigo-600 rounded-[2.5rem] p-7 text-white shadow-xl shadow-indigo-100 dark:shadow-none">
-            <p class="text-[10px] font-bold opacity-60 uppercase mb-3 tracking-widest italic">Daily Quote</p>
-            <p class="text-lg font-bold font-serif leading-relaxed mb-3">"Translation is not a matter of words only: it is a matter of making intelligible a whole culture."</p>
-            <p class="text-sm opacity-80 serif">“翻译不只是文字功夫，更是为了让整个文化变得易于理解。”</p>
-            <p class="text-[10px] font-bold text-right mt-4 opacity-50">— Anthony Burgess</p>
+        <div class="bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-[2.5rem] p-8 text-white shadow-xl shadow-indigo-100 dark:shadow-none relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16"></div>
+            <p class="text-[10px] font-bold opacity-60 uppercase mb-4 tracking-widest">Daily Bilingual</p>
+            <p class="text-lg font-bold font-serif leading-relaxed mb-4">"The limits of my language mean the limits of my world."</p>
+            <p class="text-sm opacity-80 serif border-l-2 border-white/20 pl-4">“语言的边界，即是世界的边界。”</p>
         </div>
     </main>
 
-    <main id="view-explore" class="max-w-xl mx-auto px-6 hide">
-        <div class="flex gap-4 mb-6 overflow-x-auto no-scrollbar pb-2 border-b border-slate-100 dark:border-slate-800">
-            <button onclick="setFilter('all')" class="cat-btn text-xs font-bold pb-2 active-tab">全部</button>
-            <button onclick="setFilter('POL')" class="cat-btn text-xs font-bold pb-2 opacity-40">🏛️ 政治</button>
-            <button onclick="setFilter('ECO')" class="cat-btn text-xs font-bold pb-2 opacity-40">💰 经贸</button>
-            <button onclick="setFilter('TEC')" class="cat-btn text-xs font-bold pb-2 opacity-40">🚀 科技</button>
+    <main id="view-explore" class="max-w-md mx-auto px-6 hide">
+        <div class="flex gap-4 mb-6 overflow-x-auto no-scrollbar pb-2">
+            <button onclick="setFilter('all')" class="cat-btn text-xs font-bold pb-2 active-tab whitespace-nowrap">全部</button>
+            <button onclick="setFilter('POL')" class="cat-btn text-xs font-bold pb-2 opacity-30 whitespace-nowrap">🏛️ 政治</button>
+            <button onclick="setFilter('ECO')" class="cat-btn text-xs font-bold pb-2 opacity-30 whitespace-nowrap">💰 经贸</button>
+            <button onclick="setFilter('TEC')" class="cat-btn text-xs font-bold pb-2 opacity-30 whitespace-nowrap">🚀 科技</button>
+            <button onclick="setFilter('CUL')" class="cat-btn text-xs font-bold pb-2 opacity-30 whitespace-nowrap">🏮 文化</button>
         </div>
-        <div id="explore-list" class="space-y-4 pb-32">
-            </div>
+        <div id="explore-list" class="space-y-4 pb-32"></div>
     </main>
 
-    <main id="view-learned" class="max-w-xl mx-auto px-6 hide">
+    <main id="view-learned" class="max-w-md mx-auto px-6 hide">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-black">已掌握管理</h2>
-            <button onclick="toggleEditMode()" id="btn-edit" class="text-xs font-bold bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full">批量管理</button>
+            <h2 class="text-xl font-black">词条管理</h2>
+            <button onclick="toggleEditMode()" id="btn-edit" class="text-xs font-bold bg-indigo-50 dark:bg-slate-800 text-indigo-600 px-5 py-2 rounded-full">批量操作</button>
         </div>
         <div id="learned-list" class="space-y-3 pb-32"></div>
     </main>
 
-    <main id="view-books" class="max-w-xl mx-auto px-6 hide">
-        <h2 class="text-2xl font-black mb-6">词条书架</h2>
-        <div class="grid grid-cols-2 gap-4">
-            <div class="aspect-[3/4] bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl p-6 text-white flex flex-col justify-end shadow-lg">
-                <p class="text-[10px] opacity-60">SELECTED</p>
-                <h3 class="font-black text-xl leading-tight">2026 MTI<br>高频热词</h3>
-            </div>
-            <div class="aspect-[3/4] border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl flex items-center justify-center text-slate-300">
-                <span class="text-3xl">+</span>
-            </div>
-        </div>
-    </main>
-
     <section id="study-layer" class="fixed inset-0 bg-slate-50 dark:bg-slate-900 z-[200] hide flex flex-col">
         <div class="px-6 pt-12 flex justify-between items-center">
-            <button onclick="closeStudy()" class="text-2xl opacity-20">✕</button>
-            <span id="study-progress" class="text-[10px] font-black opacity-30 tracking-widest uppercase">Learning 1/10</span>
-            <button onclick="speakWord()" class="text-xl">🔊</button>
+            <button onclick="closeStudy()" class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm">✕</button>
+            <span id="study-progress" class="text-[10px] font-black opacity-30 tracking-widest uppercase italic">0 / 0</span>
+            <button onclick="speakWord()" class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm">🔊</button>
         </div>
         <div class="flex-1 p-6 flex items-center justify-center">
             <div class="card-container" id="studyCard">
                 <div class="flip-card-inner" onclick="flipCard()">
-                    <div class="card-face card-front">
-                        <span id="card-cat" class="text-[9px] font-black text-indigo-500 bg-indigo-50 px-2 py-1 rounded-full mb-6">POLITICS</span>
-                        <h2 id="card-en" class="text-3xl font-bold text-center leading-tight">Term</h2>
-                        <p class="mt-12 text-[10px] font-bold text-slate-300">TAP TO FLIP</p>
+                    <div class="card-face card-front items-center justify-center">
+                        <span id="card-cat" class="text-[10px] font-black text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded mb-6 tracking-widest">CATEGORY</span>
+                        <h2 id="card-en" class="text-3xl font-bold text-center leading-tight">Word</h2>
+                        <p class="mt-16 text-[10px] font-bold text-slate-300 animate-pulse uppercase tracking-widest">Tap to reveal</p>
                     </div>
                     <div class="card-face card-back items-start text-left">
-                        <h3 id="card-zh" class="text-xl font-bold text-indigo-600 mb-4 serif">中文译文</h3>
-                        <p id="card-d" class="text-xs text-slate-500 leading-relaxed mb-6 font-medium">定义解释...</p>
-                        <div class="w-full bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700" onclick="event.stopPropagation()">
-                            <p class="text-[9px] font-black text-slate-400 uppercase mb-1">翻译笔记</p>
-                            <textarea id="card-note" oninput="saveCurrentNote(this.value)" class="w-full bg-transparent text-xs h-16 outline-none resize-none" placeholder="记录你的翻译技巧..."></textarea>
+                        <h3 id="card-zh" class="text-xl font-bold text-indigo-600 mb-3 serif">中文译文</h3>
+                        <p id="card-d" class="text-xs text-slate-500 leading-relaxed mb-6 font-medium">释义加载中...</p>
+                        
+                        <div class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl mb-4">
+                            <p class="text-[9px] font-black opacity-30 uppercase mb-2 italic">Context / 例句</p>
+                            <p id="card-scene-en" class="text-xs font-bold text-slate-700 dark:text-slate-200 mb-1 leading-snug">Example loading...</p>
+                            <p id="card-scene-zh" class="text-[10px] text-slate-400 serif">例句翻译...</p>
+                        </div>
+
+                        <div class="w-full mt-auto pt-4 border-t border-slate-100 dark:border-slate-800" onclick="event.stopPropagation()">
+                            <p class="text-[9px] font-black text-slate-400 uppercase mb-2">My Notes / 学习笔记</p>
+                            <textarea id="card-note" oninput="saveCurrentNote(this.value)" class="w-full bg-transparent text-xs h-20 outline-none resize-none placeholder:opacity-30" placeholder="记录对此词条的个人理解或考点..."></textarea>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="p-6 safe-area-bottom">
-            <div class="grid grid-cols-3 gap-3">
-                <button onclick="handleLearn(1)" class="py-5 bg-white dark:bg-slate-800 rounded-2xl font-black text-[10px] shadow-sm active:scale-95 transition-all text-slate-400">忘了 (1分后)</button>
-                <button onclick="handleLearn(2)" class="py-5 bg-white dark:bg-slate-800 rounded-2xl font-black text-[10px] shadow-sm active:scale-95 transition-all text-indigo-400">模糊 (10分后)</button>
-                <button onclick="handleLearn(3)" class="py-5 bg-indigo-600 rounded-2xl font-black text-[10px] shadow-lg shadow-indigo-100 text-white active:scale-95 transition-all">认识 (1天后)</button>
+        <div class="p-8 pb-14 bg-white dark:bg-slate-900 rounded-t-[3rem] shadow-2xl">
+            <div class="grid grid-cols-3 gap-4">
+                <button onclick="handleLearn(1)" class="py-5 bg-slate-50 dark:bg-slate-800 rounded-2xl font-black text-[10px] text-slate-400 active:scale-95 transition-all">😵 忘了</button>
+                <button onclick="handleLearn(2)" class="py-5 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl font-black text-[10px] text-indigo-400 active:scale-95 transition-all">🤔 模糊</button>
+                <button onclick="handleLearn(3)" class="py-5 bg-indigo-600 rounded-2xl font-black text-[10px] text-white shadow-lg shadow-indigo-200 dark:shadow-none active:scale-95 transition-all">😎 认识</button>
             </div>
         </div>
     </section>
 
-    <div id="settings-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/10 backdrop-blur-sm z-[300] hide"></div>
-    <aside id="settings-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 z-[301] shadow-2xl p-6 flex flex-col overflow-y-auto">
-        <div class="mb-8 p-5 bg-slate-50 dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700">
-            <div id="login-panel">
-                <h3 class="font-bold text-sm mb-4">手机号登录</h3>
-                <input type="tel" id="login-phone" placeholder="手机号" class="w-full bg-white dark:bg-slate-900 p-3 rounded-xl text-xs font-bold mb-3 border border-slate-200 dark:border-slate-700 outline-none">
-                <button onclick="userLogin()" class="w-full bg-indigo-600 text-white p-3 rounded-xl text-xs font-bold shadow-md">确认登录</button>
+    <div id="settings-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-[300] hide transition-opacity"></div>
+    <aside id="settings-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 z-[301] shadow-2xl p-6 flex flex-col">
+        <div id="user-panel" class="mb-10 p-6 bg-slate-50 dark:bg-slate-800 rounded-[2.5rem] border border-slate-100 dark:border-slate-700">
+            <div id="login-form">
+                <h3 class="font-black text-sm mb-4">用户登录</h3>
+                <input type="tel" id="login-phone" placeholder="输入手机号" class="w-full p-4 rounded-xl text-xs font-bold mb-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 outline-none">
+                <button onclick="doLogin()" class="w-full bg-indigo-600 text-white p-4 rounded-xl text-xs font-bold shadow-md">立即进入</button>
             </div>
-            <div id="profile-panel" class="hide text-center">
-                <div class="w-16 h-16 rounded-full bg-indigo-100 mx-auto mb-3 flex items-center justify-center text-3xl">👤</div>
-                <p id="user-phone" class="font-bold">138****8888</p>
-                <div class="grid grid-cols-2 gap-2 mt-4">
-                    <div class="bg-white dark:bg-slate-900 p-2 rounded-xl">
-                        <p class="text-[8px] opacity-40 uppercase">学词量</p>
-                        <p id="stat-words" class="text-sm font-black text-indigo-500">0</p>
+            <div id="profile-data" class="hide text-center">
+                <div class="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900 mx-auto mb-4 flex items-center justify-center text-3xl shadow-inner">🧑‍🎓</div>
+                <p id="display-phone" class="font-black text-slate-700 dark:text-slate-200 text-lg tracking-tight mb-4">138****0000</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm">
+                        <p class="text-[8px] opacity-40 uppercase font-black">已学词数</p>
+                        <p id="stat-words" class="text-sm font-black text-indigo-600">0</p>
                     </div>
-                    <div class="bg-white dark:bg-slate-900 p-2 rounded-xl">
-                        <p class="text-[8px] opacity-40 uppercase">积分</p>
+                    <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm">
+                        <p class="text-[8px] opacity-40 uppercase font-black">当前积分</p>
                         <p id="stat-points" class="text-sm font-black text-amber-500">0</p>
                     </div>
                 </div>
-                <button onclick="userLogout()" class="mt-4 text-[10px] text-red-500 font-bold">退出登录</button>
+                <button onclick="doLogout()" class="mt-6 text-[10px] text-red-400 font-bold opacity-60">退出当前账号</button>
             </div>
         </div>
 
-        <div class="space-y-6 flex-1">
-            <div onclick="switchTab('books'); toggleSidebar(false)" class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl flex justify-between items-center cursor-pointer">
-                <span class="text-xs font-bold">📚 词条书库</span>
-                <span class="text-[10px] opacity-40">更换词书 ></span>
-            </div>
+        <div class="space-y-8 px-2 flex-1">
             <div>
-                <div class="flex justify-between font-black text-indigo-500 mb-2 text-xs"><span>每日新词目标</span><span id="goal-val">10</span></div>
-                <input type="range" min="5" max="50" step="5" value="10" oninput="updateGoal(this.value)" class="w-full h-1 bg-slate-200 rounded-full appearance-none accent-indigo-600">
+                <div class="flex justify-between items-center text-xs font-black mb-4">
+                    <span class="opacity-40 uppercase tracking-widest">Daily Goal</span>
+                    <span id="goal-val" class="text-indigo-600 font-mono">10</span>
+                </div>
+                <input type="range" min="5" max="50" step="5" value="10" oninput="updateGoal(this.value)" class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 appearance-none accent-indigo-600 rounded-full">
             </div>
-            <button onclick="toggleDarkMode()" class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl flex justify-between font-bold text-xs">
+            <button onclick="toggleDarkMode()" class="w-full p-5 bg-slate-50 dark:bg-slate-800 rounded-2xl flex justify-between items-center font-bold text-xs active:scale-95 transition-all">
                 <span>夜间模式</span><span id="mode-icon">🌙</span>
             </button>
         </div>
     </aside>
 
-    <div id="batch-bar" class="fixed bottom-24 left-6 right-6 bg-white dark:bg-slate-800 shadow-2xl rounded-2xl p-4 flex justify-between items-center border border-slate-100 hide z-[50]">
-        <span class="text-xs font-bold ml-2">已选 <span id="selected-count" class="text-indigo-600">0</span></span>
-        <button onclick="moveToTrash()" class="bg-red-50 text-red-500 px-4 py-2 rounded-xl text-xs font-black">🗑️ 移入垃圾箱</button>
+    <div id="batch-bar" class="fixed bottom-28 left-6 right-6 bg-white dark:bg-slate-800 shadow-2xl rounded-[1.5rem] p-4 flex justify-between items-center border border-slate-100 dark:border-slate-700 hide z-[50] animate-bounce-in">
+        <span class="text-xs font-black ml-4">已选 <span id="selected-count" class="text-indigo-600 font-mono">0</span></span>
+        <button onclick="moveToTrash()" class="bg-red-50 dark:bg-red-900/20 text-red-500 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest">Mastered (Archive)</button>
     </div>
 
-    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-full shadow-2xl flex items-center px-8 py-2 gap-12 border border-white/20 z-[100]">
-        <button onclick="switchTab('home')" id="btn-home" class="p-2 active-tab text-2xl transition-all">🏠</button>
-        <button onclick="switchTab('explore')" id="btn-explore" class="p-2 opacity-30 text-2xl transition-all">🔍</button>
+    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-full shadow-2xl flex items-center px-10 py-3 gap-16 border border-white/20 z-[100]">
+        <button onclick="switchTab('home')" id="btn-home" class="text-2xl active-tab transition-all">🏠</button>
+        <button onclick="switchTab('explore')" id="btn-explore" class="text-2xl opacity-20 transition-all">🔍</button>
     </nav>
 
     <script>
         const RAW_LIB = [
-            { id:'1', cat:'POL', en:'New quality productive forces', zh:'新质生产力', d:'以创新起主导作用，具有高科技、高效能、高质量特征。' },
-            { id:'2', cat:'POL', en:'Community with a shared future', zh:'人类命运共同体', d:'旨在通向和平、安全、繁荣、开放、包容的世界。' },
-            { id:'3', cat:'ECO', en:'Supply-side structural reform', zh:'供给侧结构性改革', d:'用改革的办法推进结构调整。' },
-            { id:'4', cat:'TEC', en:'Quantum Computing', zh:'量子计算', d:'基于量子叠加原理的计算模式。' },
-            { id:'5', cat:'TEC', en:'Generative AI', zh:'生成式人工智能', d:'能够通过学习训练生成内容的技术。' }
+            { id:'1', cat:'POL', en:'New quality productive forces', zh:'新质生产力', d:'以创新起主导作用，具有高科技、高效能、高质量特征。', scene: {en: "Innovation drives the development of new quality productive forces.", zh: "创新驱动新质生产力的发展。"} },
+            { id:'2', cat:'POL', en:'Chinese path to modernization', zh:'中国式现代化', d:'具有五大特征，本质要求是坚持中国共产党领导。', scene: {en: "We must stay committed to the Chinese path to modernization.", zh: "我们必须坚持走中国式现代化道路。"} },
+            { id:'3', cat:'ECO', en:'Supply-side structural reform', zh:'供给侧结构性改革', d:'通过优化要素配置，提高全要素生产率。', scene: {en: "Supply-side structural reform remains a priority.", zh: "供给侧结构性改革仍是工作的重点。"} },
+            { id:'4', cat:'TEC', en:'Quantum Entanglement', zh:'量子纠缠', d:'量子力学中一种奇特的相互关联现象。', scene: {en: "Quantum entanglement is the key to quantum communication.", zh: "量子纠缠是量子通信的关键。"} },
+            { id:'5', cat:'CUL', en:'Intangible cultural heritage', zh:'非物质文化遗产', d:'指各民族世代相传的各种传统文化表现形式。', scene: {en: "Protection of intangible cultural heritage is vital.", zh: "保护非物质文化遗产至关重要。"} }
         ].sort((a,b) => a.en.localeCompare(b.en));
 
         let state = {
-            mem: JSON.parse(localStorage.getItem('lexi_v11_mem') || '{}'),
-            user: JSON.parse(localStorage.getItem('lexi_v11_user') || 'null'),
-            notes: JSON.parse(localStorage.getItem('lexi_v11_notes') || '{}'),
+            mem: JSON.parse(localStorage.getItem('lexi_v12_mem') || '{}'),
+            user: JSON.parse(localStorage.getItem('lexi_v12_user') || 'null'),
+            notes: JSON.parse(localStorage.getItem('lexi_v12_notes') || '{}'),
             goal: 10, filter: 'all', queue: [], idx: 0, editMode: false, selectedItems: new Set()
         };
 
@@ -213,7 +206,7 @@
             updateUserUI();
         }
 
-        // --- 核心业务逻辑 (复用自 v9/v10) ---
+        // --- Core Stats ---
         function updateDashboard() {
             const now = Date.now();
             const news = RAW_LIB.filter(i => (!state.mem[i.id] || state.mem[i.id].lv === 0)).length;
@@ -225,15 +218,15 @@
             document.getElementById('num-learned-dash').innerText = learned;
         }
 
-        // --- 学习系统 ---
+        // --- Study Engine ---
         function openStudy(mode) {
             const now = Date.now();
             if(mode === 'new') {
                 state.queue = RAW_LIB.filter(i => !state.mem[i.id] || state.mem[i.id].lv === 0).slice(0, state.goal);
             } else {
-                state.queue = RAW_LIB.filter(i => state.mem[i.id]?.lv > 0 && state.mem[i.id].lv < 99 && now >= state.mem[i.id].next).slice(0, state.goal);
+                state.queue = RAW_LIB.filter(i => state.mem[i.id]?.lv > 0 && state.mem[i.id].lv < 99 && now >= state.mem[i.id].next);
             }
-            if(!state.queue.length) return alert("当前没词啦！");
+            if(!state.queue.length) return alert(mode==='new'?"今日新词已全部学完！":"暂无需要复习的词条。");
             state.idx = 0;
             document.getElementById('study-layer').classList.remove('hide');
             renderCard();
@@ -242,12 +235,14 @@
         function renderCard() {
             const item = state.queue[state.idx];
             document.getElementById('studyCard').classList.remove('flipped');
+            document.getElementById('card-cat').innerText = item.cat;
             document.getElementById('card-en').innerText = item.en;
             document.getElementById('card-zh').innerText = item.zh;
-            document.getElementById('card-cat').innerText = item.cat;
             document.getElementById('card-d').innerText = item.d;
+            document.getElementById('card-scene-en').innerText = item.scene.en;
+            document.getElementById('card-scene-zh').innerText = item.scene.zh;
             document.getElementById('card-note').value = state.notes[item.id] || '';
-            document.getElementById('study-progress').innerText = `Learning ${state.idx + 1}/${state.queue.length}`;
+            document.getElementById('study-progress').innerText = `${state.idx + 1} / ${state.queue.length}`;
         }
 
         function handleLearn(score) {
@@ -255,22 +250,22 @@
             if(!state.mem[item.id]) state.mem[item.id] = { lv: 0, next: 0 };
             const m = state.mem[item.id];
             
-            // 艾宾浩斯模拟逻辑
             if(score === 3) m.lv += 1;
             else if(score === 1) m.lv = 1;
             
-            const intervals = [0, 1, 1440, 4320, 10080]; // 分钟
+            // 艾宾浩斯单位：分钟 [立即, 1天后, 3天后, 7天后]
+            const intervals = [0, 1, 1440, 4320, 10080]; 
             m.next = Date.now() + (intervals[Math.min(m.lv, 4)] * 60000);
             
-            if(state.user && score > 1) { state.user.points += 10; saveUser(); updateUserUI(); }
-            saveMem();
+            if(state.user && score > 1) state.user.points += 10;
+            saveAll();
             
             state.idx++;
             if(state.idx < state.queue.length) renderCard();
             else closeStudy();
         }
 
-        // --- 探索页逻辑 (分类 + 笔记) ---
+        // --- Explore System ---
         function setFilter(cat) { 
             state.filter = cat;
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active-tab'));
@@ -282,73 +277,85 @@
             const container = document.getElementById('explore-list');
             const filtered = RAW_LIB.filter(i => state.filter === 'all' || i.cat === state.filter);
             container.innerHTML = filtered.map(i => `
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm">
+                <div class="bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-sm">
                     <div class="flex justify-between items-start" onclick="toggleDetail('${i.id}')">
                         <div>
-                            <span class="text-[9px] font-black text-slate-300 uppercase">${i.cat}</span>
-                            <h4 class="font-bold text-lg mt-1">${i.en}</h4>
+                            <span class="text-[9px] font-black text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded uppercase">${i.cat}</span>
+                            <h4 class="font-bold text-lg mt-2">${i.en}</h4>
                         </div>
-                        <span class="text-indigo-500 font-bold">${state.mem[i.id]?.lv > 0 ? '✓' : '+'}</span>
+                        <span class="text-indigo-500 text-xl">${state.mem[i.id]?.lv > 0 ? '✓' : '+'}</span>
                     </div>
-                    <div id="detail-${i.id}" class="hide mt-4 pt-4 border-t border-slate-50 dark:border-slate-700">
-                        <p class="text-indigo-600 font-bold serif mb-2">${i.zh}</p>
-                        <p class="text-xs text-slate-500 mb-4">${i.d}</p>
-                        <textarea oninput="saveNote('${i.id}', this.value)" class="w-full bg-slate-50 dark:bg-slate-900 p-3 rounded-xl text-xs outline-none h-16" placeholder="添加学习笔记...">${state.notes[i.id] || ''}</textarea>
+                    <div id="detail-${i.id}" class="hide mt-6 pt-6 border-t border-slate-50 dark:border-slate-700">
+                        <p class="text-indigo-600 dark:text-indigo-400 font-bold serif mb-3 text-sm">${i.zh}</p>
+                        <p class="text-xs text-slate-500 mb-6 leading-relaxed">${i.d}</p>
+                        <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl mb-6">
+                            <p class="text-[9px] font-black opacity-30 uppercase mb-2">Context</p>
+                            <p class="text-xs font-bold mb-1">${i.scene.en}</p>
+                            <p class="text-[10px] text-slate-400 serif">${i.scene.zh}</p>
+                        </div>
+                        <textarea oninput="saveNote('${i.id}', this.value)" class="w-full bg-slate-50 dark:bg-slate-900 p-4 rounded-xl text-xs outline-none h-24 border border-transparent focus:border-indigo-100 transition-all" placeholder="点击记笔记...">${state.notes[i.id] || ''}</textarea>
                     </div>
                 </div>
             `).join('');
         }
 
-        // --- 已学习管理 (找回) ---
+        // --- Archive Logic ---
         function renderLearned() {
             const list = RAW_LIB.filter(i => state.mem[i.id]?.lv > 0 && state.mem[i.id].lv < 99);
             const container = document.getElementById('learned-list');
-            if(!list.length) { container.innerHTML = '<p class="text-center opacity-30 mt-10">尚无掌握词条</p>'; return; }
+            if(!list.length) { container.innerHTML = '<div class="text-center py-20 opacity-20 font-bold">空空如也</div>'; return; }
             container.innerHTML = list.map(i => `
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl flex items-center gap-3">
-                    <label class="checkbox-wrapper ${state.editMode?'':'hide'}">
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl flex items-center gap-4">
+                    <label class="checkbox-custom ${state.editMode?'':'hide'} relative">
                         <input type="checkbox" class="hidden" onchange="toggleSelect('${i.id}')" ${state.selectedItems.has(i.id)?'checked':''}>
-                        <div class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center"><svg class="w-3 h-3 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"/></svg></div>
+                        <div class="w-6 h-6 rounded-full border-2 border-slate-200 dark:border-slate-600 flex items-center justify-center transition-colors">
+                            <svg class="w-3 h-3 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
                     </label>
-                    <div class="truncate">
-                        <p class="font-bold text-sm">${i.en}</p>
-                        <p class="text-xs opacity-40">${i.zh}</p>
+                    <div class="truncate flex-1">
+                        <p class="font-bold text-sm mb-0.5">${i.en}</p>
+                        <p class="text-[10px] opacity-40 serif">${i.zh}</p>
                     </div>
                 </div>
             `).join('');
         }
 
-        // --- 通用逻辑 ---
-        function flipCard() { document.getElementById('studyCard').classList.toggle('flipped'); }
-        function switchTab(tab) {
-            ['home', 'explore', 'books', 'learned'].forEach(t => document.getElementById('view-'+t)?.classList.add('hide'));
-            document.getElementById('view-'+tab).classList.remove('hide');
-            document.getElementById('btn-home').className = tab==='home'?'active-tab text-2xl':'opacity-30 text-2xl';
-            document.getElementById('btn-explore').className = tab==='explore'?'active-tab text-2xl':'opacity-30 text-2xl';
-            if(tab === 'explore') renderExplore();
-            if(tab === 'learned') renderLearned();
-        }
-        function userLogin() {
+        // --- Auth & Profile ---
+        function doLogin() {
             const phone = document.getElementById('login-phone').value;
-            if(phone.length < 11) return alert("手机号不正确");
+            if(!/^1[3-9]\d{9}$/.test(phone)) return alert("请输入合法的手机号");
             state.user = { phone, points: 0 };
-            saveUser(); updateUserUI();
+            saveAll(); updateUserUI();
         }
-        function userLogout() { state.user = null; localStorage.removeItem('lexi_v11_user'); updateUserUI(); }
+        function doLogout() { if(confirm("确定退出登录？")) { state.user = null; saveAll(); updateUserUI(); } }
         function updateUserUI() {
             const isL = !!state.user;
-            document.getElementById('login-panel').classList.toggle('hide', isL);
-            document.getElementById('profile-panel').classList.toggle('hide', !isL);
+            document.getElementById('login-form').classList.toggle('hide', isL);
+            document.getElementById('profile-data').classList.toggle('hide', !isL);
             if(isL) {
-                document.getElementById('user-phone').innerText = state.user.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+                document.getElementById('display-phone').innerText = state.user.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
                 document.getElementById('stat-points').innerText = state.user.points;
                 document.getElementById('stat-words').innerText = Object.values(state.mem).filter(x=>x.lv>0&&x.lv<99).length;
             }
         }
-        function saveNote(id, val) { state.notes[id] = val; localStorage.setItem('lexi_v11_notes', JSON.stringify(state.notes)); }
+
+        // --- Utils ---
+        function flipCard() { document.getElementById('studyCard').classList.toggle('flipped'); }
+        function switchTab(tab) {
+            ['home', 'explore', 'learned'].forEach(t => document.getElementById('view-'+t)?.classList.add('hide'));
+            document.getElementById('view-'+tab).classList.remove('hide');
+            document.getElementById('btn-home').className = tab==='home'?'text-2xl active-tab':'text-2xl opacity-20';
+            document.getElementById('btn-explore').className = tab==='explore'?'text-2xl active-tab':'text-2xl opacity-20';
+            if(tab === 'explore') renderExplore();
+            if(tab === 'learned') renderLearned();
+        }
+        function saveNote(id, v) { state.notes[id] = v; localStorage.setItem('lexi_v12_notes', JSON.stringify(state.notes)); }
         function saveCurrentNote(v) { saveNote(state.queue[state.idx].id, v); }
-        function saveMem() { localStorage.setItem('lexi_v11_mem', JSON.stringify(state.mem)); updateDashboard(); }
-        function saveUser() { localStorage.setItem('lexi_v11_user', JSON.stringify(state.user)); }
+        function saveAll() {
+            localStorage.setItem('lexi_v12_mem', JSON.stringify(state.mem));
+            localStorage.setItem('lexi_v12_user', JSON.stringify(state.user));
+            updateDashboard();
+        }
         function toggleSidebar(s) { document.getElementById('settings-sidebar').classList.toggle('open', s); document.getElementById('settings-overlay').classList.toggle('hide', !s); }
         function toggleDarkMode() { document.body.classList.toggle('dark'); localStorage.setItem('lexi_dark', document.body.classList.contains('dark')); }
         function toggleDetail(id) { document.getElementById('detail-'+id).classList.toggle('hide'); }
@@ -363,10 +370,13 @@
             document.getElementById('selected-count').innerText = state.selectedItems.size;
         }
         function moveToTrash() {
-            state.selectedItems.forEach(id => state.mem[id].lv = 99);
-            saveMem(); state.selectedItems.clear(); toggleEditMode();
+            if(state.selectedItems.size === 0) return;
+            state.selectedItems.forEach(id => { if(state.mem[id]) state.mem[id].lv = 99; });
+            saveAll(); state.selectedItems.clear(); toggleEditMode();
+            alert("选定词条已移入归档（将不再复习）");
         }
         function speakWord() { window.speechSynthesis.speak(new SpeechSynthesisUtterance(state.queue[state.idx].en)); }
+        function updateGoal(v) { state.goal = v; document.getElementById('goal-val').innerText = v; }
 
         init();
     </script>
