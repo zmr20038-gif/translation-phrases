@@ -5,249 +5,213 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LexiFlow Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;800&family=Noto+Serif+SC:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --legal: #FFB800; --gaming: #A855F7; --food: #FF4D4D; --accent: #2563EB; --bg-soft: #F8FAFC; }
-        body { background: var(--bg-soft); font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); -webkit-tap-highlight-color: transparent; }
+        :root {
+            --m-blue: #B9C9D6;   --m-blue-light: #E8EEF2;
+            --m-green: #C2CFB2;  --m-green-light: #F0F4E8;
+            --m-rose: #D9B8B5;   --m-rose-light: #F7E9E8;
+            --accent: #5D6D7E;
+        }
+        body { background: #F8FAFC; font-family: 'Plus Jakarta Sans', sans-serif; color: #4A5568; transition: background 0.4s ease; -webkit-tap-highlight-color: transparent; }
+        .dark-mode { background: #111827 !important; color: #E2E8F0; }
         
-        /* 主题色背景流转 */
-        body.cat-legal { --accent: var(--legal); background: #FFFBEB; }
-        body.cat-gaming { --accent: var(--gaming); background: #FAF5FF; }
-        body.cat-food { --accent: var(--food); background: #FFF1F2; }
+        /* 莫兰迪卡片系统 */
+        .card-legal { background: var(--m-blue-light); border: 1px solid rgba(185, 201, 214, 0.4); }
+        .card-gaming { background: var(--m-green-light); border: 1px solid rgba(194, 207, 178, 0.4); }
+        .card-food { background: var(--m-rose-light); border: 1px solid rgba(217, 184, 181, 0.4); }
+        .dark-mode .card-legal, .dark-mode .card-gaming, .dark-mode .card-food { background: #1F2937; border-color: #374151; }
 
-        .dark-mode { --bg-soft: #0F172A; background: #020617 !important; color: #F8FAFC; }
-        
-        /* 不背单词风卡片 */
-        .bubei-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 2.5rem; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.5); }
-        .dark-mode .bubei-card { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.05); }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); }
+        .dark-mode .glass { background: rgba(31, 41, 55, 0.8); }
 
-        .btn-main { background: var(--accent); color: white; border-radius: 1.5rem; transition: all 0.2s; box-shadow: 0 8px 20px -6px var(--accent); }
-        .btn-main:active { transform: scale(0.92); filter: brightness(0.9); }
-
-        .nav-item.active { color: var(--accent); }
-        .nav-item.active i { transform: translateY(-4px); color: var(--accent); }
-
-        .progress-ring { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
-        
+        #settingsPanel { transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #settingsPanel.open { transform: translateX(0); }
         .view-hidden { display: none !important; }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .nav-active { color: var(--accent); font-weight: 800; }
+        .nav-active::after { content: ''; display: block; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; margin: 2px auto; }
     </style>
 </head>
-<body class="min-h-screen pb-32">
+<body class="min-h-screen pb-24 overflow-x-hidden">
 
-    <header class="px-8 pt-12 max-w-2xl mx-auto flex justify-between items-center">
-        <div class="fade-in">
-            <h1 class="text-4xl font-[800] tracking-tighter italic">LexiFlow</h1>
-            <div class="h-1 w-8 rounded-full mt-1" style="background: var(--accent)"></div>
+    <header class="px-6 pt-10 flex justify-between items-end max-w-2xl mx-auto">
+        <div>
+            <h1 class="text-3xl font-[800] tracking-tighter italic text-slate-800 dark:text-white">LexiFlow</h1>
+            <p id="pageTitle" class="text-[10px] font-bold opacity-40 uppercase tracking-[0.3em]">Learn Dashboard</p>
         </div>
-        <button onclick="toggleDark()" class="w-12 h-12 bubei-card flex items-center justify-center text-xl">🌓</button>
+        <button onclick="toggleSettings(true)" class="w-10 h-10 rounded-full glass flex items-center justify-center shadow-sm">⚙️</button>
     </header>
 
-    <main id="view-search" class="px-6 mt-8 max-w-2xl mx-auto fade-in">
-        <div class="bubei-card p-2 flex items-center px-6 mb-8">
-            <input type="text" id="searchInput" oninput="doSearch()" placeholder="搜索词条..." 
-                   class="w-full bg-transparent py-5 focus:outline-none text-lg font-medium">
-            <span class="opacity-30">🔍</span>
+    <main id="page-learn" class="px-6 mt-8 max-w-2xl mx-auto">
+        <div class="card-legal p-8 rounded-[2.5rem] mb-10 shadow-sm relative">
+            <span class="absolute top-6 right-8 text-[10px] font-black opacity-20 tracking-widest uppercase">Word of Today</span>
+            <h2 class="text-4xl font-black mb-2 tracking-tighter">Bona Fide</h2>
+            <p class="text-xl font-bold mb-4 opacity-70">善意；诚实地</p>
+            <p class="text-sm opacity-50 leading-relaxed italic">法律术语。指当事人在进行法律行为时，主观上出于真诚、没有欺诈或损害他人权利的意图。</p>
         </div>
 
-        <div class="flex space-x-3 mb-10 overflow-x-auto no-scrollbar" id="catFilter">
-            <button onclick="setCat('all')" class="px-6 py-3 rounded-2xl bubei-card text-[11px] font-extrabold tracking-widest active">ALL</button>
-            <button onclick="setCat('legal')" class="px-6 py-3 rounded-2xl bubei-card text-[11px] font-extrabold tracking-widest">LEGAL</button>
-            <button onclick="setCat('gaming')" class="px-6 py-3 rounded-2xl bubei-card text-[11px] font-extrabold tracking-widest">GAMING</button>
-            <button onclick="setCat('food')" class="px-6 py-3 rounded-2xl bubei-card text-[11px] font-extrabold tracking-widest">FOOD</button>
-        </div>
-
-        <div id="listContainer" class="space-y-4"></div>
-    </main>
-
-    <main id="view-learn" class="px-6 mt-10 max-w-md mx-auto view-hidden fade-in">
-        <div class="grid grid-cols-2 gap-4 mb-8">
-            <div class="bubei-card p-6 text-center">
-                <p class="text-[10px] font-bold opacity-40 uppercase tracking-tighter mb-1">今日新词任务</p>
-                <div class="flex items-baseline justify-center space-x-1">
-                    <span id="newCount" class="text-3xl font-black" style="color: var(--accent)">0</span>
-                    <span class="opacity-20 text-sm">/</span>
-                    <input type="number" id="dailyGoal" onchange="updateGoal()" class="w-8 bg-transparent font-bold text-lg focus:outline-none">
-                </div>
+        <div class="grid grid-cols-2 gap-4 mb-10">
+            <div class="glass p-7 rounded-[2.2rem] text-center border border-white/40 shadow-sm">
+                <p class="text-[9px] font-black opacity-30 uppercase tracking-[0.2em] mb-1">需学习 New</p>
+                <p id="count-new" class="text-4xl font-black text-slate-600 dark:text-slate-300">0</p>
             </div>
-            <div class="bubei-card p-6 text-center">
-                <p class="text-[10px] font-bold opacity-40 uppercase tracking-tighter mb-1">待复习词条</p>
-                <p id="reviewCount" class="text-3xl font-black">0</p>
+            <div class="glass p-7 rounded-[2.2rem] text-center border border-white/40 shadow-sm">
+                <p class="text-[9px] font-black opacity-30 uppercase tracking-[0.2em] mb-1">需复习 Review</p>
+                <p id="count-review" class="text-4xl font-black text-slate-400">0</p>
             </div>
         </div>
 
-        <div id="cardStage" class="min-h-[460px] flex items-center justify-center"></div>
+        <button onclick="alert('今日学习任务已自动分配，请在Search页点击感兴趣的词条加入计划')" class="w-full py-6 glass rounded-3xl font-black text-sm opacity-50 tracking-widest border border-dashed border-slate-300 uppercase">Start Session</button>
     </main>
 
-    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[280px] h-20 bubei-card flex items-center justify-around px-4 z-[100]">
-        <button onclick="showPage('learn')" id="btn-learn" class="nav-item flex flex-col items-center opacity-40 transition-all">
-            <span class="text-2xl">🌱</span>
-            <span class="text-[9px] font-black mt-1 uppercase tracking-widest">Learn</span>
+    <main id="page-search" class="px-6 mt-8 max-w-2xl mx-auto view-hidden">
+        <div class="glass rounded-[2rem] p-2 flex items-center px-6 mb-8 shadow-inner border border-white/20">
+            <input type="text" id="searchInput" oninput="doSearch()" placeholder="Search professional phrases..." class="w-full bg-transparent py-4 focus:outline-none text-lg">
+            <span class="opacity-20 text-xl">🔍</span>
+        </div>
+        <div id="listContainer" class="space-y-5 pb-10"></div>
+    </main>
+
+    <div id="settingsOverlay" onclick="toggleSettings(false)" class="fixed inset-0 bg-black/5 backdrop-blur-sm z-[110] hidden"></div>
+    <div id="settingsPanel" class="fixed top-0 right-0 h-full w-72 glass z-[120] p-8 shadow-2xl border-l border-white/20">
+        <h3 class="text-xl font-black mb-10">Preferences</h3>
+        <div class="space-y-10">
+            <div>
+                <label class="text-[10px] font-black opacity-30 uppercase tracking-widest block mb-4">Daily Goal</label>
+                <input type="range" id="goalRange" min="5" max="50" step="5" oninput="updateGoal(this.value)" class="w-full accent-slate-400">
+                <p class="text-right text-sm font-bold mt-2"><span id="goalVal">10</span> Words</p>
+            </div>
+            <div>
+                <label class="text-[10px] font-black opacity-30 uppercase tracking-widest block mb-4">Interface</label>
+                <button onclick="toggleDark()" class="w-full py-4 glass rounded-2xl font-bold flex justify-between px-5 text-sm">
+                    <span>Dark Mode</span><span id="darkIcon">🌙</span>
+                </button>
+            </div>
+            <button onclick="localStorage.clear(); location.reload();" class="text-[10px] font-black opacity-20 uppercase tracking-widest mt-20 block">Clear All Progress</button>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[280px] h-20 glass rounded-[2.5rem] shadow-2xl flex items-center justify-around z-[100] border border-white/30">
+        <button onclick="switchView('learn')" id="nav-learn" class="flex flex-col items-center nav-active">
+            <span class="text-2xl">📖</span><span class="text-[9px] font-black uppercase mt-1">Learn</span>
         </button>
-        <button onclick="showPage('search')" id="btn-search" class="nav-item flex flex-col items-center active nav-item">
-            <span class="text-2xl">🧩</span>
-            <span class="text-[9px] font-black mt-1 uppercase tracking-widest">Explore</span>
+        <button onclick="switchView('search')" id="nav-search" class="flex flex-col items-center opacity-30">
+            <span class="text-2xl">🧩</span><span class="text-[9px] font-black uppercase mt-1">Explore</span>
         </button>
     </nav>
 
     <script>
-        // 词库（此处保持之前提供的30个核心词，可自行按格式扩充至300）
         const library = [
-            { id:'l1', cat:'legal', en:'Without Prejudice', zh:'不损害权利', d:'表示在谈判中的让步不能作为日后诉讼的证据。' },
-            { id:'l2', cat:'legal', en:'Force Majeure', zh:'不可抗力', d:'合同中免除因天灾或战争导致违约责任的条款。' },
-            { id:'l3', cat:'legal', en:'Due Diligence', zh:'尽职调查', d:'签署商业协议前，对资产进行的详细法律审查。' },
-            { id:'g1', cat:'gaming', en:'Fog of War', zh:'战争迷雾', d:'地图上未探索区域被遮蔽，需派遣单位解锁视觉。' },
-            { id:'g2', cat:'gaming', en:'Ray Tracing', zh:'光线追踪', d:'模拟光线物理行为的高级图形技术。' },
-            { id:'f1', cat:'food', en:'Maillard Reaction', zh:'美拉德反应', d:'肉类加热至140度产生褐色及焦香味的化学反应。' },
-            { id:'f2', cat:'food', en:'Sous-vide', zh:'低温慢煮', d:'真空包装食材，在恒温水浴中长时间加热。' }
-            // 更多词条在此处继续添加...
+            // LEGAL - 10 
+            { id:'l1', cat:'legal', en:'Without Prejudice', zh:'不损害权利；无偏见', d:'在法律谈判中使用，意味着在该声明下所作的任何让步或陈述均不能在日后的法庭诉讼中作为证据。' },
+            { id:'l2', cat:'legal', en:'Force Majeure', zh:'不可抗力', d:'合同中的免责条款，指由于不能预见、不能避免且不能克服的客观情况（如天灾、战争）导致合同无法履行。' },
+            { id:'l3', cat:'legal', en:'Due Diligence', zh:'尽职调查', d:'在签署商业协议或进行并购前，对资产、财务状况及法律风险进行的全面调查与评估。' },
+            { id:'l4', cat:'legal', en:'Indemnification', zh:'赔偿保证；免受损失', d:'一方承诺对另一方因特定事件或第三方索赔而遭受的损失、损害或责任进行补偿。' },
+            { id:'l5', cat:'legal', en:'Statute of Limitations', zh:'诉讼时效', d:'法律规定当事人行使请求权的时间限制，超过该期限后，权利人将丧失通过法院胜诉的权利。' },
+            { id:'l6', cat:'legal', en:'Liquidated Damages', zh:'预定违约金', d:'合同双方预先约定的，在一方违约时应支付给另一方的固定金额的赔偿金。' },
+            { id:'l7', cat:'legal', en:'Arbitration', zh:'仲裁', d:'一种非诉讼的纠纷解决方式，由中立的第三方仲裁员根据双方协议对争议作出裁决。' },
+            { id:'l8', cat:'legal', en:'Joint Liability', zh:'连带责任', d:'指两个或两个以上当事人共同承担债务，债权人可以要求其中任何一人承担全部清偿责任。' },
+            { id:'l9', cat:'legal', en:'Intellectual Property', zh:'知识产权', d:'法律赋予人们对其智力劳动成果所享有的专有权利，包括著作权、专利权、商标权等。' },
+            { id:'l10', cat:'legal', en:'Subpoena', zh:'传票', d:'法院或政府机构发布的强制性命令，要求某人在指定时间出庭作证或提交相关文件。' },
+
+            // GAMING - 10
+            { id:'g1', cat:'gaming', en:'Fog of War', zh:'战争迷雾', d:'实时战略游戏中用于遮蔽未探索区域的视觉效果，玩家必须派遣单位前往该处才能解锁视野。' },
+            { id:'g2', cat:'gaming', en:'Procedural Generation', zh:'随机生成', d:'利用预设好的算法而非人工设计来自动创建游戏内容（如关卡、地图、装备属性）的技术。' },
+            { id:'g3', cat:'gaming', en:'Hitbox', zh:'碰撞框', d:'游戏中用于检测攻击或碰撞的不可见几何形状。如果攻击者的攻击判定重叠了受害者的Hitbox，则视为命中。' },
+            { id:'g4', cat:'gaming', en:'Metagame', zh:'元游戏；主流战术', d:'指玩家群体在当前版本中根据游戏机制总结出的最高效、最通用的战术、阵容或装备搭配。' },
+            { id:'g5', cat:'gaming', en:'Microtransaction', zh:'微交易；内购', d:'游戏内的小额付费行为，通常用于购买皮肤、虚拟道具、经验加成或开箱抽取。' },
+            { id:'g6', cat:'gaming', en:'Permadeath', zh:'永久死亡', d:'Roguelike游戏的核心机制，指玩家角色一旦死亡，所有进度将被清空，无法通过读取存档复活。' },
+            { id:'g7', cat:'gaming', en:'Frame Data', zh:'帧数数据', d:'格斗游戏中的硬核概念，通过记录动作启动、持续和恢复的具体帧数来判定招式的优劣。' },
+            { id:'g8', cat:'gaming', en:'Sandbox', zh:'沙盒', d:'指具备高度自由度的游戏类型，玩家可以自由改变世界结构、创造物品，没有强制性的单一主线任务。' },
+            { id:'g9', cat:'gaming', en:'Early Access', zh:'抢先体验', d:'开发者在游戏尚未正式完成时提前售卖，让玩家参与测试并提供反馈，同时平衡开发资金。' },
+            { id:'g10', cat:'gaming', en:'Aggro', zh:'仇恨值', d:'MMORPG中衡量怪物对不同玩家攻击欲望的数值，通常由坦克位玩家通过特定技能来维持。' },
+
+            // FOOD - 10
+            { id:'f1', cat:'food', en:'Maillard Reaction', zh:'美拉德反应', d:'食物中的氨基酸与还原糖在加热过程中发生的非酶褐变，是产生焦香味和褐色诱人外观的核心。' },
+            { id:'f2', cat:'food', en:'Sous-vide', zh:'低温慢煮', d:'将食材放入真空袋中，在恒温水浴锅中以相对较低的温度长时间加热，以保持食材极致的水分和嫩度。' },
+            { id:'f3', cat:'food', en:'Al Dente', zh:'弹牙；筋道', d:'源自意大利语，形容意大利面或米饭煮得恰到好处，外表柔软但中心处保留了一丝嚼劲。' },
+            { id:'f4', cat:'food', en:'Umami', zh:'鲜味', d:'除了酸、甜、苦、咸之外的第五种基本味道，由谷氨酸盐等物质引起，常见于海带、蘑菇和高汤。' },
+            { id:'f5', cat:'food', en:'Farm-to-Table', zh:'从农场到餐桌', d:'一种餐饮理念，强调直接使用当地新鲜、时令的农产品，减少运输环节和工业化加工。' },
+            { id:'f6', cat:'food', en:'Sommelier', zh:'侍酒师', d:'餐厅内经过专业培训，负责酒单设计、酒水储藏以及为顾客提供餐酒搭配建议的高级服务人员。' },
+            { id:'f7', cat:'food', en:'Molecular Gastronomy', zh:'分子料理', d:'通过科学手段（如液氮、乳化、球化）改变食材的物理性状，创造出颠覆传统的形态与口感。' },
+            { id:'f8', cat:'food', en:'Mouthfeel', zh:'口感', d:'指食物或饮料进入口腔后，带给舌头和上颚的物理触觉感受（如丝滑、粗糙、黏稠）。' },
+            { id:'f9', cat:'food', en:'Reduction', zh:'浓缩酱汁', d:'通过长时间的小火熬煮排走液体中的水分，使剩余物质的浓度增加、风味变得极度浓郁。' },
+            { id:'f10', cat:'food', en:'Aroma', zh:'香气', d:'指食物散发出的挥发性化学物质被嗅觉细胞捕捉后产生的感受，是构成食物风味的重要组成部分。' }
         ];
 
         let state = {
-            view: 'search',
-            cat: 'all',
+            view: 'learn',
             goal: 10,
-            mem: JSON.parse(localStorage.getItem('lexi_v8') || '{}'),
-            todayNew: parseInt(localStorage.getItem('lexi_today_new_v8') || 0),
-            lastDate: new Date().toLocaleDateString()
+            mem: JSON.parse(localStorage.getItem('lexi_pro_data') || '{}')
         };
 
-        function init() {
-            if(localStorage.getItem('lexi_date_v8') !== state.lastDate) {
-                state.todayNew = 0;
-                localStorage.setItem('lexi_today_new_v8', 0);
-                localStorage.setItem('lexi_date_v8', state.lastDate);
-            }
-            document.getElementById('dailyGoal').value = state.goal;
-            setCat('all');
-        }
-
-        function setCat(c) {
-            state.cat = c;
-            document.body.className = `min-h-screen pb-32 cat-${c}`;
-            const btns = document.querySelectorAll('#catFilter button');
-            btns.forEach(b => {
-                b.style.background = b.innerText.toLowerCase().includes(c) ? 'var(--accent)' : '';
-                b.style.color = b.innerText.toLowerCase().includes(c) ? 'white' : '';
-            });
-            doSearch();
+        function switchView(view) {
+            state.view = view;
+            document.getElementById('page-learn').classList.toggle('view-hidden', view !== 'learn');
+            document.getElementById('page-search').classList.toggle('view-hidden', view !== 'search');
+            document.getElementById('nav-learn').classList.toggle('opacity-30', view !== 'learn');
+            document.getElementById('nav-search').classList.toggle('opacity-30', view !== 'search');
+            document.getElementById('nav-learn').classList.toggle('nav-active', view === 'learn');
+            document.getElementById('nav-search').classList.toggle('nav-active', view === 'search');
+            document.getElementById('pageTitle').innerText = view === 'learn' ? 'Learn Dashboard' : 'Explore Library';
         }
 
         function doSearch() {
             const q = document.getElementById('searchInput').value.toLowerCase();
             const container = document.getElementById('listContainer');
-            const filtered = library.filter(i => 
-                (state.cat === 'all' || i.cat === state.cat) && 
-                (i.en.toLowerCase().includes(q) || i.zh.includes(q))
-            );
+            const filtered = library.filter(i => i.en.toLowerCase().includes(q) || i.zh.includes(q) || i.d.includes(q));
 
             container.innerHTML = filtered.map(i => `
-                <div class="bubei-card p-8 flex justify-between items-center fade-in hover:translate-y-[-4px] transition-all" onclick="addToLearn('${i.id}')">
-                    <div>
-                        <h4 class="text-2xl font-black tracking-tighter mb-1">${i.en}</h4>
-                        <p class="opacity-40 font-medium text-sm">${i.zh}</p>
+                <div class="card-${i.cat} p-8 rounded-[2.5rem] shadow-sm active:scale-95 transition-transform" onclick="addToLearn('${i.id}')">
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="text-2xl font-black tracking-tighter text-slate-800 dark:text-white">${i.en}</h4>
+                        <span class="text-[9px] font-black opacity-20 uppercase tracking-widest glass px-2 py-1 rounded">${i.cat}</span>
                     </div>
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center ${state.mem[i.id] ? 'bg-blue-50 text-blue-500' : 'bg-gray-50'}" style="${state.mem[i.id] ? 'background: var(--accent); color: white;' : ''}">
-                        ${state.mem[i.id] ? '✓' : '+'}
-                    </div>
+                    <p class="text-lg font-bold mb-4 opacity-70">${i.zh}</p>
+                    <p class="text-xs opacity-40 leading-relaxed">${i.d}</p>
+                    ${state.mem[i.id] ? '<div class="mt-4 text-[9px] font-black uppercase tracking-widest opacity-20 text-slate-600">Added to Plan ✓</div>' : ''}
                 </div>
             `).join('');
         }
 
         function addToLearn(id) {
             if(!state.mem[id]) {
-                state.mem[id] = { lvl: 1, t: Date.now(), isNew: true };
-                save();
+                state.mem[id] = { lvl: 1, t: Date.now() };
+                localStorage.setItem('lexi_pro_data', JSON.stringify(state.mem));
                 doSearch();
+                updateCounts();
             }
         }
 
-        function renderLearn() {
-            const now = Date.now();
-            const toReview = library.filter(i => state.mem[i.id] && state.mem[i.id].t <= now);
-            const unlearned = library.filter(i => !state.mem[i.id]);
-            const todayQueue = unlearned.slice(0, Math.max(0, state.goal - state.todayNew));
-
-            document.getElementById('reviewCount').innerText = toReview.length;
-            document.getElementById('newCount').innerText = state.todayNew;
-            
-            const stage = document.getElementById('cardStage');
-            let current = toReview[0] || todayQueue[0];
-
-            if(!current) {
-                stage.innerHTML = `
-                    <div class="text-center fade-in">
-                        <div class="text-6xl mb-6">☕</div>
-                        <p class="font-bold opacity-30">今日任务已达标</p>
-                    </div>`;
-                return;
-            }
-
-            stage.innerHTML = `
-                <div class="bubei-card p-12 w-full min-h-[450px] flex flex-col justify-between items-center text-center shadow-2xl fade-in">
-                    <div class="w-full">
-                        <span class="text-[10px] font-black tracking-[0.3em] opacity-20 uppercase mb-8 block">
-                            ${toReview[0] ? 'Re-Master' : 'New Discovery'}
-                        </span>
-                        <h2 class="text-5xl font-black tracking-tighter leading-none mb-6">${current.en}</h2>
-                        
-                        <div id="ansArea" class="view-hidden pt-6 border-t border-gray-100 mt-6">
-                            <p class="text-2xl font-bold mb-4" style="color: var(--accent)">${current.zh}</p>
-                            <p class="text-sm opacity-40 italic font-serif leading-relaxed px-4">${current.d}</p>
-                        </div>
-                    </div>
-
-                    <button id="showBtn" onclick="revealCard()" class="w-20 h-20 rounded-full bubei-card flex items-center justify-center border-2 border-dashed accent-border animate-pulse">
-                        <span class="text-[10px] font-bold opacity-40">LOOK</span>
-                    </button>
-
-                    <div id="actionBtns" class="view-hidden w-full flex space-x-3 mt-8">
-                        <button onclick="submit(true, '${current.id}', ${!!toReview[0]})" class="btn-main flex-1 py-5 font-bold">认识</button>
-                        <button onclick="submit(false, '${current.id}', ${!!toReview[0]})" class="flex-1 py-5 bubei-card font-bold opacity-50">模糊</button>
-                    </div>
-                </div>`;
+        function updateCounts() {
+            const learned = Object.keys(state.mem).length;
+            document.getElementById('count-new').innerText = Math.max(0, state.goal - learned);
+            document.getElementById('count-review').innerText = "0";
         }
 
-        function revealCard() {
-            document.getElementById('ansArea').classList.remove('view-hidden');
-            document.getElementById('actionBtns').classList.remove('view-hidden');
-            document.getElementById('showBtn').classList.add('view-hidden');
+        function toggleSettings(show) {
+            document.getElementById('settingsPanel').classList.toggle('open', show);
+            document.getElementById('settingsOverlay').classList.toggle('hidden', !show);
         }
 
-        function submit(known, id, isReview) {
-            if(!isReview && known) {
-                state.todayNew++;
-                localStorage.setItem('lexi_today_new_v8', state.todayNew);
-            }
-            const intervals = [0, 1, 8, 24, 72, 168];
-            if(!state.mem[id]) state.mem[id] = { lvl: 1 };
-            state.mem[id].lvl = known ? Math.min(state.mem[id].lvl + 1, 5) : 1;
-            state.mem[id].t = Date.now() + intervals[state.mem[id].lvl] * 3600000;
-            save();
-            renderLearn();
+        function updateGoal(val) {
+            state.goal = val;
+            document.getElementById('goalVal').innerText = val;
+            localStorage.setItem('lexi_pro_goal', val);
+            updateCounts();
         }
 
-        function save() { localStorage.setItem('lexi_v8', JSON.stringify(state.mem)); }
-
-        function showPage(p) {
-            document.getElementById('view-search').classList.toggle('view-hidden', p !== 'search');
-            document.getElementById('view-learn').classList.toggle('view-hidden', p !== 'learn');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('btn-' + p).classList.add('active');
-            if(p === 'learn') renderLearn();
+        function toggleDark() {
+            document.body.classList.toggle('dark-mode');
+            document.getElementById('darkIcon').innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
         }
 
-        function updateGoal() {
-            state.goal = parseInt(document.getElementById('dailyGoal').value);
-            renderLearn();
-        }
-
-        function toggleDark() { document.body.classList.toggle('dark-mode'); }
-
-        window.onload = init;
+        // 初始化
+        switchView('learn');
+        updateCounts();
+        doSearch();
+        const savedGoal = localStorage.getItem('lexi_pro_goal');
+        if(savedGoal) { state.goal = savedGoal; document.getElementById('goalRange').value = savedGoal; document.getElementById('goalVal').innerText = savedGoal; }
     </script>
 </body>
 </html>
