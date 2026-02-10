@@ -3,453 +3,443 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LexiFlow MTI v9</title>
+    <title>LexiFlow MTI v10</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #F8FAFC; --text: #1E293B; --card: #FFFFFF; --accent: #4F46E5; } /* MTI 版用更稳重的深蓝 */
+        :root { --bg: #F8FAFC; --text: #1E293B; --card: #FFFFFF; --accent: #4F46E5; }
         .dark { --bg: #0F172A; --text: #F1F5F9; --card: #1E293B; --accent: #818CF8; }
-        body { background-color: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.3s; overflow-x: hidden; }
-        .serif { font-family: 'Noto Serif SC', serif; } /* 中文翻译用宋体，更有质感 */
+        body { background-color: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        .serif { font-family: 'Noto Serif SC', serif; }
 
-        /* 侧边栏与层级 */
-        #settings-sidebar { transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* 侧边栏动画 */
+        #settings-sidebar { transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         #settings-sidebar.open { transform: translateX(0); }
 
-        /* 学习卡片 */
-        .card-container { perspective: 1000px; width: 100%; height: 480px; position: relative; }
+        /* 卡片翻转效果 */
+        .card-container { perspective: 1000px; width: 100%; height: 100%; position: relative; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .flipped .flip-card-inner { transform: rotateY(180deg); }
-        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; background: var(--card); box-shadow: 0 10px 30px -5px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; background: var(--card); box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); }
         .card-back { transform: rotateY(180deg); border: 2px solid var(--accent); overflow-y: auto; }
 
         .hide { display: none !important; }
-        .active-tab { color: var(--accent); border-bottom: 2px solid var(--accent); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .active-tab { color: var(--accent); opacity: 1 !important; transform: scale(1.1); }
         
-        /* 批量勾选框 */
-        .checkbox-wrapper input:checked + div { background-color: var(--accent); border-color: var(--accent); }
-        .checkbox-wrapper input:checked + div svg { display: block; }
+        /* 积分动画 */
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-20px); } }
+        .point-plus { position: absolute; color: #F59E0B; font-weight: 900; animation: floatUp 1s ease-out forwards; pointer-events: none; z-index: 500; }
     </style>
 </head>
-<body class="pb-24">
-
-    <header class="max-w-md mx-auto px-6 pt-10 flex justify-between items-center">
+<body class="pb-24 select-none"> <header class="max-w-md mx-auto px-6 pt-12 pb-4 flex justify-between items-center">
         <div>
-            <h1 class="text-3xl font-[900] tracking-tighter italic text-slate-800 dark:text-white">Lexi<span class="text-indigo-600">MTI</span>.</h1>
-            <p id="current-book-label" class="text-[10px] font-bold opacity-50 uppercase tracking-widest mt-1">当前词条库：2025热词全集</p>
+            <h1 class="text-3xl font-[900] tracking-tighter italic text-slate-800 dark:text-white">Lexi<span class="text-indigo-600">Flow</span></h1>
+            <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest mt-1">MTI Pro • 2026 Edition</p>
         </div>
-        <div onclick="toggleSidebar(true)" class="relative">
-            <div id="header-avatar" class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-white shadow-sm flex items-center justify-center cursor-pointer">
-                <span class="text-xs">👤</span>
-            </div>
-        </div>
+        <button onclick="toggleSidebar(true)" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm active:scale-90 transition-transform text-xl">
+            ⚙️
+        </button>
     </header>
 
-    <main id="view-home" class="max-w-md mx-auto px-6 mt-8">
-        <div class="grid grid-cols-2 gap-4 mb-4">
-            <div onclick="openStudy('new')" class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm active:scale-95 transition-all border-b-4 border-indigo-100 dark:border-slate-700">
-                <span class="text-[9px] font-black opacity-40 uppercase tracking-widest">需学习 New</span>
-                <p id="num-new" class="text-3xl font-black mt-2 text-indigo-600">0</p>
-            </div>
-            <div onclick="openStudy('review')" class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm active:scale-95 transition-all border-b-4 border-emerald-100 dark:border-slate-700">
-                <span class="text-[9px] font-black opacity-40 uppercase tracking-widest">待复习 Review</span>
-                <p id="num-review" class="text-3xl font-black mt-2 text-emerald-600">0</p>
-            </div>
-        </div>
-
-        <div onclick="switchTab('learned')" class="bg-white dark:bg-slate-800 p-5 rounded-[2rem] shadow-sm active:scale-95 transition-all flex justify-between items-center border border-slate-100 dark:border-slate-700 mb-8">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">🎓</div>
-                <div>
-                    <p class="text-sm font-bold">已掌握词条库</p>
-                    <p class="text-[10px] opacity-40">Learned Items</p>
-                </div>
-            </div>
-            <p id="num-learned" class="text-xl font-black text-slate-700 dark:text-slate-300 mr-2">0</p>
-        </div>
-
-        <div class="px-2">
-            <p class="text-xs font-serif text-slate-400 italic mb-1">Daily Quote</p>
-            <p class="text-sm font-bold text-slate-700 dark:text-slate-200 leading-relaxed">"Translation is not a matter of words only: it is a matter of making intelligible a whole culture."</p>
-            <p class="text-xs text-slate-400 mt-1">— Anthony Burgess</p>
-        </div>
-    </main>
-
-    <main id="view-books" class="max-w-md mx-auto px-6 mt-8 hide">
-        <div class="flex items-center mb-6">
-            <button onclick="switchTab('home')" class="mr-4 text-xl opacity-50">←</button>
-            <h2 class="text-2xl font-black">词条书架</h2>
-        </div>
+    <main id="view-home" class="max-w-md mx-auto px-6 space-y-6">
+        
         <div class="grid grid-cols-2 gap-4">
-            <div onclick="selectBook('mti2025')" class="flex flex-col gap-2 group">
-                <div class="aspect-[3/4] bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl shadow-lg flex items-center justify-center p-4 text-white text-center group-active:scale-95 transition-transform">
-                    <div>
-                        <p class="text-xs opacity-50 mb-1">OFFICIAL</p>
-                        <h3 class="font-black text-lg leading-tight">2025<br>MTI热词<br>全集</h3>
-                    </div>
-                </div>
-                <p class="text-xs font-bold text-center opacity-70">2025 MTI 热词全集</p>
+            <div onclick="openStudy('new')" class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm active:scale-95 transition-all border-b-4 border-indigo-50 dark:border-slate-700 relative overflow-hidden group">
+                <div class="absolute right-0 top-0 p-4 opacity-10 text-6xl group-hover:scale-110 transition-transform">📖</div>
+                <span class="text-[10px] font-black opacity-40 uppercase tracking-widest text-indigo-900 dark:text-indigo-200">New Words</span>
+                <p id="num-new" class="text-4xl font-black mt-2 text-indigo-600">0</p>
+                <p class="text-xs opacity-40 mt-1">今日需学</p>
             </div>
-            <div onclick="selectBook('gov')" class="flex flex-col gap-2 group">
-                <div class="aspect-[3/4] bg-slate-100 dark:bg-slate-700 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400">
-                    <span class="text-2xl">+</span>
-                </div>
-                <p class="text-xs font-bold text-center opacity-40">导入更多词条书...</p>
+            
+            <div onclick="openStudy('review')" class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm active:scale-95 transition-all border-b-4 border-emerald-50 dark:border-slate-700 relative overflow-hidden group">
+                <div class="absolute right-0 top-0 p-4 opacity-10 text-6xl group-hover:scale-110 transition-transform">⏰</div>
+                <span class="text-[10px] font-black opacity-40 uppercase tracking-widest text-emerald-900 dark:text-emerald-200">Review</span>
+                <p id="num-review" class="text-4xl font-black mt-2 text-emerald-500">0</p>
+                <p class="text-xs opacity-40 mt-1">遗忘临界点</p>
             </div>
+        </div>
+
+        <div class="bg-indigo-600 rounded-[2rem] p-6 text-white shadow-lg shadow-indigo-200 dark:shadow-none relative overflow-hidden">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-white opacity-10 rounded-full blur-xl"></div>
+            <p class="text-[10px] font-bold opacity-60 uppercase mb-3 tracking-widest">Daily Wisdom / 每日一言</p>
+            <p class="text-lg font-bold font-serif leading-relaxed mb-2">"Translation is not just about words, it's about making a whole culture intelligible."</p>
+            <p class="text-sm opacity-80 serif">“翻译不仅仅是关于文字，更是关于让整个文化变得可以理解。”</p>
+            <p class="text-[10px] font-bold text-right mt-4 opacity-60">— Anthony Burgess</p>
+        </div>
+
+        <div class="flex justify-between items-end px-2 opacity-50">
+            <div class="text-xs font-bold">Total Progress</div>
+            <div class="text-[10px] font-bold uppercase tracking-widest">MTI 2025 Plan</div>
         </div>
     </main>
 
-    <main id="view-learned" class="max-w-md mx-auto px-6 mt-8 hide h-screen flex flex-col">
-        <div class="flex justify-between items-center mb-4 shrink-0">
-            <h2 class="text-xl font-black">已掌握词条</h2>
-            <button onclick="toggleEditMode()" id="btn-edit" class="text-xs font-bold bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full">批量管理</button>
-        </div>
-        <div id="learned-list" class="flex-1 overflow-y-auto space-y-3 pb-32">
-            </div>
-        <div id="batch-bar" class="fixed bottom-24 left-6 right-6 bg-white dark:bg-slate-800 shadow-2xl rounded-2xl p-4 flex justify-between items-center border border-slate-100 dark:border-slate-700 hide z-[50]">
-            <span class="text-xs font-bold ml-2">已选 <span id="selected-count" class="text-indigo-600">0</span></span>
-            <button onclick="moveToTrash()" class="bg-red-50 text-red-500 px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2">
-                <span>🗑️</span> 移入垃圾箱(不再复习)
-            </button>
-        </div>
-    </main>
-
-    <main id="view-explore" class="max-w-md mx-auto px-6 mt-8 hide">
-        <div class="flex gap-4 mb-6 overflow-x-auto no-scrollbar pb-2 border-b border-slate-100 dark:border-slate-800">
-            <button onclick="setFilter('all')" class="cat-btn text-xs font-bold pb-2 whitespace-nowrap opacity-40 active-tab">全部</button>
-            <button onclick="setFilter('pol')" class="cat-btn text-xs font-bold pb-2 whitespace-nowrap opacity-40">🏛️ 政治</button>
-            <button onclick="setFilter('eco')" class="cat-btn text-xs font-bold pb-2 whitespace-nowrap opacity-40">💰 经贸</button>
-            <button onclick="setFilter('env')" class="cat-btn text-xs font-bold pb-2 whitespace-nowrap opacity-40">🌱 环保</button>
-            <button onclick="setFilter('tech')" class="cat-btn text-xs font-bold pb-2 whitespace-nowrap opacity-40">🚀 科技</button>
-            <button onclick="setFilter('soc')" class="cat-btn text-xs font-bold pb-2 whitespace-nowrap opacity-40">🏠 社会</button>
-        </div>
+    <main id="view-explore" class="max-w-md mx-auto px-6 mt-6 hide">
+        <h2 class="text-2xl font-black mb-6">词条库探索</h2>
         <div id="explore-list" class="space-y-4 pb-24">
             </div>
     </main>
 
-    <section id="study-layer" class="fixed inset-0 bg-white dark:bg-slate-900 z-[200] hide flex flex-col p-6">
-        <div class="flex justify-between items-center mb-6">
-            <button onclick="closeStudy()" class="text-2xl opacity-30">✕</button>
-            <div class="text-[10px] font-black opacity-30 tracking-widest uppercase">MTI Review Mode</div>
-            <button onclick="speakWord()" class="text-xl">🔊</button>
+    <section id="study-layer" class="fixed inset-0 bg-[#F0F4F8] dark:bg-slate-900 z-[200] hide flex flex-col">
+        <div class="px-6 pt-12 pb-4 flex justify-between items-center">
+            <button onclick="closeStudy()" class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-lg">✕</button>
+            <div class="flex flex-col items-center">
+                <span id="study-mode-label" class="text-[10px] font-black uppercase tracking-widest opacity-40">NEW LEARNING</span>
+                <span id="study-progress" class="text-xs font-bold font-mono">1 / 10</span>
+            </div>
+            <button onclick="speakWord()" class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-lg">🔊</button>
         </div>
-        
-        <div class="flex-1 flex items-center justify-center">
+
+        <div class="flex-1 px-6 py-4 flex items-center justify-center overflow-hidden">
             <div class="card-container" id="studyCard">
-                <div class="flip-card-inner" onclick="this.parentElement.classList.toggle('flipped')">
+                <div class="flip-card-inner" onclick="flipCard()">
                     <div class="card-face card-front">
-                        <span id="card-cat" class="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-6 bg-indigo-50 px-2 py-1 rounded">Category</span>
-                        <h2 id="card-en" class="text-3xl font-bold text-center leading-tight">Term</h2>
-                        <p class="mt-12 text-[9px] opacity-30 font-bold uppercase tracking-widest">点击查看译文</p>
+                        <span id="card-cat" class="text-[9px] font-black text-white bg-indigo-400 px-2 py-1 rounded mb-6 uppercase tracking-widest">CAT</span>
+                        <h2 id="card-en" class="text-3xl font-black text-center text-slate-800 dark:text-white leading-snug">Word</h2>
+                        <p class="mt-12 text-[10px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded-full">点击翻转查看</p>
                     </div>
-                    <div class="card-face card-back items-start text-left px-6">
-                        <h3 id="card-zh" class="text-xl font-bold text-indigo-600 mb-4 serif">中文译文</h3>
-                        <div class="w-full h-[1px] bg-slate-100 mb-4"></div>
-                        <p id="card-d" class="text-xs opacity-60 leading-relaxed mb-6">定义解释...</p>
+                    <div class="card-face card-back items-start text-left">
+                        <h3 id="card-zh" class="text-xl font-bold text-indigo-600 mb-3 serif">中文释义</h3>
+                        <p id="card-d" class="text-xs text-slate-500 leading-relaxed mb-6 font-medium">定义解释...</p>
                         
-                        <div class="w-full bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
-                            <p class="text-[9px] font-black text-slate-400 uppercase mb-2">Context / Example</p>
-                            <p id="scene-en" class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">English sentence...</p>
-                            <p id="scene-zh" class="text-[10px] text-slate-400 serif">中文翻译...</p>
+                        <div class="w-full bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 mt-auto" onclick="event.stopPropagation()">
+                            <p class="text-[9px] font-black text-slate-400 uppercase mb-1">翻译笔记</p>
+                            <textarea id="card-note" oninput="saveCurrentNote(this.value)" class="w-full bg-transparent text-xs outline-none h-12 resize-none" placeholder="在此输入笔记..."></textarea>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="study-controls" class="grid grid-cols-3 gap-3 mt-6">
-            <button onclick="handleLearn(1)" class="py-4 bg-slate-100 dark:bg-slate-800 rounded-xl font-black text-[10px] text-slate-500 uppercase">忘了</button>
-            <button onclick="handleLearn(2)" class="py-4 bg-indigo-50 dark:bg-slate-800 rounded-xl font-black text-[10px] text-indigo-400 uppercase">模糊</button>
-            <button onclick="handleLearn(3)" class="py-4 bg-indigo-600 rounded-xl font-black text-[10px] text-white shadow-lg shadow-indigo-200 uppercase">认识</button>
+        <div class="px-6 pb-12 pt-4">
+            <div class="grid grid-cols-3 gap-4 h-16">
+                <button onclick="handleLearn(1)" class="rounded-2xl bg-white dark:bg-slate-800 text-slate-500 font-black text-xs shadow-sm border-b-4 border-slate-200 dark:border-slate-700 active:scale-95 active:border-b-0 transition-all">
+                    😵 忘了<br><span class="text-[9px] font-normal opacity-50">1分后</span>
+                </button>
+                <button onclick="handleLearn(2)" class="rounded-2xl bg-white dark:bg-slate-800 text-indigo-400 font-black text-xs shadow-sm border-b-4 border-indigo-100 dark:border-slate-700 active:scale-95 active:border-b-0 transition-all">
+                    🤔 模糊<br><span class="text-[9px] font-normal opacity-50">10分后</span>
+                </button>
+                <button onclick="handleLearn(3)" class="rounded-2xl bg-indigo-600 text-white font-black text-xs shadow-lg shadow-indigo-200 dark:shadow-none border-b-4 border-indigo-800 active:scale-95 active:border-b-0 transition-all">
+                    😎 认识<br><span class="text-[9px] font-normal opacity-70">1天后</span>
+                </button>
+            </div>
         </div>
     </section>
 
-    <div id="settings-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/10 backdrop-blur-sm z-[300] hide"></div>
-    <aside id="settings-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 z-[301] shadow-2xl p-6 flex flex-col overflow-y-auto">
+    <div id="settings-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-[300] hide transition-opacity"></div>
+    <aside id="settings-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 z-[301] shadow-2xl flex flex-col overflow-y-auto">
         
-        <div id="user-panel" class="mb-8 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
-            <div id="login-view">
-                <h3 class="font-bold text-lg mb-4">手机号登录</h3>
-                <input type="tel" placeholder="请输入手机号" class="w-full bg-white dark:bg-slate-900 p-3 rounded-xl text-xs font-bold mb-3 border border-slate-200 dark:border-slate-700 outline-none">
-                <div class="flex gap-2 mb-3">
-                    <input type="text" placeholder="验证码" class="w-1/2 bg-white dark:bg-slate-900 p-3 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 outline-none">
+        <div class="bg-slate-50 dark:bg-slate-800 p-6 pb-8 border-b border-slate-100 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-black">个人中心</h2>
+                <button onclick="toggleSidebar(false)" class="text-slate-400 text-xl">✕</button>
+            </div>
+
+            <div id="login-panel" class="">
+                <p class="text-xs text-slate-400 mb-3">登录同步学习进度与积分</p>
+                <input type="tel" id="login-phone" placeholder="手机号" class="w-full bg-white dark:bg-slate-900 p-3 rounded-xl text-xs font-bold mb-2 border border-slate-200 dark:border-slate-600 outline-none focus:border-indigo-500 transition-colors">
+                <div class="flex gap-2 mb-4">
+                    <input type="text" placeholder="验证码" class="w-1/2 bg-white dark:bg-slate-900 p-3 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-600 outline-none">
                     <button class="w-1/2 bg-indigo-100 text-indigo-600 rounded-xl text-[10px] font-bold">获取验证码</button>
                 </div>
-                <button onclick="login()" class="w-full bg-indigo-600 text-white p-3 rounded-xl text-xs font-bold shadow-md">立即登录 / 注册</button>
+                <button onclick="userLogin()" class="w-full bg-indigo-600 text-white p-3 rounded-xl text-sm font-bold shadow-md active:scale-95 transition-transform">立即登录</button>
             </div>
-            
-            <div id="profile-view" class="hide text-center">
-                <div class="w-16 h-16 rounded-full bg-indigo-100 mx-auto mb-3 text-3xl flex items-center justify-center">🧑‍🎓</div>
-                <p class="font-bold text-lg">138****8888</p>
-                <p class="text-xs opacity-50 mb-4">MTI 备考会员 (有效期至 2026.12)</p>
-                <button onclick="logout()" class="text-xs text-red-500 font-bold bg-white dark:bg-slate-900 px-4 py-2 rounded-full border border-slate-200">退出登录</button>
+
+            <div id="profile-panel" class="hide">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-400 to-purple-500 p-0.5">
+                        <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix" class="w-full h-full rounded-full bg-white object-cover">
+                    </div>
+                    <div>
+                        <p id="user-phone" class="font-bold text-lg leading-tight">138****8888</p>
+                        <span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">VIP 会员</span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="bg-white dark:bg-slate-700 p-3 rounded-xl shadow-sm">
+                        <p class="text-[9px] opacity-40 uppercase">积分</p>
+                        <p id="stat-points" class="text-lg font-black text-amber-500">0</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-700 p-3 rounded-xl shadow-sm">
+                        <p class="text-[9px] opacity-40 uppercase">已学词</p>
+                        <p id="stat-words" class="text-lg font-black text-indigo-500">0</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-700 p-3 rounded-xl shadow-sm">
+                        <p class="text-[9px] opacity-40 uppercase">词书</p>
+                        <p class="text-lg font-black text-slate-500">1</p>
+                    </div>
+                </div>
+                
+                <button onclick="userLogout()" class="mt-6 w-full text-xs text-red-400 font-bold py-2 border border-red-100 rounded-lg">退出登录</button>
             </div>
         </div>
 
-        <h2 class="text-sm font-black uppercase opacity-30 mb-4 tracking-widest">General Settings</h2>
-        
-        <div class="space-y-4 flex-1">
-            <div onclick="switchTab('books'); toggleSidebar(false);" class="bg-white dark:bg-slate-800 p-4 rounded-xl flex items-center justify-between cursor-pointer border border-slate-100 dark:border-slate-700">
-                <span class="text-xs font-bold">📚 选择词书</span>
-                <span class="text-xs opacity-50">2025热词 ></span>
-            </div>
+        <div class="p-6 space-y-6 flex-1">
+            <h3 class="text-xs font-black opacity-30 uppercase tracking-widest">Preferences</h3>
             
-            <div>
-                <div class="flex justify-between font-black text-indigo-500 mb-2 text-xs"><span>每日目标</span><span id="goal-val">10</span></div>
-                <input type="range" min="5" max="50" step="5" value="10" oninput="updateGoal(this.value)" class="w-full h-1 bg-slate-200 rounded-full appearance-none accent-indigo-600">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold">每日新词量</span>
+                <span id="goal-val" class="text-xs font-black text-indigo-500">10</span>
             </div>
+            <input type="range" min="5" max="50" step="5" value="10" oninput="updateGoal(this.value)" class="w-full h-1 bg-slate-200 rounded-full appearance-none accent-indigo-600">
 
-            <button onclick="toggleDarkMode()" class="w-full p-4 bg-white dark:bg-slate-800 rounded-xl flex justify-between font-bold text-xs border border-slate-100 dark:border-slate-700">
+            <button onclick="toggleDarkMode()" class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-xl flex justify-between font-bold text-xs">
                 <span>夜间模式</span><span id="mode-icon">🌙</span>
+            </button>
+            
+            <button onclick="resetData()" class="w-full p-4 text-red-500 bg-red-50 rounded-xl text-xs font-bold text-center mt-8">
+                重置所有数据
             </button>
         </div>
     </aside>
 
-    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-full shadow-2xl flex items-center px-6 py-2 gap-8 border border-white/20 z-[100]">
-        <button onclick="switchTab('home')" id="btn-home" class="p-2 active-tab text-xl">🏠</button>
-        <button onclick="switchTab('explore')" id="btn-explore" class="p-2 opacity-30 text-xl">🔍</button>
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-full shadow-2xl flex items-center px-8 py-3 gap-10 border border-white/20 z-[100]">
+        <button onclick="switchTab('home')" id="btn-home" class="text-2xl active-tab transition-all">🏠</button>
+        <button onclick="switchTab('explore')" id="btn-explore" class="text-2xl opacity-30 transition-all">🔍</button>
     </nav>
 
     <script>
-        // MTI 词库 (政治、经贸、环保、科技、社会)
-        // 词条特点：长难词、固定搭配、中国特色词汇
+        // MTI 高频热词库
         const RAW_LIB = [
-            // --- Politics 政治 ---
-            { id:'p1', cat:'pol', en:'Community with a shared future', zh:'人类命运共同体', d:'指全人类在追求本国利益时兼顾他国合理关切。', scene: {en: "Building a community with a shared future for mankind.", zh: "构建人类命运共同体。"} },
-            { id:'p2', cat:'pol', en:'Whole-process people\'s democracy', zh:'全过程人民民主', d:'中国社会主义民主政治的本质属性。', scene: {en: "Developing whole-process people's democracy is essential.", zh: "发展全过程人民民主至关重要。"} },
-            { id:'p3', cat:'pol', en:'Two Sessions', zh:'两会', d:'全国人民代表大会和中国人民政治协商会议。', scene: {en: "The Two Sessions are held every March in Beijing.", zh: "两会每年三月在北京召开。"} },
-            { id:'p4', cat:'pol', en:'Belt and Road Initiative', zh:'一带一路倡议', d:'丝绸之路经济带和21世纪海上丝绸之路。', scene: {en: "The Belt and Road Initiative promotes global cooperation.", zh: "一带一路倡议促进了全球合作。"} },
-            { id:'p5', cat:'pol', en:'Governance capacity', zh:'治理能力', d:'运用国家制度管理社会各方面事务的能力。', scene: {en: "Modernizing China's system and capacity for governance.", zh: "推进国家治理体系和治理能力现代化。"} },
+            { id:'1', cat:'POL', en:'Chinese path to modernization', zh:'中国式现代化', d:'人口规模巨大的现代化，全体人民共同富裕的现代化。' },
+            { id:'2', cat:'ECO', en:'New quality productive forces', zh:'新质生产力', d:'以科技创新为主导，摆脱传统增长路径的先进生产力。' },
+            { id:'3', cat:'POL', en:'Whole-process people\'s democracy', zh:'全过程人民民主', d:'最广泛、最真实、最管用的社会主义民主。' },
+            { id:'4', cat:'ENV', en:'Carbon peaking and carbon neutrality', zh:'碳达峰碳中和', d:'双碳目标：2030年前达峰，2060年前中和。' },
+            { id:'5', cat:'TEC', en:'Artificial General Intelligence', zh:'通用人工智能', d:'具有像人类一样执行各种认知任务能力的AI系统。' },
+            { id:'6', cat:'ECO', en:'High-standard opening up', zh:'高水平对外开放', d:'依托超大规模市场优势，吸引全球资源要素。' },
+            { id:'7', cat:'CUL', en:'Cultural confidence', zh:'文化自信', d:'一个国家、一个民族、一个政党对自身文化价值的充分肯定。' },
+            { id:'8', cat:'SOC', en:'Rural revitalization', zh:'乡村振兴', d:'产业兴旺、生态宜居、乡风文明、治理有效、生活富裕。' }
+        ];
 
-            // --- Economy 经贸 ---
-            { id:'e1', cat:'eco', en:'New quality productive forces', zh:'新质生产力', d:'创新起主导作用，摆脱传统增长路径的先进生产力。', scene: {en: "Accelerating the development of new quality productive forces.", zh: "加快发展新质生产力。"} },
-            { id:'e2', cat:'eco', en:'Supply-side structural reform', zh:'供给侧结构性改革', d:'从提高供给质量出发，用改革的办法推进结构调整。', scene: {en: "Deepening supply-side structural reform.", zh: "深化供给侧结构性改革。"} },
-            { id:'e3', cat:'eco', en:'Dual circulation', zh:'双循环', d:'以国内大循环为主体、国内国际双循环相互促进。', scene: {en: "Foster a new development pattern of dual circulation.", zh: "构建双循环的新发展格局。"} },
-            { id:'e4', cat:'eco', en:'High-standard opening up', zh:'高水平对外开放', d:'依托我国超大规模市场优势，吸引全球资源要素。', scene: {en: "Promote high-standard opening up.", zh: "推进高水平对外开放。"} },
-            { id:'e5', cat:'eco', en:'Cross-border e-commerce', zh:'跨境电商', d:'分属不同关境的交易主体通过电子商务达成交易。', scene: {en: "Cross-border e-commerce has grown rapidly.", zh: "跨境电商发展迅速。"} },
-
-            // --- Environment 环保 ---
-            { id:'env1', cat:'env', en:'Carbon neutrality', zh:'碳中和', d:'企业、团体或个人测算在一定时间内直接或间接产生的温室气体排放总量，通过植树造林、节能减排等形式，以抵消自身产生的二氧化碳排放量，实现二氧化碳“零排放”。', scene: {en: "China aims to achieve carbon neutrality by 2060.", zh: "中国旨在2060年前实现碳中和。"} },
-            { id:'env2', cat:'env', en:'Green development', zh:'绿色发展', d:'以效率、和谐、持续为目标的经济增长和社会发展方式。', scene: {en: "Green development is key to a sustainable future.", zh: "绿色发展是可持续未来的关键。"} },
-            { id:'env3', cat:'env', en:'Biodiversity conservation', zh:'生物多样性保护', d:'保护基因、物种和生态系统的多样性。', scene: {en: "Strengthening biodiversity conservation is urgent.", zh: "加强生物多样性保护刻不容缓。"} },
-            
-            // --- Tech 科技 ---
-            { id:'t1', cat:'tech', en:'Artificial Intelligence (AI)', zh:'人工智能', d:'研究、开发用于模拟、延伸和扩展人的智能的理论、方法、技术及应用系统。', scene: {en: "Generative AI is transforming industries.", zh: "生成式人工智能正在改变各行各业。"} },
-            { id:'t2', cat:'tech', en:'Quantum computing', zh:'量子计算', d:'利用量子叠加和纠缠等量子力学现象进行计算。', scene: {en: "Quantum computing solves problems faster than supercomputers.", zh: "量子计算解决问题的速度比超级计算机快。"} },
-            
-            // --- Society 社会 ---
-            { id:'s1', cat:'soc', en:'Rural revitalization', zh:'乡村振兴', d:'通过改革发展使农村面貌发生根本性变化。', scene: {en: "Comprehensive promotion of rural revitalization.", zh: "全面推进乡村振兴。"} },
-            { id:'s2', cat:'soc', en:'Aging population', zh:'人口老龄化', d:'老年人口占总人口比例不断上升的过程。', scene: {en: "Addressing the challenges of an aging population.", zh: "应对人口老龄化的挑战。"} }
-
-        ].sort((a,b) => a.en.localeCompare(b.en));
-
+        // 状态管理
         let state = {
-            mem: JSON.parse(localStorage.getItem('lexi_mti_mem') || '{}'),
-            notes: JSON.parse(localStorage.getItem('lexi_mti_notes') || '{}'), // 笔记存储
-            user: JSON.parse(localStorage.getItem('lexi_mti_user') || 'null'), // 用户登录状态
-            goal: 10, filter: 'all', queue: [], idx: 0, editMode: false, selectedItems: new Set()
+            mem: JSON.parse(localStorage.getItem('lexi_v10_mem') || '{}'), // {id: {lv:0, next:timestamp}}
+            user: JSON.parse(localStorage.getItem('lexi_v10_user') || 'null'), // {phone, points, learnedCount}
+            notes: JSON.parse(localStorage.getItem('lexi_v10_notes') || '{}'),
+            goal: 10,
+            queue: [], idx: 0, mode: 'new' // 'new' or 'review'
         };
 
         // --- 初始化 ---
         function init() {
             if(localStorage.getItem('lexi_dark') === 'true') document.body.classList.add('dark');
+            updateUserUI();
             updateDashboard();
-            renderUserPanel();
         }
 
-        // --- 登录系统 (Frontend Mock) ---
-        function renderUserPanel() {
-            const isLogged = !!state.user;
-            document.getElementById('login-view').classList.toggle('hide', isLogged);
-            document.getElementById('profile-view').classList.toggle('hide', !isLogged);
-            // 顶部头像状态
-            const avatar = document.getElementById('header-avatar');
-            avatar.innerHTML = isLogged ? '<img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full object-cover">' : '<span class="text-xs">👤</span>';
-        }
-
-        function login() {
-            // 模拟登录请求
-            setTimeout(() => {
-                state.user = { phone: '13800008888', token: 'mock_token_123' };
-                localStorage.setItem('lexi_mti_user', JSON.stringify(state.user));
-                renderUserPanel();
-                alert("欢迎回来，MTI 备考会员！");
-            }, 500);
-        }
-
-        function logout() {
-            state.user = null;
-            localStorage.removeItem('lexi_mti_user');
-            renderUserPanel();
-        }
-
-        // --- 学习逻辑 (极速模式) ---
-        function openStudy(type) {
+        // --- 核心算法：艾宾浩斯/间隔复习 ---
+        function updateDashboard() {
             const now = Date.now();
-            if(type === 'new') {
-                state.queue = RAW_LIB.filter(i => (!state.mem[i.id] || state.mem[i.id].lv === 0));
+            
+            // 计算“待复习”：等级>0 且 时间已到
+            const reviewCount = RAW_LIB.filter(i => {
+                const m = state.mem[i.id];
+                return m && m.lv > 0 && now >= m.next;
+            }).length;
+
+            // 计算“需学习”：未开始 或 lv=0
+            const newCount = RAW_LIB.filter(i => !state.mem[i.id] || state.mem[i.id].lv === 0).length;
+
+            document.getElementById('num-new').innerText = newCount;
+            document.getElementById('num-review').innerText = reviewCount;
+        }
+
+        function openStudy(mode) {
+            state.mode = mode;
+            const now = Date.now();
+            
+            if(mode === 'new') {
+                state.queue = RAW_LIB.filter(i => !state.mem[i.id] || state.mem[i.id].lv === 0).slice(0, state.goal);
+                document.getElementById('study-mode-label').innerText = "NEW LEARNING";
             } else {
                 state.queue = RAW_LIB.filter(i => {
                     const m = state.mem[i.id];
-                    return m && m.lv > 0 && m.lv < 99 && now >= m.next;
+                    return m && m.lv > 0 && now >= m.next;
                 });
+                document.getElementById('study-mode-label').innerText = "REVIEW MODE";
             }
-            if(!state.queue.length) return alert("当前没有待处理的词条！");
-            state.queue = state.queue.slice(0, state.goal);
+
+            if(state.queue.length === 0) {
+                alert(mode === 'new' ? "今日任务已完成！" : "暂无待复习词条，休息一下吧。");
+                return;
+            }
+
             state.idx = 0;
             document.getElementById('study-layer').classList.remove('hide');
-            showCard();
+            renderCard();
         }
 
-        function showCard() {
+        function renderCard() {
             const item = state.queue[state.idx];
-            const card = document.getElementById('studyCard');
-            card.classList.remove('flipped'); // 默认显示正面
+            document.getElementById('studyCard').classList.remove('flipped'); // 重置翻转
             
             // 填充内容
+            document.getElementById('card-cat').innerText = item.cat;
             document.getElementById('card-en').innerText = item.en;
-            document.getElementById('card-cat').innerText = item.cat.toUpperCase();
             document.getElementById('card-zh').innerText = item.zh;
             document.getElementById('card-d').innerText = item.d;
-            document.getElementById('scene-en').innerText = item.scene.en;
-            document.getElementById('scene-zh').innerText = item.scene.zh;
+            document.getElementById('card-note').value = state.notes[item.id] || '';
+            
+            document.getElementById('study-progress').innerText = `${state.idx + 1} / ${state.queue.length}`;
         }
 
         function handleLearn(score) {
-            // 直接保存进度，不强制翻面，直接切下一题
             const item = state.queue[state.idx];
             if(!state.mem[item.id]) state.mem[item.id] = { lv: 0, next: 0 };
             const m = state.mem[item.id];
 
-            if(score === 3) m.lv += 1;
-            else if(score === 1) m.lv = Math.max(1, m.lv - 1);
-            
-            const intervals = [0, 0.5, 1, 3, 7, 15, 30];
-            m.next = Date.now() + (intervals[Math.min(m.lv, 6)] * 86400000);
-            save();
+            // 积分反馈特效
+            if(state.user && score > 1) {
+                addPoints(10);
+                showFloatingPoint(10);
+            }
 
-            // 极速切换动画
+            // --- 艾宾浩斯核心逻辑 (简化版用于演示) ---
+            // Lv 0: 新词
+            // Lv 1: 1分钟后
+            // Lv 2: 10分钟后
+            // Lv 3: 1天后 ...
+            const intervals = [0, 1, 10, 1440, 2880, 7200]; // 分钟单位
+            
+            if(score === 1) { // 忘了
+                m.lv = 1; // 重置到最初级
+            } else if (score === 3) { // 认识
+                m.lv = Math.min(m.lv + 1, 5); // 升级
+            }
+            // (score 2 模糊：等级不变)
+
+            // 计算下次复习时间戳
+            // 为了演示效果，Lv1设为30秒，Lv2设为2分钟
+            // 实际应用请用 intervals * 60 * 1000
+            let waitTime = 0;
+            if(m.lv === 1) waitTime = 30 * 1000; // 30秒 (测试用)
+            else if(m.lv === 2) waitTime = 2 * 60 * 1000; // 2分钟
+            else waitTime = intervals[m.lv] * 60 * 1000; 
+
+            m.next = Date.now() + waitTime;
+            
+            // 更新已学计数
+            if(state.user) {
+                const learnedCount = Object.values(state.mem).filter(x => x.lv > 0).length;
+                state.user.learnedCount = learnedCount;
+                saveUser();
+            }
+
+            saveMem();
+            nextCard();
+        }
+
+        function nextCard() {
+            // 极速模式动画
             const card = document.getElementById('studyCard');
+            card.style.transform = 'translateX(-20px)';
             card.style.opacity = '0';
-            card.style.transform = 'scale(0.95)';
             
             setTimeout(() => {
                 state.idx++;
                 if(state.idx < state.queue.length) {
-                    showCard();
+                    renderCard();
+                    card.style.transform = 'translateX(0)';
                     card.style.opacity = '1';
-                    card.style.transform = 'scale(1)';
                 } else {
                     closeStudy();
+                    card.style.transform = 'translateX(0)';
                     card.style.opacity = '1';
-                    card.style.transform = 'scale(1)';
                 }
             }, 200);
         }
 
-        // --- 探索页 (带笔记恢复) ---
-        function setFilter(cat) { 
-            state.filter = cat;
-            document.querySelectorAll('.cat-btn').forEach(b => {
-                b.classList.remove('active-tab', 'opacity-100');
-                b.classList.add('opacity-40');
-            }); 
-            event.target.classList.remove('opacity-40');
-            event.target.classList.add('active-tab', 'opacity-100');
-            renderExplore(); 
+        function flipCard() { document.getElementById('studyCard').classList.toggle('flipped'); }
+
+        // --- 用户与积分系统 ---
+        function userLogin() {
+            const phone = document.getElementById('login-phone').value;
+            if(phone.length < 11) return alert("请输入正确的手机号");
+            
+            // 模拟登录
+            state.user = { 
+                phone: phone, 
+                points: 0, 
+                learnedCount: 0 
+            };
+            saveUser();
+            updateUserUI();
+            alert("登录成功！");
+        }
+
+        function userLogout() {
+            if(confirm("确定退出登录吗？")) {
+                state.user = null;
+                localStorage.removeItem('lexi_v10_user');
+                updateUserUI();
+            }
+        }
+
+        function updateUserUI() {
+            const isLogged = !!state.user;
+            document.getElementById('login-panel').classList.toggle('hide', isLogged);
+            document.getElementById('profile-panel').classList.toggle('hide', !isLogged);
+            
+            if(isLogged) {
+                document.getElementById('user-phone').innerText = state.user.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+                document.getElementById('stat-points').innerText = state.user.points;
+                document.getElementById('stat-words').innerText = state.user.learnedCount;
+            }
+        }
+
+        function addPoints(pts) {
+            if(!state.user) return;
+            state.user.points += pts;
+            document.getElementById('stat-points').innerText = state.user.points;
+            saveUser();
+        }
+
+        function showFloatingPoint(amount) {
+            const el = document.createElement('div');
+            el.className = 'point-plus';
+            el.innerText = `+${amount}`;
+            el.style.left = '50%'; 
+            el.style.top = '40%';
+            document.getElementById('study-layer').appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        // --- 辅助功能 ---
+        function toggleSidebar(show) { 
+            const sb = document.getElementById('settings-sidebar');
+            const ov = document.getElementById('settings-overlay');
+            if(show) { sb.classList.add('open'); ov.classList.remove('hide'); }
+            else { sb.classList.remove('open'); ov.classList.add('hide'); }
+        }
+
+        function switchTab(tab) {
+            document.getElementById('view-home').classList.toggle('hide', tab !== 'home');
+            document.getElementById('view-explore').classList.toggle('hide', tab !== 'explore');
+            document.getElementById('btn-home').className = tab === 'home' ? 'text-2xl active-tab' : 'text-2xl opacity-30';
+            document.getElementById('btn-explore').className = tab === 'explore' ? 'text-2xl active-tab' : 'text-2xl opacity-30';
+            if(tab === 'explore') renderExplore();
         }
 
         function renderExplore() {
-            const container = document.getElementById('explore-list');
-            const filtered = RAW_LIB.filter(i => state.filter === 'all' || i.cat === state.filter);
-            container.innerHTML = filtered.map(i => `
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-800">
-                    <div class="flex justify-between items-start cursor-pointer" onclick="toggleDetail('${i.id}')">
-                        <div class="pr-4">
-                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">${i.cat}</span>
-                            <h4 class="text-lg font-bold mt-1 leading-tight">${i.en}</h4>
-                        </div>
-                        <span class="text-indigo-500 text-xl font-bold ${state.mem[i.id]?'':'opacity-0'}">✓</span>
+            document.getElementById('explore-list').innerHTML = RAW_LIB.map(i => `
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl flex justify-between items-center shadow-sm">
+                    <div>
+                        <span class="text-[9px] font-black text-slate-400 uppercase">${i.cat}</span>
+                        <h4 class="font-bold text-sm">${i.en}</h4>
+                        <p class="text-xs text-slate-500 truncate max-w-[200px]">${i.zh}</p>
                     </div>
-                    
-                    <div id="detail-${i.id}" class="hide mt-4 pt-4 border-t border-slate-50 dark:border-slate-700">
-                        <p class="text-base font-bold text-indigo-600 serif mb-2">${i.zh}</p>
-                        <p class="text-xs opacity-60 leading-relaxed mb-4">${i.d}</p>
-                        
-                        <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                            <label class="text-[9px] font-black uppercase text-slate-400 mb-2 block">My Notes / 翻译笔记</label>
-                            <textarea oninput="saveNote('${i.id}', this.value)" class="w-full bg-transparent text-xs font-medium outline-none resize-none h-16" placeholder="点击添加翻译技巧、关联词...">${state.notes[i.id] || ''}</textarea>
-                        </div>
-                    </div>
+                    <span class="text-indigo-500 font-bold text-lg">${state.mem[i.id]?.lv > 0 ? '✓' : '+'}</span>
                 </div>
             `).join('');
         }
 
-        // --- 熟词管理 ---
-        function renderLearned() {
-            const list = RAW_LIB.filter(i => state.mem[i.id] && state.mem[i.id].lv > 0 && state.mem[i.id].lv < 99);
-            const container = document.getElementById('learned-list');
-            document.getElementById('num-learned').innerText = list.length;
-            
-            if(!list.length) { container.innerHTML = '<p class="text-center opacity-30 mt-10 text-xs">空空如也</p>'; return; }
-
-            container.innerHTML = list.map(i => `
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                    <div class="flex items-center gap-3 overflow-hidden">
-                        <label class="checkbox-wrapper cursor-pointer ${state.editMode?'':'hide'}">
-                            <input type="checkbox" class="hidden" onchange="toggleSelect('${i.id}')" ${state.selectedItems.has(i.id)?'checked':''}>
-                            <div class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center"><svg class="w-3 h-3 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>
-                        </label>
-                        <div class="truncate">
-                            <p class="font-bold text-sm truncate">${i.en}</p>
-                            <p class="text-xs opacity-50 truncate">${i.zh}</p>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function toggleEditMode() {
-            state.editMode = !state.editMode;
-            document.getElementById('btn-edit').innerText = state.editMode ? '完成' : '批量管理';
-            document.getElementById('batch-bar').classList.toggle('hide', !state.editMode);
-            state.selectedItems.clear(); renderLearned();
-            document.getElementById('selected-count').innerText = 0;
-        }
-        function toggleSelect(id) {
-            state.selectedItems.has(id) ? state.selectedItems.delete(id) : state.selectedItems.add(id);
-            document.getElementById('selected-count').innerText = state.selectedItems.size;
-        }
-        function moveToTrash() {
-            if(!confirm("确定移入垃圾箱？")) return;
-            state.selectedItems.forEach(id => state.mem[id].lv = 99);
-            save(); toggleEditMode(); updateDashboard();
-        }
-
-        // --- 通用 ---
-        function switchTab(tab) {
-            ['home', 'explore', 'books', 'learned'].forEach(t => document.getElementById('view-'+t)?.classList.add('hide'));
-            document.getElementById('view-'+tab).classList.remove('hide');
-            document.querySelectorAll('nav button').forEach(b => b.classList.add('opacity-30'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-tab'));
-            if(tab === 'home') document.getElementById('btn-home').classList.add('active-tab', 'opacity-100'); // Fix nav
-            if(tab === 'explore') { document.getElementById('btn-explore').classList.add('active-tab', 'opacity-100'); renderExplore(); } // Fix nav
-            if(tab === 'learned') renderLearned();
-        }
-        function saveNote(id, val) { state.notes[id] = val; localStorage.setItem('lexi_mti_notes', JSON.stringify(state.notes)); }
-        function save() { localStorage.setItem('lexi_mti_mem', JSON.stringify(state.mem)); updateDashboard(); }
-        function toggleDetail(id) { document.getElementById('detail-'+id).classList.toggle('hide'); }
-        function closeStudy() { document.getElementById('study-layer').classList.add('hide'); updateDashboard(); }
         function speakWord() { window.speechSynthesis.speak(new SpeechSynthesisUtterance(state.queue[state.idx].en)); }
-        function toggleSidebar(show) { document.getElementById('settings-sidebar').classList.toggle('open', show); document.getElementById('settings-overlay').classList.toggle('hide', !show); }
+        function saveCurrentNote(val) { state.notes[state.queue[state.idx].id] = val; localStorage.setItem('lexi_v10_notes', JSON.stringify(state.notes)); }
+        function saveMem() { localStorage.setItem('lexi_v10_mem', JSON.stringify(state.mem)); updateDashboard(); }
+        function saveUser() { localStorage.setItem('lexi_v10_user', JSON.stringify(state.user)); }
+        function closeStudy() { document.getElementById('study-layer').classList.add('hide'); updateDashboard(); }
         function toggleDarkMode() { document.body.classList.toggle('dark'); localStorage.setItem('lexi_dark', document.body.classList.contains('dark')); }
-        function updateDashboard() {
-            const news = RAW_LIB.filter(i => (!state.mem[i.id] || state.mem[i.id].lv === 0)).length;
-            const reviews = RAW_LIB.filter(i => state.mem[i.id]?.lv > 0 && state.mem[i.id].lv < 99 && Date.now() >= state.mem[i.id].next).length;
-            document.getElementById('num-new').innerText = news;
-            document.getElementById('num-review').innerText = reviews;
-        }
+        function resetData() { localStorage.clear(); location.reload(); }
 
         init();
     </script>
