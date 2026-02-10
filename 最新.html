@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexiFlow - 行业翻译精选</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Inter:wght@300;500&display=swap" rel="stylesheet">
+    <style>
+        body { transition: background-color 0.5s ease, color 0.5s ease; font-family: 'Inter', 'Noto Serif SC', serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .dark-mode { background-color: #0f1115 !important; color: #cbd5e1; }
+        .dark-mode .glass-card {
+            background: rgba(30, 32, 38, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .dark-mode h1, .dark-mode h2 { color: #f8fafc !important; }
+        .dark-mode input { background: rgba(255,255,255,0.05); color: white; }
+
+        .bg-legal { background-color: #f1f4f8; --accent: #1e293b; }
+        .bg-gaming { background-color: #f8f6ff; --accent: #7c3aed; }
+        .bg-food { background-color: #fffaf0; --accent: #d97706; }
+        
+        .tab-active { color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: bold; }
+        .note-input { background: transparent; border-bottom: 1px dashed #ccc; outline: none; width: 100%; }
+    </style>
+</head>
+<body class="bg-legal min-h-screen flex flex-col items-center pb-20 px-6" id="body-bg">
+
+    <div class="fixed top-6 right-6 z-50 flex space-x-3">
+        <button onclick="toggleDarkMode()" class="p-3 rounded-full glass-card hover:rotate-12 transition-all shadow-lg">
+            <span id="dark-icon" class="text-xl">🌙</span>
+        </button>
+    </div>
+
+    <nav class="sticky top-0 z-40 w-full flex justify-center py-8 space-x-10 text-gray-400">
+        <button onclick="switchTheme('legal')" id="tab-legal" class="tab-active transition-all">⚖️ 法律</button>
+        <button onclick="switchTheme('gaming')" id="tab-gaming" class="transition-all">🎮 游戏</button>
+        <button onclick="switchTheme('food')" id="tab-food" class="transition-all">🍱 食物</button>
+    </nav>
+
+    <section class="w-full max-w-3xl mb-12">
+        <div class="text-xs uppercase tracking-[0.3em] text-gray-400 mb-4 text-center">Featured Word of Today</div>
+        <div id="hero-card" class="glass-card rounded-[2.5rem] p-10 text-center shadow-xl border-t border-white">
+            </div>
+    </section>
+
+    <div class="w-full max-w-xl mb-12">
+        <input type="text" placeholder="探索专业译法..." 
+            class="w-full px-8 py-5 rounded-3xl shadow-sm glass-card focus:ring-2 focus:ring-gray-100 text-lg">
+    </div>
+
+    <main class="w-full max-w-2xl space-y-6" id="card-container"></main>
+
+    <script>
+        const content = {
+            legal: {
+                hero: { en: "Bona Fide", zh: "善意；诚实地", detail: "拉丁语词汇。指在法律行为中主观上没有欺诈的意图。", context: "Legal Principle" },
+                cards: [
+                    { id: 'l1', en: "Consideration", zh: "对价", detail: "合同中换取承诺的对等利益。", context: "Contract" },
+                    { id: 'l2', en: "Force Majeure", zh: "不可抗力", detail: "不可预见且不可克服的客观力量。", context: "Compliance" }
+                ],
+                theme: "bg-legal", accent: "#1e293b"
+            },
+            gaming: {
+                hero: { en: "Roguelike", zh: "肉鸽（随机生成地牢类）", detail: "以随机性、永久死亡为核心特征的游戏类型。", context: "Genre" },
+                cards: [
+                    { id: 'g1', en: "Critical Hit", zh: "会心一击", detail: "游戏中的暴击机制。", context: "Combat" },
+                    { id: 'g2', en: "Localisation", zh: "本地化", detail: "不仅仅是翻译，更是文化适配。", context: "Industry" }
+                ],
+                theme: "bg-gaming", accent: "#7c3aed"
+            },
+            food: {
+                hero: { en: "Umami", zh: "鲜味", detail: "酸甜苦咸之外的第五种基本味道。", context: "Flavor" },
+                cards: [
+                    { id: 'f1', en: "Wok Hei", zh: "锅气", detail: "镬气，中餐烹饪的灵魂。", context: "Technique" },
+                    { id: 'f2', en: "Blanch", zh: "焯水", detail: "基础烹饪步骤。", context: "Culinary" }
+                ],
+                theme: "bg-food", accent: "#d97706"
+            }
+        };
+
+        let currentTheme = 'legal';
+        let isDark = false;
+
+        function speak(text) {
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'en-US';
+            window.speechSynthesis.speak(utter);
+        }
+
+        function toggleDarkMode() {
+            isDark = !isDark;
+            document.body.classList.toggle('dark-mode');
+            document.getElementById('dark-icon').innerText = isDark ? '☀️' : '🌙';
+            switchTheme(currentTheme);
+        }
+
+        function saveNote(id, value) {
+            localStorage.setItem(`note_${id}`, value);
+        }
+
+        function switchTheme(type) {
+            currentTheme = type;
+            const data = content[type];
+            
+            document.getElementById('body-bg').className = `${data.theme} min-h-screen flex flex-col items-center pb-20 px-6 ${isDark ? 'dark-mode' : ''}`;
+            
+            // 切换Tabs
+            ['legal', 'gaming', 'food'].forEach(t => {
+                document.getElementById(`tab-${t}`).className = t === type ? 'tab-active' : '';
+                document.getElementById(`tab-${t}`).style.color = (t === type && !isDark) ? data.accent : '';
+            });
+
+            // 渲染每日一词
+            const hero = data.hero;
+            document.getElementById('hero-card').innerHTML = `
+                <h2 class="text-5xl font-bold mb-4 tracking-tight" style="color: ${isDark ? '#fff' : data.accent}">${hero.en}</h2>
+                <div class="text-2xl font-medium mb-4 text-gray-700 dark:text-gray-300">${hero.zh}</div>
+                <p class="max-w-md mx-auto text-gray-500">${hero.detail}</p>
+                <button onclick="speak('${hero.en}')" class="mt-6 p-4 rounded-full bg-white/50 hover:bg-white shadow-sm transition-all">🔊 播放</button>
+            `;
+
+            // 渲染列表
+            const container = document.getElementById('card-container');
+            container.innerHTML = data.cards.map(card => {
+                const savedNote = localStorage.getItem(`note_${card.id}`) || '';
+                return `
+                <div class="glass-card p-8 rounded-[2rem] group relative">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center space-x-3">
+                            <h3 class="text-2xl font-bold" style="color: ${isDark ? '#fff' : data.accent}">${card.en}</h3>
+                            <button onclick="speak('${card.en}')" class="text-gray-400">🔊</button>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-widest text-gray-400 border border-gray-200 px-2 py-0.5 rounded-full">${card.context}</span>
+                    </div>
+                    <div class="text-xl mb-4">${card.zh}</div>
+                    <p class="text-sm text-gray-500 mb-6">${card.detail}</p>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                        <label class="text-[10px] text-gray-400 uppercase block mb-1">My Notes</label>
+                        <input type="text" class="note-input text-sm dark:text-gray-300" 
+                            placeholder="点击此处输入你的理解..." 
+                            value="${savedNote}"
+                            onblur="saveNote('${card.id}', this.value)">
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        switchTheme('legal');
+    </script>
+</body>
+</html>
