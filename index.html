@@ -3,215 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LexiFlow Pro</title>
+    <title>LexiFlow Pro - 精致词汇学习</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --m-blue: #B9C9D6;   --m-blue-light: #E8EEF2;
-            --m-green: #C2CFB2;  --m-green-light: #F0F4E8;
-            --m-rose: #D9B8B5;   --m-rose-light: #F7E9E8;
-            --accent: #5D6D7E;
+            --bg-main: #FBFBFC;
+            --c-legal: #E7F0FD; /* 淡雅蓝 */
+            --c-gaming: #E9F5E9; /* 清新绿 */
+            --c-food: #FEF2F2; /* 柔和粉 */
+            --accent: #6366F1;
         }
-        body { background: #F8FAFC; font-family: 'Plus Jakarta Sans', sans-serif; color: #4A5568; transition: background 0.4s ease; -webkit-tap-highlight-color: transparent; }
-        .dark-mode { background: #111827 !important; color: #E2E8F0; }
+        body { background: var(--bg-main); font-family: 'Plus Jakarta Sans', sans-serif; color: #334155; }
         
-        /* 莫兰迪卡片系统 */
-        .card-legal { background: var(--m-blue-light); border: 1px solid rgba(185, 201, 214, 0.4); }
-        .card-gaming { background: var(--m-green-light); border: 1px solid rgba(194, 207, 178, 0.4); }
-        .card-food { background: var(--m-rose-light); border: 1px solid rgba(217, 184, 181, 0.4); }
-        .dark-mode .card-legal, .dark-mode .card-gaming, .dark-mode .card-food { background: #1F2937; border-color: #374151; }
+        /* 极致简约卡片 */
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(0,0,0,0.03); }
+        .card:active { transform: scale(0.98); }
+        
+        .cat-tag { padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .cat-legal { background: var(--c-legal); color: #3B82F6; }
+        .cat-gaming { background: var(--c-gaming); color: #10B981; }
+        .cat-food { background: var(--c-food); color: #F43F5E; }
 
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); }
-        .dark-mode .glass { background: rgba(31, 41, 55, 0.8); }
+        /* 学习模式全屏覆盖层 */
+        #studyOverlay { display: none; position: fixed; inset: 0; background: white; z-index: 200; flex-direction: column; }
+        
+        /* 艾宾浩斯阶段指示器 */
+        .stage-dot { width: 6px; height: 6px; border-radius: 50%; background: #E2E8F0; margin: 0 2px; }
+        .stage-dot.active { background: var(--accent); }
 
-        #settingsPanel { transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        #settingsPanel.open { transform: translateX(0); }
-        .view-hidden { display: none !important; }
-        .nav-active { color: var(--accent); font-weight: 800; }
-        .nav-active::after { content: ''; display: block; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; margin: 2px auto; }
+        /* 隐藏滚动条 */
+        ::-webkit-scrollbar { display: none; }
+        .active-tab { background: white; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); color: var(--accent) !important; }
     </style>
 </head>
-<body class="min-h-screen pb-24 overflow-x-hidden">
+<body class="pb-24">
 
-    <header class="px-6 pt-10 flex justify-between items-end max-w-2xl mx-auto">
+    <header class="px-8 pt-12 flex justify-between items-center max-w-2xl mx-auto">
         <div>
-            <h1 class="text-3xl font-[800] tracking-tighter italic text-slate-800 dark:text-white">LexiFlow</h1>
-            <p id="pageTitle" class="text-[10px] font-bold opacity-40 uppercase tracking-[0.3em]">Learn Dashboard</p>
+            <h1 class="text-3xl font-[800] tracking-tighter text-slate-900">LexiFlow</h1>
+            <p id="pageTitle" class="text-[10px] font-black opacity-30 uppercase tracking-[0.3em]">Dashboard</p>
         </div>
-        <button onclick="toggleSettings(true)" class="w-10 h-10 rounded-full glass flex items-center justify-center shadow-sm">⚙️</button>
+        <div class="flex gap-3">
+            <button onclick="toggleSettings(true)" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center border border-slate-100">⚙️</button>
+        </div>
     </header>
 
-    <main id="page-learn" class="px-6 mt-8 max-w-2xl mx-auto">
-        <div class="card-legal p-8 rounded-[2.5rem] mb-10 shadow-sm relative">
-            <span class="absolute top-6 right-8 text-[10px] font-black opacity-20 tracking-widest uppercase">Word of Today</span>
-            <h2 class="text-4xl font-black mb-2 tracking-tighter">Bona Fide</h2>
-            <p class="text-xl font-bold mb-4 opacity-70">善意；诚实地</p>
-            <p class="text-sm opacity-50 leading-relaxed italic">法律术语。指当事人在进行法律行为时，主观上出于真诚、没有欺诈或损害他人权利的意图。</p>
+    <main id="page-learn" class="px-6 mt-10 max-w-2xl mx-auto">
+        <div class="bg-white p-8 rounded-[2.5rem] mb-8 shadow-sm border border-slate-50 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+            <span class="relative z-10 text-[10px] font-black text-indigo-400 tracking-widest uppercase">Word of Today</span>
+            <h2 id="today-en" class="text-4xl font-black mt-2 mb-1 tracking-tighter text-slate-800">Bona Fide</h2>
+            <p id="today-zh" class="text-xl font-bold opacity-60">善意；诚实地</p>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-10">
-            <div class="glass p-7 rounded-[2.2rem] text-center border border-white/40 shadow-sm">
-                <p class="text-[9px] font-black opacity-30 uppercase tracking-[0.2em] mb-1">需学习 New</p>
-                <p id="count-new" class="text-4xl font-black text-slate-600 dark:text-slate-300">0</p>
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div onclick="startStudy('new')" class="bg-white p-6 rounded-[2rem] border border-slate-100 cursor-pointer hover:border-indigo-200 transition-colors">
+                <p class="text-[9px] font-black opacity-30 uppercase tracking-widest mb-1">New Words</p>
+                <p id="count-new" class="text-4xl font-black text-slate-700">0</p>
+                <div class="text-[10px] mt-2 text-indigo-500 font-bold">点击开始学习 →</div>
             </div>
-            <div class="glass p-7 rounded-[2.2rem] text-center border border-white/40 shadow-sm">
-                <p class="text-[9px] font-black opacity-30 uppercase tracking-[0.2em] mb-1">需复习 Review</p>
-                <p id="count-review" class="text-4xl font-black text-slate-400">0</p>
+            <div onclick="startStudy('review')" class="bg-white p-6 rounded-[2rem] border border-slate-100 cursor-pointer hover:border-rose-200 transition-colors">
+                <p class="text-[9px] font-black opacity-30 uppercase tracking-widest mb-1">Due Review</p>
+                <p id="count-review" class="text-4xl font-black text-slate-700">0</p>
+                <div class="text-[10px] mt-2 text-rose-400 font-bold">需复习词条</div>
             </div>
         </div>
 
-        <button onclick="alert('今日学习任务已自动分配，请在Search页点击感兴趣的词条加入计划')" class="w-full py-6 glass rounded-3xl font-black text-sm opacity-50 tracking-widest border border-dashed border-slate-300 uppercase">Start Session</button>
+        <button onclick="startStudy('all')" class="w-full py-6 bg-slate-900 rounded-3xl font-black text-sm text-white shadow-xl shadow-indigo-100 tracking-widest uppercase active:scale-95 transition-transform">Start Daily Session</button>
     </main>
 
-    <main id="page-search" class="px-6 mt-8 max-w-2xl mx-auto view-hidden">
-        <div class="glass rounded-[2rem] p-2 flex items-center px-6 mb-8 shadow-inner border border-white/20">
-            <input type="text" id="searchInput" oninput="doSearch()" placeholder="Search professional phrases..." class="w-full bg-transparent py-4 focus:outline-none text-lg">
-            <span class="opacity-20 text-xl">🔍</span>
+    <main id="page-search" class="px-6 mt-8 max-w-2xl mx-auto hidden">
+        <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-6 gap-1">
+            <button onclick="filterCat('all')" class="cat-btn flex-1 py-2 rounded-xl text-xs font-bold text-slate-500 active-tab">All</button>
+            <button onclick="filterCat('legal')" class="cat-btn flex-1 py-2 rounded-xl text-xs font-bold text-slate-500">Legal</button>
+            <button onclick="filterCat('gaming')" class="cat-btn flex-1 py-2 rounded-xl text-xs font-bold text-slate-500">Gaming</button>
+            <button onclick="filterCat('food')" class="cat-btn flex-1 py-2 rounded-xl text-xs font-bold text-slate-500">Food</button>
         </div>
-        <div id="listContainer" class="space-y-5 pb-10"></div>
+
+        <div class="bg-white rounded-2xl p-2 flex items-center px-6 mb-6 border border-slate-100 shadow-sm">
+            <input type="text" id="searchInput" oninput="renderSearch()" placeholder="Search phrases..." class="w-full bg-transparent py-3 focus:outline-none text-sm">
+            <span class="opacity-20">🔍</span>
+        </div>
+        
+        <div id="listContainer" class="space-y-4 pb-10"></div>
     </main>
 
-    <div id="settingsOverlay" onclick="toggleSettings(false)" class="fixed inset-0 bg-black/5 backdrop-blur-sm z-[110] hidden"></div>
-    <div id="settingsPanel" class="fixed top-0 right-0 h-full w-72 glass z-[120] p-8 shadow-2xl border-l border-white/20">
-        <h3 class="text-xl font-black mb-10">Preferences</h3>
-        <div class="space-y-10">
-            <div>
-                <label class="text-[10px] font-black opacity-30 uppercase tracking-widest block mb-4">Daily Goal</label>
-                <input type="range" id="goalRange" min="5" max="50" step="5" oninput="updateGoal(this.value)" class="w-full accent-slate-400">
-                <p class="text-right text-sm font-bold mt-2"><span id="goalVal">10</span> Words</p>
-            </div>
-            <div>
-                <label class="text-[10px] font-black opacity-30 uppercase tracking-widest block mb-4">Interface</label>
-                <button onclick="toggleDark()" class="w-full py-4 glass rounded-2xl font-bold flex justify-between px-5 text-sm">
-                    <span>Dark Mode</span><span id="darkIcon">🌙</span>
-                </button>
-            </div>
-            <button onclick="localStorage.clear(); location.reload();" class="text-[10px] font-black opacity-20 uppercase tracking-widest mt-20 block">Clear All Progress</button>
-        </div>
-    </div>
-
-    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[280px] h-20 glass rounded-[2.5rem] shadow-2xl flex items-center justify-around z-[100] border border-white/30">
-        <button onclick="switchView('learn')" id="nav-learn" class="flex flex-col items-center nav-active">
-            <span class="text-2xl">📖</span><span class="text-[9px] font-black uppercase mt-1">Learn</span>
+    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-64 h-16 bg-white/80 backdrop-blur-lg rounded-full shadow-xl flex items-center justify-around z-[100] border border-slate-100">
+        <button onclick="switchView('learn')" id="nav-learn" class="flex flex-col items-center text-indigo-600">
+            <span class="text-xl">🏠</span>
         </button>
-        <button onclick="switchView('search')" id="nav-search" class="flex flex-col items-center opacity-30">
-            <span class="text-2xl">🧩</span><span class="text-[9px] font-black uppercase mt-1">Explore</span>
+        <button onclick="switchView('search')" id="nav-search" class="flex flex-col items-center text-slate-300">
+            <span class="text-xl">🔍</span>
         </button>
     </nav>
 
+    <div id="studyOverlay" class="p-8 flex flex-col justify-between items-center text-center">
+        <div class="w-full flex justify-between items-center pt-4">
+            <button onclick="exitStudy()" class="text-2xl">✕</button>
+            <div id="studyProgress" class="text-[10px] font-black opacity-30">1 / 10</div>
+            <div class="w-6"></div>
+        </div>
+
+        <div id="studyCard" class="w-full max-w-sm aspect-[3/4] bg-white rounded-[3rem] shadow-2xl shadow-indigo-50 border border-slate-50 flex flex-col items-center justify-center p-10 cursor-pointer transition-all active:scale-95">
+            <div id="cardStage" class="flex mb-8"></div>
+            <h2 id="cardEn" class="text-4xl font-black tracking-tighter mb-4 text-slate-800">Word</h2>
+            <div id="cardDetail" class="hidden">
+                <p id="cardZh" class="text-2xl font-bold text-indigo-500 mb-6">翻译</p>
+                <p id="cardD" class="text-sm text-slate-400 leading-relaxed italic">详细解释内容...</p>
+            </div>
+            <p id="tapTip" class="text-[10px] font-black opacity-20 uppercase tracking-widest mt-10">Tap to reveal</p>
+        </div>
+
+        <div class="w-full flex gap-4 mb-8">
+            <button onclick="nextWord(false)" class="flex-1 py-5 rounded-3xl bg-slate-50 font-bold text-slate-400">Forgot</button>
+            <button onclick="nextWord(true)" class="flex-1 py-5 rounded-3xl bg-indigo-600 font-bold text-white shadow-lg shadow-indigo-100">Know it</button>
+        </div>
+    </div>
+
     <script>
+        // 艾宾浩斯间隔（天）: 1, 2, 4, 7, 15, 30, 60, 180
+        const EB_INTERVALS = [0, 1, 2, 4, 7, 15, 30, 60, 180];
+
         const library = [
-            // LEGAL - 10 
-            { id:'l1', cat:'legal', en:'Without Prejudice', zh:'不损害权利；无偏见', d:'在法律谈判中使用，意味着在该声明下所作的任何让步或陈述均不能在日后的法庭诉讼中作为证据。' },
-            { id:'l2', cat:'legal', en:'Force Majeure', zh:'不可抗力', d:'合同中的免责条款，指由于不能预见、不能避免且不能克服的客观情况（如天灾、战争）导致合同无法履行。' },
-            { id:'l3', cat:'legal', en:'Due Diligence', zh:'尽职调查', d:'在签署商业协议或进行并购前，对资产、财务状况及法律风险进行的全面调查与评估。' },
-            { id:'l4', cat:'legal', en:'Indemnification', zh:'赔偿保证；免受损失', d:'一方承诺对另一方因特定事件或第三方索赔而遭受的损失、损害或责任进行补偿。' },
-            { id:'l5', cat:'legal', en:'Statute of Limitations', zh:'诉讼时效', d:'法律规定当事人行使请求权的时间限制，超过该期限后，权利人将丧失通过法院胜诉的权利。' },
-            { id:'l6', cat:'legal', en:'Liquidated Damages', zh:'预定违约金', d:'合同双方预先约定的，在一方违约时应支付给另一方的固定金额的赔偿金。' },
-            { id:'l7', cat:'legal', en:'Arbitration', zh:'仲裁', d:'一种非诉讼的纠纷解决方式，由中立的第三方仲裁员根据双方协议对争议作出裁决。' },
-            { id:'l8', cat:'legal', en:'Joint Liability', zh:'连带责任', d:'指两个或两个以上当事人共同承担债务，债权人可以要求其中任何一人承担全部清偿责任。' },
-            { id:'l9', cat:'legal', en:'Intellectual Property', zh:'知识产权', d:'法律赋予人们对其智力劳动成果所享有的专有权利，包括著作权、专利权、商标权等。' },
-            { id:'l10', cat:'legal', en:'Subpoena', zh:'传票', d:'法院或政府机构发布的强制性命令，要求某人在指定时间出庭作证或提交相关文件。' },
-
-            // GAMING - 10
-            { id:'g1', cat:'gaming', en:'Fog of War', zh:'战争迷雾', d:'实时战略游戏中用于遮蔽未探索区域的视觉效果，玩家必须派遣单位前往该处才能解锁视野。' },
-            { id:'g2', cat:'gaming', en:'Procedural Generation', zh:'随机生成', d:'利用预设好的算法而非人工设计来自动创建游戏内容（如关卡、地图、装备属性）的技术。' },
-            { id:'g3', cat:'gaming', en:'Hitbox', zh:'碰撞框', d:'游戏中用于检测攻击或碰撞的不可见几何形状。如果攻击者的攻击判定重叠了受害者的Hitbox，则视为命中。' },
-            { id:'g4', cat:'gaming', en:'Metagame', zh:'元游戏；主流战术', d:'指玩家群体在当前版本中根据游戏机制总结出的最高效、最通用的战术、阵容或装备搭配。' },
-            { id:'g5', cat:'gaming', en:'Microtransaction', zh:'微交易；内购', d:'游戏内的小额付费行为，通常用于购买皮肤、虚拟道具、经验加成或开箱抽取。' },
-            { id:'g6', cat:'gaming', en:'Permadeath', zh:'永久死亡', d:'Roguelike游戏的核心机制，指玩家角色一旦死亡，所有进度将被清空，无法通过读取存档复活。' },
-            { id:'g7', cat:'gaming', en:'Frame Data', zh:'帧数数据', d:'格斗游戏中的硬核概念，通过记录动作启动、持续和恢复的具体帧数来判定招式的优劣。' },
-            { id:'g8', cat:'gaming', en:'Sandbox', zh:'沙盒', d:'指具备高度自由度的游戏类型，玩家可以自由改变世界结构、创造物品，没有强制性的单一主线任务。' },
-            { id:'g9', cat:'gaming', en:'Early Access', zh:'抢先体验', d:'开发者在游戏尚未正式完成时提前售卖，让玩家参与测试并提供反馈，同时平衡开发资金。' },
-            { id:'g10', cat:'gaming', en:'Aggro', zh:'仇恨值', d:'MMORPG中衡量怪物对不同玩家攻击欲望的数值，通常由坦克位玩家通过特定技能来维持。' },
-
-            // FOOD - 10
-            { id:'f1', cat:'food', en:'Maillard Reaction', zh:'美拉德反应', d:'食物中的氨基酸与还原糖在加热过程中发生的非酶褐变，是产生焦香味和褐色诱人外观的核心。' },
-            { id:'f2', cat:'food', en:'Sous-vide', zh:'低温慢煮', d:'将食材放入真空袋中，在恒温水浴锅中以相对较低的温度长时间加热，以保持食材极致的水分和嫩度。' },
-            { id:'f3', cat:'food', en:'Al Dente', zh:'弹牙；筋道', d:'源自意大利语，形容意大利面或米饭煮得恰到好处，外表柔软但中心处保留了一丝嚼劲。' },
-            { id:'f4', cat:'food', en:'Umami', zh:'鲜味', d:'除了酸、甜、苦、咸之外的第五种基本味道，由谷氨酸盐等物质引起，常见于海带、蘑菇和高汤。' },
-            { id:'f5', cat:'food', en:'Farm-to-Table', zh:'从农场到餐桌', d:'一种餐饮理念，强调直接使用当地新鲜、时令的农产品，减少运输环节和工业化加工。' },
-            { id:'f6', cat:'food', en:'Sommelier', zh:'侍酒师', d:'餐厅内经过专业培训，负责酒单设计、酒水储藏以及为顾客提供餐酒搭配建议的高级服务人员。' },
-            { id:'f7', cat:'food', en:'Molecular Gastronomy', zh:'分子料理', d:'通过科学手段（如液氮、乳化、球化）改变食材的物理性状，创造出颠覆传统的形态与口感。' },
-            { id:'f8', cat:'food', en:'Mouthfeel', zh:'口感', d:'指食物或饮料进入口腔后，带给舌头和上颚的物理触觉感受（如丝滑、粗糙、黏稠）。' },
-            { id:'f9', cat:'food', en:'Reduction', zh:'浓缩酱汁', d:'通过长时间的小火熬煮排走液体中的水分，使剩余物质的浓度增加、风味变得极度浓郁。' },
-            { id:'f10', cat:'food', en:'Aroma', zh:'香气', d:'指食物散发出的挥发性化学物质被嗅觉细胞捕捉后产生的感受，是构成食物风味的重要组成部分。' }
-        ];
+            // 词库按字母 A-Z 排列
+            { id:'f10', cat:'food', en:'Aroma', zh:'香气', d:'指食物散发出的挥发性化学物质被嗅觉细胞捕捉后产生的感受。' },
+            { id:'f3', cat:'food', en:'Al Dente', zh:'弹牙；筋道', d:'形容意大利面或米饭煮得恰到好处，外表柔软但中心处保留了一丝嚼劲。' },
+            { id:'l7', cat:'legal', en:'Arbitration', zh:'仲裁', d:'一种非诉讼的纠纷解决方式，由中立的第三方作出裁决。' },
+            { id:'g10', cat:'gaming', en:'Aggro', zh:'仇恨值', d:'衡量怪物对不同玩家攻击欲望的数值。' },
+            { id:'l1', cat:'legal', en:'Bona Fide', zh:'善意；诚实地', d:'指当事人在进行法律行为时，主观上出于真诚。' },
+            { id:'l3', cat:'legal', en:'Due Diligence', zh:'尽职调查', d:'对资产、财务状况及法律风险进行的全面调查。' },
+            { id:'g9', cat:'gaming', en:'Early Access', zh:'抢先体验', d:'开发者在游戏尚未正式完成时提前售卖，让玩家参与测试。' },
+            { id:'l2', cat:'legal', en:'Force Majeure', zh:'不可抗力', d:'不能预见、不能避免且不能克服的客观情况。' },
+            { id:'g1', cat:'gaming', en:'Fog of War', zh:'战争迷雾', d:'用于遮蔽未探索区域的视觉效果。' },
+            { id:'g7', cat:'gaming', en:'Frame Data', zh:'帧数数据', d:'记录动作启动、持续和恢复的具体帧数。' },
+            { id:'g3', cat:'gaming', en:'Hitbox', zh:'碰撞框', d:'游戏中用于检测攻击或碰撞的不可见几何形状。' },
+            { id:'l4', cat:'legal', en:'Indemnification', zh:'赔偿保证', d:'承诺对另一方遭受的损失、损害或责任进行补偿。' },
+            { id:'l8', cat:'legal', en:'Joint Liability', zh:'连带责任', d:'两个或两个以上当事人共同承担债务。' },
+            { id:'l6', cat:'legal', en:'Liquidated Damages', zh:'预定违约金', d:'违约时应支付给另一方的固定金额。' },
+            { id:'f1', cat:'food', en:'Maillard Reaction', zh:'美拉德反应', d:'食物在加热过程中产生的非酶褐变和香气。' },
+            { id:'g4', cat:'gaming', en:'Metagame', zh:'元游戏；主流战术', d:'当前版本中最高效、最通用的战术搭配。' },
+            { id:'f7', cat:'food', en:'Molecular Gastronomy', zh:'分子料理', d:'通过科学手段改变食材形态创造颠覆口感。' },
+            { id:'f8', cat:'food', en:'Mouthfeel', zh:'口感', d:'指食物或饮料进入口腔后的物理触觉。' },
+            { id:'g6', cat:'gaming', en:'Permadeath', zh:'永久死亡', d:'角色一旦死亡进度清空，无法读档复活。' },
+            { id:'g2', cat:'gaming', en:'Procedural Generation', zh:'随机生成', d:'利用算法而非人工设计自动创建内容。' },
+            { id:'f9', cat:'food', en:'Reduction', zh:'浓缩酱汁', d:'通过熬煮排走水分，使风味变得极度浓郁。' },
+            { id:'f2', cat:'food', en:'Sous-vide', zh:'低温慢煮', d:'将食材真空包装在恒温水浴中长时间加热。' },
+            { id:'l5', cat:'legal', en:'Statute of Limitations', zh:'诉讼时效', d:'法律规定当事人行使请求权的时间限制。' },
+            { id:'l10', cat:'legal', en:'Subpoena', zh:'传票', d:'法院发布的强制性命令，要求出庭作证。' },
+            { id:'g8', cat:'gaming', en:'Sandbox', zh:'沙盒', d:'具备高度自由度的游戏类型。' },
+            { id:'f6', cat:'food', en:'Sommelier', zh:'侍酒师', d:'负责酒单设计及餐酒搭配的高级服务人员。' },
+            { id:'f4', cat:'food', en:'Umami', zh:'鲜味', d:'除了酸甜苦咸之外的第五种基本味道。' },
+            { id:'l9', cat:'legal', en:'Without Prejudice', zh:'不损害权利', d:'声明下的让步不能作为诉讼证据。' }
+        ].sort((a,b) => a.en.localeCompare(b.en)); // 强制字母排序
 
         let state = {
             view: 'learn',
             goal: 10,
-            mem: JSON.parse(localStorage.getItem('lexi_pro_data') || '{}')
+            curCat: 'all',
+            mem: JSON.parse(localStorage.getItem('lexi_pro_v2') || '{}'),
+            studyQueue: [],
+            studyIndex: 0
         };
 
+        // --- 视图逻辑 ---
         function switchView(view) {
             state.view = view;
-            document.getElementById('page-learn').classList.toggle('view-hidden', view !== 'learn');
-            document.getElementById('page-search').classList.toggle('view-hidden', view !== 'search');
-            document.getElementById('nav-learn').classList.toggle('opacity-30', view !== 'learn');
-            document.getElementById('nav-search').classList.toggle('opacity-30', view !== 'search');
-            document.getElementById('nav-learn').classList.toggle('nav-active', view === 'learn');
-            document.getElementById('nav-search').classList.toggle('nav-active', view === 'search');
+            document.getElementById('page-learn').classList.toggle('hidden', view !== 'learn');
+            document.getElementById('page-search').classList.toggle('hidden', view !== 'search');
+            document.getElementById('nav-learn').classList.toggle('text-indigo-600', view === 'learn');
+            document.getElementById('nav-learn').classList.toggle('text-slate-300', view !== 'learn');
+            document.getElementById('nav-search').classList.toggle('text-indigo-600', view === 'search');
+            document.getElementById('nav-search').classList.toggle('text-slate-300', view !== 'search');
             document.getElementById('pageTitle').innerText = view === 'learn' ? 'Learn Dashboard' : 'Explore Library';
         }
 
-        function doSearch() {
+        // --- 核心学习引擎 (Ebbinghaus) ---
+        function startStudy(type) {
+            const now = Date.now();
+            if (type === 'new') {
+                // 找出从未学过的词
+                const learnedIds = Object.keys(state.mem);
+                state.studyQueue = library.filter(i => !learnedIds.includes(i.id)).slice(0, state.goal);
+            } else if (type === 'review') {
+                // 找出到期需要复习的词
+                state.studyQueue = library.filter(i => {
+                    const m = state.mem[i.id];
+                    if (!m) return false;
+                    const nextTime = m.t + (EB_INTERVALS[m.stage] * 24 * 60 * 60 * 1000);
+                    return now >= nextTime;
+                });
+            } else {
+                // 混合逻辑
+                startStudy('review');
+                if (state.studyQueue.length < 5) startStudy('new');
+                return;
+            }
+
+            if (state.studyQueue.length === 0) return alert("今日任务已完成！去搜索页添加更多词条吧。");
+            
+            state.studyIndex = 0;
+            document.getElementById('studyOverlay').style.display = 'flex';
+            showCard();
+        }
+
+        function showCard() {
+            const item = state.studyQueue[state.studyIndex];
+            const m = state.mem[item.id] || { stage: 0 };
+            
+            document.getElementById('studyProgress').innerText = `${state.studyIndex + 1} / ${state.studyQueue.length}`;
+            document.getElementById('cardEn').innerText = item.en;
+            document.getElementById('cardZh').innerText = item.zh;
+            document.getElementById('cardD').innerText = item.d;
+            document.getElementById('cardDetail').classList.add('hidden');
+            document.getElementById('tapTip').classList.remove('hidden');
+
+            // 渲染阶段圆点
+            let dots = '';
+            for(let i=1; i<=8; i++) {
+                dots += `<div class="stage-dot ${i <= m.stage ? 'active' : ''}"></div>`;
+            }
+            document.getElementById('cardStage').innerHTML = dots;
+        }
+
+        document.getElementById('studyCard').onclick = function() {
+            document.getElementById('cardDetail').classList.remove('hidden');
+            document.getElementById('tapTip').classList.add('hidden');
+        };
+
+        function nextWord(known) {
+            const item = state.studyQueue[state.studyIndex];
+            if (!state.mem[item.id]) state.mem[item.id] = { stage: 0, t: 0 };
+            
+            if (known) {
+                state.mem[item.id].stage = Math.min(8, state.mem[item.id].stage + 1);
+                state.mem[item.id].t = Date.now();
+            } else {
+                state.mem[item.id].stage = Math.max(1, state.mem[item.id].stage - 1);
+                state.mem[item.id].t = Date.now();
+            }
+
+            save();
+            state.studyIndex++;
+            if (state.studyIndex < state.studyQueue.length) {
+                showCard();
+            } else {
+                exitStudy();
+                alert("Session Complete!");
+            }
+        }
+
+        function exitStudy() {
+            document.getElementById('studyOverlay').style.display = 'none';
+            updateCounts();
+        }
+
+        // --- 搜索与过滤 ---
+        function filterCat(cat) {
+            state.curCat = cat;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active-tab'));
+            event.target.classList.add('active-tab');
+            renderSearch();
+        }
+
+        function renderSearch() {
             const q = document.getElementById('searchInput').value.toLowerCase();
             const container = document.getElementById('listContainer');
-            const filtered = library.filter(i => i.en.toLowerCase().includes(q) || i.zh.includes(q) || i.d.includes(q));
+            
+            const filtered = library.filter(i => {
+                const matchCat = state.curCat === 'all' || i.cat === state.curCat;
+                const matchText = i.en.toLowerCase().includes(q) || i.zh.includes(q);
+                return matchCat && matchText;
+            });
 
             container.innerHTML = filtered.map(i => `
-                <div class="card-${i.cat} p-8 rounded-[2.5rem] shadow-sm active:scale-95 transition-transform" onclick="addToLearn('${i.id}')">
-                    <div class="flex justify-between items-start mb-3">
-                        <h4 class="text-2xl font-black tracking-tighter text-slate-800 dark:text-white">${i.en}</h4>
-                        <span class="text-[9px] font-black opacity-20 uppercase tracking-widest glass px-2 py-1 rounded">${i.cat}</span>
+                <div class="bg-white p-6 rounded-[2rem] card shadow-sm flex justify-between items-center border border-slate-50">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="text-xl font-black tracking-tighter text-slate-800">${i.en}</h4>
+                            <span class="cat-tag cat-${i.cat}">${i.cat}</span>
+                        </div>
+                        <p class="text-sm font-bold text-slate-400">${i.zh}</p>
                     </div>
-                    <p class="text-lg font-bold mb-4 opacity-70">${i.zh}</p>
-                    <p class="text-xs opacity-40 leading-relaxed">${i.d}</p>
-                    ${state.mem[i.id] ? '<div class="mt-4 text-[9px] font-black uppercase tracking-widest opacity-20 text-slate-600">Added to Plan ✓</div>' : ''}
+                    ${state.mem[i.id] ? '✨' : `<button onclick="addToPlan('${i.id}')" class="text-xs font-black text-indigo-500 bg-indigo-50 px-4 py-2 rounded-full">+ Add</button>`}
                 </div>
             `).join('');
         }
 
-        function addToLearn(id) {
+        function addToPlan(id) {
             if(!state.mem[id]) {
-                state.mem[id] = { lvl: 1, t: Date.now() };
-                localStorage.setItem('lexi_pro_data', JSON.stringify(state.mem));
-                doSearch();
+                state.mem[id] = { stage: 0, t: Date.now() };
+                save();
+                renderSearch();
                 updateCounts();
             }
         }
 
+        // --- 辅助功能 ---
         function updateCounts() {
-            const learned = Object.keys(state.mem).length;
-            document.getElementById('count-new').innerText = Math.max(0, state.goal - learned);
-            document.getElementById('count-review').innerText = "0";
+            const now = Date.now();
+            const learnedIds = Object.keys(state.mem);
+            const totalLearned = learnedIds.length;
+            
+            const reviewCount = library.filter(i => {
+                const m = state.mem[i.id];
+                if (!m || m.stage === 0) return false;
+                return now >= (m.t + (EB_INTERVALS[m.stage] * 24 * 60 * 60 * 1000));
+            }).length;
+
+            document.getElementById('count-new').innerText = Math.max(0, state.goal - (totalLearned - reviewCount));
+            document.getElementById('count-review').innerText = reviewCount;
+            
+            // 随机设置今日单词
+            const randomWord = library[Math.floor(Math.random() * library.length)];
+            document.getElementById('today-en').innerText = randomWord.en;
+            document.getElementById('today-zh').innerText = randomWord.zh;
+        }
+
+        function save() {
+            localStorage.setItem('lexi_pro_v2', JSON.stringify(state.mem));
         }
 
         function toggleSettings(show) {
-            document.getElementById('settingsPanel').classList.toggle('open', show);
-            document.getElementById('settingsOverlay').classList.toggle('hidden', !show);
-        }
-
-        function updateGoal(val) {
-            state.goal = val;
-            document.getElementById('goalVal').innerText = val;
-            localStorage.setItem('lexi_pro_goal', val);
-            updateCounts();
-        }
-
-        function toggleDark() {
-            document.body.classList.toggle('dark-mode');
-            document.getElementById('darkIcon').innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+            if(show && confirm("确定要清空所有进度吗？")) {
+                localStorage.clear();
+                location.reload();
+            }
         }
 
         // 初始化
-        switchView('learn');
         updateCounts();
-        doSearch();
-        const savedGoal = localStorage.getItem('lexi_pro_goal');
-        if(savedGoal) { state.goal = savedGoal; document.getElementById('goalRange').value = savedGoal; document.getElementById('goalVal').innerText = savedGoal; }
+        renderSearch();
     </script>
 </body>
 </html>
