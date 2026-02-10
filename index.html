@@ -2,339 +2,334 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LexiFlow - 灵感词库</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LexiFlow - 灵感学习</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Serif+SC:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=Noto+Serif+SC:wght@700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #3b82f6; }
-        body { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .dark-mode { background-color: #05070a !important; color: #e2e8f0 !important; }
+        body { 
+            background-color: #f8fafc; 
+            font-family: 'Inter', sans-serif; 
+            transition: background 0.5s ease;
+            -webkit-font-smoothing: antialiased;
+        }
+        .dark-mode { background-color: #020617 !important; color: #f1f5f9; }
         
-        /* 动态背景光晕 */
-        .glow-bg {
-            position: fixed; top: -10%; left: -10%; width: 120%; height: 120%;
-            background: radial-gradient(circle at 50% 50%, rgba(59,130,246,0.05) 0%, transparent 50%);
-            z-index: -1; pointer-events: none;
+        /* 动态背景视觉元素 */
+        .bg-blob {
+            position: fixed; width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+            border-radius: 50%; z-index: -1; filter: blur(40px);
+            animation: move 20s infinite alternate;
+        }
+        @keyframes move { from { transform: translate(-10%, -10%); } to { transform: translate(20%, 20%); } }
+
+        .glass { 
+            background: rgba(255, 255, 255, 0.8); backdrop-filter: saturate(180%) blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .dark-mode .glass { 
+            background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .glass-card { 
-            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(25px); 
-            border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 32px rgba(0,0,0,0.03);
+        .learn-card {
+            animation: cardShow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.05);
         }
-        .dark-mode .glass-card { 
-            background: rgba(20, 22, 28, 0.8); border: 1px solid rgba(255,255,255,0.03); 
+        @keyframes cardShow {
+            from { opacity: 0; transform: scale(0.9) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* 学习卡片动效 */
-        @keyframes floatIn {
-            from { opacity: 0; transform: translateY(20px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .animate-float { animation: floatIn 0.6s ease-out forwards; }
-
-        .dock-active { color: var(--primary); transform: translateY(-4px); font-weight: 800; }
-        .view-hidden { display: none; }
-        
-        /* 隐藏滚动条 */
-        .scroll-hide::-webkit-scrollbar { display: none; }
+        .btn-press:active { transform: scale(0.95); transition: 0.1s; }
+        .view-hidden { display: none !important; }
+        .tab-active { color: #3b82f6; font-weight: 900; }
+        .tab-active::after { content: ''; display: block; width: 4px; height: 4px; background: #3b82f6; border-radius: 50%; margin: 2px auto; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-32">
-    <div class="glow-bg"></div>
+<body class="min-h-screen pb-32 overflow-x-hidden">
+    <div class="bg-blob"></div>
 
-    <section id="view-learn" class="px-6 pt-16 max-w-lg mx-auto view-hidden">
-        <div class="relative mb-12 flex justify-center">
-            <svg class="w-32 h-32 transform -rotate-90">
-                <circle cx="64" cy="64" r="58" stroke="currentColor" stroke-width="4" fill="transparent" class="text-gray-100 dark:text-gray-800" />
-                <circle id="progress-bar" cx="64" cy="64" r="58" stroke="var(--primary)" stroke-width="4" fill="transparent" 
-                    stroke-dasharray="364.4" stroke-dashoffset="364.4" class="transition-all duration-1000 ease-out" stroke-linecap="round" />
-            </svg>
-            <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <span class="text-3xl font-black serif-title" id="dash-review">0</span>
-                <span class="text-[9px] text-gray-400 font-bold tracking-widest uppercase">Upcoming</span>
+    <section id="page-learn" class="px-6 pt-16 max-w-md mx-auto view-hidden">
+        <div class="text-center mb-12">
+            <h2 class="text-[10px] tracking-[0.4em] text-blue-500 font-black uppercase mb-4">Focus Mode</h2>
+            <div class="inline-flex items-end space-x-2">
+                <span id="stat-review" class="text-6xl font-black serif-title leading-none">0</span>
+                <span class="text-xs text-gray-400 font-bold pb-1 uppercase">To Review</span>
             </div>
         </div>
 
-        <div id="learn-card-container" class="min-h-[400px]">
+        <div id="card-stage" class="relative min-h-[420px]">
             </div>
 
-        <div id="learn-empty" class="text-center py-20 view-hidden animate-float">
-            <div class="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">🌿</div>
-            <p class="text-gray-500 font-medium">所有的种子都已播下</p>
-            <button onclick="switchView('search')" class="mt-6 text-blue-500 font-bold text-sm underline underline-offset-8 uppercase tracking-widest">Explore More</button>
+        <div id="empty-state" class="view-hidden text-center py-20 animate-pulse">
+            <p class="text-gray-400 font-medium">任务已清空，晚点再来</p>
+            <button onclick="goto('search')" class="mt-4 text-blue-500 font-bold text-xs tracking-widest uppercase">Go Explore →</button>
         </div>
     </section>
 
-    <section id="view-search" class="px-6 pt-12 max-w-2xl mx-auto">
-        <div class="mb-10 animate-float">
-            <h1 class="text-4xl font-black serif-title mb-2">LexiFlow</h1>
-            <p class="text-gray-400 text-xs tracking-widest uppercase">Explore Professional Vocabulary</p>
-        </div>
+    <section id="page-search" class="px-6 pt-12 max-w-2xl mx-auto">
+        <header class="mb-10">
+            <h1 class="text-4xl font-black serif-title tracking-tighter mb-2">LexiFlow</h1>
+            <div class="h-1 w-12 bg-blue-500 rounded-full"></div>
+        </header>
 
-        <div class="glass-card rounded-[2.5rem] p-10 mb-8 border-none relative overflow-hidden group">
-            <div class="absolute top-0 right-0 p-8 opacity-5 text-8-xl font-black uppercase pointer-events-none" id="feat-bg-txt">PICK</div>
-            <div class="relative z-10">
-                <h2 id="feat-en" class="text-4xl font-black mb-2 tracking-tight">Focus</h2>
-                <p id="feat-zh" class="text-blue-500 font-medium mb-4">加载中...</p>
-                <p id="feat-detail" class="text-sm text-gray-400 leading-relaxed"></p>
-            </div>
+        <div class="glass rounded-[2.5rem] p-10 mb-8 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 text-8xl font-black opacity-[0.03] select-none">DAILY</div>
+            <h3 id="daily-en" class="text-3xl font-black mb-2 tracking-tight">Focus</h3>
+            <p id="daily-zh" class="text-blue-500 font-bold mb-4">点击搜索开始探索</p>
+            <p id="daily-desc" class="text-sm text-gray-400 leading-relaxed italic"></p>
         </div>
 
         <div class="sticky top-6 z-50 mb-8">
-            <div class="glass-card rounded-3xl flex items-center px-6 shadow-2xl border-white/20">
-                <span class="text-xl mr-4">🔍</span>
-                <input type="text" id="global-search" oninput="renderSearch()" placeholder="Search terms..." 
-                    class="w-full bg-transparent py-5 focus:outline-none text-lg font-medium">
+            <div class="glass rounded-3xl flex items-center px-6 shadow-xl border-none">
+                <span class="text-lg">🔍</span>
+                <input type="text" id="search-input" oninput="renderList()" placeholder="输入英文或中文搜索..." 
+                    class="w-full bg-transparent py-5 px-4 focus:outline-none font-medium text-lg">
             </div>
         </div>
 
-        <div class="flex space-x-2 mb-8 overflow-x-auto scroll-hide pb-2">
-            <button onclick="setCategory('all')" id="cat-all" class="px-5 py-2 rounded-2xl glass-card text-[11px] font-black transition-all">ALL</button>
-            <button onclick="setCategory('legal')" id="cat-legal" class="px-5 py-2 rounded-2xl glass-card text-[11px] font-black transition-all">⚖️ LEGAL</button>
-            <button onclick="setCategory('gaming')" id="cat-gaming" class="px-5 py-2 rounded-2xl glass-card text-[11px] font-black transition-all">🎮 GAMING</button>
-            <button onclick="setCategory('food')" id="cat-food" class="px-5 py-2 rounded-2xl glass-card text-[11px] font-black transition-all">🍱 FOOD</button>
+        <div class="flex space-x-2 mb-8 overflow-x-auto no-scrollbar pb-2">
+            <button onclick="filter('all')" id="f-all" class="flex-none px-6 py-2.5 rounded-2xl glass text-[10px] font-black tracking-widest transition-all">ALL</button>
+            <button onclick="filter('legal')" id="f-legal" class="flex-none px-6 py-2.5 rounded-2xl glass text-[10px] font-black tracking-widest transition-all">LEGAL</button>
+            <button onclick="filter('gaming')" id="f-gaming" class="flex-none px-6 py-2.5 rounded-2xl glass text-[10px] font-black tracking-widest transition-all">GAMING</button>
+            <button onclick="filter('food')" id="f-food" class="flex-none px-6 py-2.5 rounded-2xl glass text-[10px] font-black tracking-widest transition-all">FOOD</button>
         </div>
 
-        <div id="search-results" class="space-y-3"></div>
+        <div id="search-list" class="space-y-3"></div>
     </section>
 
-    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-72 h-20 glass-card rounded-[2.5rem] shadow-2xl flex items-center justify-around px-4 z-[100] border-white/30">
-        <button onclick="switchView('learn')" id="dock-learn" class="flex flex-col items-center transition-all opacity-40 hover:opacity-100">
-            <span class="text-2xl">🌱</span>
-            <span class="text-[8px] font-black uppercase mt-1">Learn</span>
+    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[280px] h-20 glass rounded-[2.5rem] shadow-2xl flex items-center justify-around px-2 z-[100] border-white/40">
+        <button onclick="goto('learn')" id="tab-learn" class="flex-1 flex flex-col items-center transition-all">
+            <span class="text-2xl mb-1">📖</span>
+            <span class="text-[8px] font-black uppercase tracking-widest">Learn</span>
         </button>
-        <button onclick="switchView('search')" id="dock-search" class="flex flex-col items-center transition-all dock-active">
-            <span class="text-2xl">🧩</span>
-            <span class="text-[8px] font-black uppercase mt-1">Search</span>
+        <button onclick="goto('search')" id="tab-search" class="flex-1 flex flex-col items-center transition-all tab-active">
+            <span class="text-2xl mb-1">🔍</span>
+            <span class="text-[8px] font-black uppercase tracking-widest">Search</span>
         </button>
-        <button onclick="toggleDarkMode()" class="flex flex-col items-center transition-all opacity-40 hover:opacity-100">
-            <span id="dark-icon" class="text-2xl">🌙</span>
-            <span class="text-[8px] font-black uppercase mt-1">Theme</span>
+        <button onclick="toggleDark()" class="flex-1 flex flex-col items-center opacity-40 hover:opacity-100">
+            <span id="dark-btn" class="text-2xl mb-1">🌙</span>
+            <span class="text-[8px] font-black uppercase tracking-widest">Theme</span>
         </button>
     </nav>
 
     <script>
-        // 核心词汇数据
-        const vocabulary = {
+        // 数据集保持完整
+        const data = {
             legal: [
-                { id: 'l1', en: "Without Prejudice", zh: "不损害；无偏见", detail: "不构成对自身权利的放弃或对事实的承认。" },
-                { id: 'l2', en: "Indemnification", zh: "补偿；赔偿", detail: "一方承诺赔偿另一方遭受的损失。" },
-                { id: 'l3', en: "Force Majeure", zh: "不可抗力", detail: "不能预见、避免且克服的客观情况。" },
-                { id: 'l4', en: "Due Diligence", zh: "尽职调查", detail: "签署合同前的全面审查。" },
-                { id: 'l5', en: "Joint and Several Liability", zh: "连带责任", detail: "多个主体共同承担全部债务。" },
-                { id: 'l6', en: "Breach of Contract", zh: "违约", detail: "未能按照合同约定履行义务。" },
-                { id: 'l7', en: "Arbitration", zh: "仲裁", detail: "提交第三方裁决的纠纷解决方式。" },
-                { id: 'l8', en: "Intellectual Property", zh: "知识产权", detail: "关于作品、发明等智力成果的权利。" },
-                { id: 'l9', en: "Statute of Limitations", zh: "诉讼时效", detail: "权利人请求权的法定期间。" },
-                { id: 'l10', en: "Articles of Association", zh: "公司章程", detail: "规定公司组织原则的基本准则。" },
-                { id: 'l11', en: "Power of Attorney", zh: "授权委托书", detail: "书面授权他人行使法律权力的文件。" },
-                { id: 'l12', en: "Liquidated Damages", zh: "约定违约金", detail: "预先约定的违约赔偿金额。" },
-                { id: 'l13', en: "Good Faith", zh: "诚实信用", detail: "民法基本原则，要求诚实守信。" },
-                { id: 'l14', en: "Burden of Proof", zh: "举证责任", detail: "当事人对自己主张有证明责任。" },
-                { id: 'l15', en: "Conflict of Interest", zh: "利益冲突", detail: "个人利益与职守之间的竞争。" },
-                { id: 'l16', en: "NDA", zh: "保密协议", detail: "约定不向第三方泄露特定信息的协议。" },
-                { id: 'l17', en: "Exclusive Jurisdiction", zh: "专属管辖", detail: "案件只能由特定法院受理。" },
-                { id: 'l18', en: "Termination for Convenience", zh: "任意解除", detail: "无需理由即可终止合同的权利。" },
-                { id: 'l19', en: "Duty of Care", zh: "注意义务", detail: "应达到的合理谨慎程度。" },
-                { id: 'l20', en: "Legal Entity", zh: "法人实体", detail: "独立承担民事责任的组织。" },
-                { id: 'l21', en: "Governing Law", zh: "管辖法律", detail: "解决争议所适用的国家法律。" },
-                { id: 'l22', en: "Service of Process", zh: "文书送达", detail: "交付法律文书的法定程序。" },
-                { id: 'l23', en: "Injunction", zh: "禁令", detail: "法院发布的强制或禁止命令。" },
-                { id: 'l24', en: "Assignment", zh: "转让", detail: "将合同权利移交给第三方的行为。" },
-                { id: 'l25', en: "Pro Bono", zh: "法律援助", detail: "免费提供的专业公益服务。" },
-                { id: 'l26', en: "Reasonable Doubt", zh: "合理怀疑", detail: "刑事诉讼中定罪必须排除的标准。" },
-                { id: 'l27', en: "Non-Compete", zh: "竞业限制", detail: "离职后不得从事竞争业务的约定。" },
-                { id: 'l28', en: "Public Domain", zh: "公有领域", detail: "不再受产权保护的公开作品。" },
-                { id: 'l29', en: "Precedent", zh: "判例", detail: "具有约束力的先前法院裁决。" },
-                { id: 'l30', en: "Waiver", zh: "弃权", detail: "自愿放弃已知权利的法律行为。" }
+                { id: 'l1', en: "Without Prejudice", zh: "不损害；无偏见", d: "不构成对自身权利的放弃。" },
+                { id: 'l2', en: "Indemnification", zh: "补偿；赔偿", d: "一方承诺赔偿另一方遭受的损失。" },
+                { id: 'l3', en: "Force Majeure", zh: "不可抗力", d: "不能预见、避免且克服的客观情况。" },
+                { id: 'l4', en: "Due Diligence", zh: "尽职调查", d: "签署合同前的全面审查。" },
+                { id: 'l5', en: "Joint Liability", zh: "连带责任", d: "多个主体共同承担全部债务。" },
+                { id: 'l6', en: "Breach of Contract", zh: "违约", d: "未能按照合同约定履行义务。" },
+                { id: 'l7', en: "Arbitration", zh: "仲裁", d: "提交第三方裁决的纠纷解决方式。" },
+                { id: 'l8', en: "IP Law", zh: "知识产权", d: "关于作品、发明等智力成果的权利。" },
+                { id: 'l9', en: "Statute of Limitations", zh: "诉讼时效", d: "权利人请求权的法定期间。" },
+                { id: 'l10', en: "Articles of Association", zh: "公司章程", d: "规定公司组织原则的基本准则。" },
+                { id: 'l11', en: "Power of Attorney", zh: "授权委托书", d: "书面授权他人行使法律权力的文件。" },
+                { id: 'l12', en: "Liquidated Damages", zh: "约定违约金", d: "预先约定的违约赔偿金额。" },
+                { id: 'l13', en: "Good Faith", zh: "诚实信用", d: "民法基本原则，要求诚实守信。" },
+                { id: 'l14', en: "Burden of Proof", zh: "举证责任", d: "当事人对自己主张有证明责任。" },
+                { id: 'l15', en: "Conflict of Interest", zh: "利益冲突", d: "个人利益与职守之间的竞争。" },
+                { id: 'l16', en: "NDA", zh: "保密协议", d: "约定不向第三方泄露特定信息的协议。" },
+                { id: 'l17', en: "Jurisdiction", zh: "司法管辖权", d: "法律赋于法院审理案件的权力。" },
+                { id: 'l18', en: "Termination Clause", zh: "终止条款", d: "规定合同如何及何时结束的条款。" },
+                { id: 'l19', en: "Duty of Care", zh: "注意义务", d: "应达到的合理谨慎程度。" },
+                { id: 'l20', en: "Legal Entity", zh: "法人实体", d: "独立承担民事责任的组织。" },
+                { id: 'l21', en: "Governing Law", zh: "管辖法律", d: "解决争议所适用的国家法律。" },
+                { id: 'l22', en: "Litigation", zh: "诉讼", d: "通过法院解决争议的过程。" },
+                { id: 'l23', en: "Injunction", zh: "禁令", d: "法院发布的强制或禁止命令。" },
+                { id: 'l24', en: "Assignment", zh: "转让", d: "将合同权利移交给第三方的行为。" },
+                { id: 'l25', en: "Pro Bono", zh: "公益法律服务", d: "免费提供的专业法律援助。" },
+                { id: 'l26', en: "Reasonable Doubt", zh: "合理怀疑", d: "刑事诉讼中定罪必须排除的标准。" },
+                { id: 'l27', en: "Non-Compete", zh: "竞业限制", d: "离职后不得从事竞争业务的约定。" },
+                { id: 'l28', en: "Public Domain", zh: "公有领域", d: "不再受产权保护的公开作品。" },
+                { id: 'l29', en: "Precedent", zh: "判例", d: "具有约束力的先前法院裁决。" },
+                { id: 'l30', en: "Waiver", zh: "弃权", d: "自愿放弃已知权利的法律行为。" }
             ],
             gaming: [
-                { id: 'g1', en: "Fog of War", zh: "战争迷雾", detail: "地图上未探索区域被阴影覆盖的机制。" },
-                { id: 'g2', en: "Cooldown", zh: "冷却时间", detail: "再次使用技能前必须等待的时间。" },
-                { id: 'g3', en: "Aggro", zh: "仇恨值", detail: "衡量怪物对玩家攻击欲望的数值。" },
-                { id: 'g4', en: "Buff / Debuff", zh: "增益/减益", detail: "角色的正面或负面状态影响。" },
-                { id: 'g5', en: "Easter Egg", zh: "彩蛋", detail: "隐藏的惊喜信息或幽默内容。" },
-                { id: 'g6', en: "Hitbox", zh: "碰撞框", detail: "用于检测受击的隐形几何体。" },
-                { id: 'g7', en: "Proc", zh: "触发", detail: "随机概率效果被成功激活。" },
-                { id: 'g8', en: "Loot Box", zh: "开箱", detail: "包含随机虚拟奖励的容器。" },
-                { id: 'g9', en: "Fast Travel", zh: "快速旅行", detail: "在已发现地点间瞬间移动。" },
-                { id: 'g10', en: "Permadeath", zh: "永久死亡", detail: "角色死亡后存档即失效。" },
-                { id: 'g11', en: "QoL", zh: "体验优化", detail: "提升操作便捷度的小改动。" },
-                { id: 'g12', en: "NPC", zh: "非玩家角色", detail: "由电脑控制的角色。" },
-                { id: 'g13', en: "Meta", zh: "主流策略", detail: "当前版本下的最优玩法搭配。" },
-                { id: 'g14', en: "New Game Plus", zh: "二周目", detail: "通关后继承装备重新开始。" },
-                { id: 'g15', en: "Microtransaction", zh: "内购", detail: "游戏内的小额消费行为。" },
-                { id: 'g16', en: "Sandbox", zh: "沙盒", detail: "高自由度的创造类玩法。" },
-                { id: 'g17', en: "Vertical Slice", zh: "垂直切片", detail: "展示最终质感的完整原型。" },
-                { id: 'g18', en: "Spawn", zh: "生成", detail: "角色在地图上出现的点或过程。" },
-                { id: 'g19', en: "Gacha", zh: "抽卡", detail: "随机获取奖励的商业模式。" },
-                { id: 'g20', en: "Haptic", zh: "触觉反馈", detail: "控制器发出的细腻震动效果。" },
-                { id: 'g21', en: "Skill Tree", zh: "技能树", detail: "展示能力成长路径的系统。" },
-                { id: 'g22', en: "Ray Tracing", zh: "光线追踪", detail: "模拟光线物理行为的图形技术。" },
-                { id: 'g23', en: "Grinding", zh: "刷怪", detail: "机械性重复战斗以获取经验。" },
-                { id: 'g24', en: "Early Access", zh: "抢先体验", detail: "未完工即开放购买测试。" },
-                { id: 'g25', en: "Speedrun", zh: "速通", detail: "以最快速度完成游戏挑战。" },
-                { id: 'g26', en: "Dynamic Weather", zh: "动态天气", detail: "随时间自动变化的系统。" },
-                { id: 'g27', en: "Mana / MP", zh: "法力值", detail: "施放技能所消耗的能量。" },
-                { id: 'f28', en: "Side Quest", zh: "支线任务", detail: "非主线的额外可选任务。" },
-                { id: 'g29', en: "DLC", zh: "下载内容", detail: "发售后发布的数字扩展内容。" },
-                { id: 'g30', en: "Mod", zh: "模组", detail: "玩家开发的修改或插件。" }
+                { id: 'g1', en: "Fog of War", zh: "战争迷雾", d: "地图上未探索区域的视觉遮蔽。" },
+                { id: 'g2', en: "Cooldown", zh: "冷却时间", d: "技能再次使用前的等待期。" },
+                { id: 'g3', en: "Aggro", zh: "仇恨", d: "怪物对玩家的攻击优先级。" },
+                { id: 'g4', en: "Buff", zh: "增益状态", d: "提升角色属性的正面效果。" },
+                { id: 'g5', en: "Debuff", zh: "减益状态", d: "降低角色属性的负面效果。" },
+                { id: 'g6', en: "Hitbox", zh: "碰撞箱", d: "判定攻击是否命中的隐形区域。" },
+                { id: 'g7', en: "Loot", zh: "战利品", d: "从怪物或宝箱中获得的物品。" },
+                { id: 'g8', en: "Mana", zh: "法力值", d: "释放技能消耗的能量。" },
+                { id: 'g9', en: "NPC", zh: "非玩家角色", d: "由系统控制的游戏人物。" },
+                { id: 'g10', en: "Sandbox", zh: "沙盒", d: "极高自由度的开放玩法。" },
+                { id: 'g11', en: "Speedrun", zh: "速通", d: "用最短时间通关的挑战。" },
+                { id: 'g12', en: "Meta", zh: "主流策略", d: "当前版本最强的玩法搭配。" },
+                { id: 'g13', en: "Gacha", zh: "抽卡", d: "付费随机获取奖励的机制。" },
+                { id: 'g14', en: "DLC", zh: "追加内容", d: "游戏发售后发布的扩展包。" },
+                { id: 'g15', en: "Mod", zh: "模组", d: "玩家自行开发的修改补丁。" },
+                { id: 'g16', en: "Grinding", zh: "刷等级", d: "重复性劳动以获取经验。" },
+                { id: 'g17', en: "Spawn", zh: "生成", d: "物体或角色在地图上出现。" },
+                { id: 'g18', en: "Proc", zh: "概率触发", d: "特定概率触发的技能效果。" },
+                { id: 'g19', en: "Easter Egg", zh: "彩蛋", d: "隐藏在游戏里的秘密惊喜。" },
+                { id: 'g20', en: "Nerf", zh: "削弱", d: "官方下调某个能力的数值。" },
+                { id: 'g21', en: "Buff", zh: "增强", d: "官方提升某个能力的数值。" },
+                { id: 'g22', en: "RNG", zh: "随机数生成", d: "决定运气的算法核心。" },
+                { id: 'g23', en: "Frag", zh: "击杀", d: "射击游戏中击败对手的点数。" },
+                { id: 'g24', en: "PvE", zh: "玩家对环境", d: "玩家与电脑对抗的模式。" },
+                { id: 'g25', en: "PvP", zh: "玩家对战", d: "玩家之间互相竞技的模式。" },
+                { id: 'g26', en: "Skill Tree", zh: "技能树", d: "角色能力的成长分支图。" },
+                { id: 'g27', en: "QoL", zh: "体验优化", d: "让游戏更好玩的小改进。" },
+                { id: 'g28', en: "Draft", zh: "征召", d: "竞技比赛中轮流选人的环节。" },
+                { id: 'g29', en: "Vertical Slice", zh: "垂直切片", d: "代表游戏最终品质的Demo。" },
+                { id: 'g30', en: "XP", zh: "经验值", d: "提升等级所需的积累点数。" }
             ],
             food: [
-                { id: 'f1', en: "Maillard", zh: "美拉德反应", detail: "高温下产生的风味褐变反应。" },
-                { id: 'f2', en: "Stir-fry", zh: "煸炒", detail: "少量热油中快速翻炒食材。" },
-                { id: 'f3', en: "Al Dente", zh: "弹牙", detail: "意面煮得中心稍硬有嚼劲。" },
-                { id: 'f4', en: "Aroma Wheel", zh: "风味轮", detail: "描述风味的系统图谱。" },
-                { id: 'f5', en: "Red-braised", zh: "红烧", detail: "利用酱油冰糖上色的技法。" },
-                { id: 'f6', en: "Farm-to-table", zh: "农场到餐桌", detail: "强调食材新鲜当地的理念。" },
-                { id: 'f7', en: "Acidity", zh: "酸度", detail: "明亮且令人愉悦的酸感。" },
-                { id: 'f8', en: "Simmer", zh: "文火慢炖", detail: "保持液体接近沸点小火加热。" },
-                { id: 'f9', en: "Cleanser", zh: "清口菜", detail: "清除前菜余味的冰沙等。" },
-                { id: 'f10', en: "Wok Hei", zh: "镬气", detail: "高温产生的灵魂焦香味。" },
-                { id: 'f11', en: "Mouthfeel", zh: "口感", detail: "口腔内产生的物理感受。" },
-                { id: 'f12', en: "Deep-fry", zh: "油炸", detail: "完全浸入油脂烹饪的方法。" },
-                { id: 'f13', en: "Umami", zh: "鲜味", detail: "除了酸甜苦咸外的第五味。" },
-                { id: 'f14', en: "Sous-vide", zh: "低温慢煮", detail: "真空包装恒温加热技法。" },
-                { id: 'f15', en: "Blanch", zh: "焯水", detail: "短暂放入沸水中烫洗。" },
-                { id: 'f16', en: "Sommelier", zh: "侍酒师", detail: "专业的酒水配餐建议专家。" },
-                { id: 'f17', en: "Infusion", zh: "浸渍", detail: "液体提取食材风味的过程。" },
-                { id: 'f18', en: "Zest", zh: "皮屑", detail: "柑橘类水果最外层芳香皮。" },
-                { id: 'f19', en: "Dim Sum", zh: "点心", detail: "精致的粤式茶点小吃。" },
-                { id: 'f20', en: "Decant", zh: "醒酒", detail: "倒出酒液使其与空气接触。" },
-                { id: 'f21', en: "Texture", zh: "质地", detail: "描述脆、软、酥等物理特征。" },
-                { id: 'f22', en: "Garnish", zh: "盘饰", detail: "用于装饰菜肴的点缀物。" },
-                { id: 'f23', en: "Steaming", zh: "蒸", detail: "利用水蒸气加热保留营养。" },
-                { id: 'f24', en: "Tannin", zh: "单宁", detail: "红酒中带来的收敛涩感。" },
-                { id: 'f25', en: "Fermentation", zh: "发酵", detail: "微生物转化食物的过程。" },
-                { id: 'f26', en: "Velveting", zh: "上浆", detail: "肉类裹淀粉保持鲜嫩质感。" },
-                { id: 'f27', en: "Body", zh: "酒体/醇厚度", detail: "描述液体在口中的重量感。" },
-                { id: 'f28', en: "Glaze", zh: "挂汁", detail: "在食物表面淋上发亮液体。" },
-                { id: 'f29', en: "Offal", zh: "内脏", detail: "动物的可食用器官杂碎。" },
-                { id: 'f30', en: "Aftertaste", zh: "余韵", detail: "吞咽后留在喉间的风味。" }
+                { id: 'f1', en: "Maillard", zh: "美拉德反应", d: "肉类煎炸产生的焦香褐变。" },
+                { id: 'f2', en: "Stir-fry", zh: "煸炒", d: "中餐灵魂技法：高温快炒。" },
+                { id: 'f3', en: "Al Dente", zh: "弹牙", d: "意面煮到恰到好处的口感。" },
+                { id: 'f4', en: "Aroma", zh: "香气", d: "食物散发出的诱人气味。" },
+                { id: 'f5', en: "Umami", zh: "鲜味", d: "除了酸甜苦咸外的第五味。" },
+                { id: 'f6', en: "Sous-vide", zh: "低温慢煮", d: "真空恒温加热的分子料理。" },
+                { id: 'f7', en: "Blanch", zh: "焯水", d: "食材快速入沸水烫一下。" },
+                { id: 'f8', en: "Simmer", zh: "文火炖", d: "保持微沸状态慢慢加热。" },
+                { id: 'f9', en: "Wok Hei", zh: "镬气", d: "热锅翻炒带来的独特焦香。" },
+                { id: 'f10', en: "Acidity", zh: "酸度", d: "调节风味平衡的明亮酸感。" },
+                { id: 'f11', en: "Garnish", zh: "盘饰", d: "用于装饰菜肴的点缀物。" },
+                { id: 'f12', en: "Texture", zh: "质地", d: "食物在口中的物理感受。" },
+                { id: 'f13', en: "Ferment", zh: "发酵", d: "微生物转化出的风味神奇。" },
+                { id: 'f14', en: "Zest", zh: "果皮屑", d: "柠檬皮最外层的清新油脂。" },
+                { id: 'f15', en: "Glaze", zh: "挂汁", d: "让食物表面闪闪发亮的汤汁。" },
+                { id: 'f16', en: "Aftertaste", zh: "余韵", d: "吞咽后留在喉间的味道。" },
+                { id: 'f17', en: "Sommelier", zh: "侍酒师", d: "专业的餐酒搭配顾问。" },
+                { id: 'f18', en: "Palate", zh: "味觉", d: "辨别食物细微差异的能力。" },
+                { id: 'f19', en: "Infusion", zh: "浸渍", d: "提取香草或食材风味的过程。" },
+                { id: 'f20', en: "Velveting", zh: "上浆", d: "肉片裹淀粉保持滑嫩。" },
+                { id: 'f21', en: "Zing", zh: "劲爽", d: "形容味道辛辣或清爽有力。" },
+                { id: 'f22', en: "Crisp", zh: "酥脆", d: "干燥、轻薄且易碎的质地。" },
+                { id: 'f23', en: "Decant", zh: "醒酒", d: "让酒液接触空气呼吸。" },
+                { id: 'f24', en: "Mouthfeel", zh: "口感", d: "形容粘稠、丝滑等物理性。" },
+                { id: 'f25', en: "Savory", zh: "咸鲜", d: "形容口感丰富且偏咸的食物。" },
+                { id: 'f26', en: "Sear", zh: "灼烧", d: "高温快速锁住食材水分。" },
+                { id: 'f27', en: "Zesty", zh: "风味浓郁", d: "带有清新柑橘感的活力味。" },
+                { id: 'f28', en: "Body", zh: "酒体", d: "饮料在口中的厚重感。" },
+                { id: 'f29', en: "Pairing", zh: "搭配", d: "食材与美酒的完美融合。" },
+                { id: 'f30', en: "Dim Sum", zh: "点心", d: "粤式茶餐中的精致小食。" }
             ]
         };
 
-        let currentCat = 'all';
-        let currentView = 'search';
-        let isDark = false;
-        const intervals = [0, 1, 12, 24, 48, 168, 360, 720];
+        let activeTab = 'search';
+        let activeCat = 'all';
+        const reviews = [0, 1, 12, 24, 48, 168, 360, 720];
 
-        function getMem() { return JSON.parse(localStorage.getItem('lexi_v3') || '{}'); }
-        
-        function saveMem(id, known) {
-            let m = getMem();
-            let r = m[id] || { level: 0, time: 0 };
-            known ? r.level = Math.min(r.level + 1, 7) : r.level = Math.max(r.level - 1, 0);
-            r.time = Date.now() + intervals[r.level] * 3600000;
-            m[id] = r;
-            localStorage.setItem('lexi_v3', JSON.stringify(m));
-            renderAll();
-        }
+        // 核心渲染器
+        function renderList() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            let all = [];
+            if(activeCat === 'all') Object.values(data).forEach(c => all.push(...c));
+            else all = data[activeCat] || [];
 
-        function switchView(view) {
-            currentView = view;
-            document.getElementById('view-learn').classList.toggle('view-hidden', view !== 'learn');
-            document.getElementById('view-search').classList.toggle('view-hidden', view !== 'search');
-            document.getElementById('dock-learn').classList.toggle('dock-active', view === 'learn');
-            document.getElementById('dock-search').classList.toggle('dock-active', view === 'search');
-            renderAll();
-        }
+            all.sort((a,b) => a.en.localeCompare(b.en));
+            const filtered = all.filter(i => i.en.toLowerCase().includes(q) || i.zh.includes(q));
+            const mem = JSON.parse(localStorage.getItem('lex_v4') || '{}');
 
-        function renderSearch() {
-            if(currentView !== 'search') return;
-            const q = document.getElementById('global-search').value.toLowerCase();
-            let list = [];
-            if(currentCat === 'all') Object.values(vocabulary).forEach(c => list.push(...c));
-            else list = vocabulary[currentCat] || [];
-
-            list.sort((a,b) => a.en.localeCompare(b.en));
-            const filtered = list.filter(i => i.en.toLowerCase().includes(q) || i.zh.includes(q));
-            const mem = getMem();
-
-            document.getElementById('search-results').innerHTML = filtered.map(item => `
-                <div class="glass-card p-6 rounded-3xl flex justify-between items-center animate-float" onclick="saveMem('${item.id}', true)">
+            document.getElementById('search-list').innerHTML = filtered.map(i => `
+                <div class="glass p-5 rounded-3xl flex justify-between items-center btn-press hover:bg-white/50" onclick="markKnown('${i.id}')">
                     <div>
-                        <h3 class="font-bold text-lg tracking-tight">${item.en}</h3>
-                        <p class="text-gray-400 text-sm font-medium">${item.zh}</p>
+                        <h4 class="font-bold text-lg leading-tight">${i.en}</h4>
+                        <p class="text-gray-400 text-sm font-medium">${i.zh}</p>
                     </div>
                     <div class="flex space-x-0.5">
-                        ${Array.from({length:7}).map((_,i) => `<div class="w-1 h-3 rounded-full ${i < (mem[item.id]?.level || 0) ? 'bg-blue-500' : 'bg-gray-200 dark:bg-gray-800'}"></div>`).join('')}
+                        ${Array.from({length:7}).map((_,idx) => `<div class="w-1 h-3 rounded-full ${idx < (mem[i.id]?.lvl || 0) ? 'bg-blue-500' : 'bg-gray-200 dark:bg-gray-800'}"></div>`).join('')}
                     </div>
                 </div>
             `).join('');
 
-            // 每日推荐
-            if(!q && list.length > 0) {
-                const feat = list[Math.floor(Date.now()/86400000) % list.length];
-                document.getElementById('feat-en').innerText = feat.en;
-                document.getElementById('feat-zh').innerText = feat.zh;
-                document.getElementById('feat-detail').innerText = feat.detail;
+            if(!q && all.length > 0) {
+                const feat = all[Math.floor(Date.now()/86400000) % all.length];
+                document.getElementById('daily-en').innerText = feat.en;
+                document.getElementById('daily-zh').innerText = feat.zh;
+                document.getElementById('daily-desc').innerText = feat.d;
             }
         }
 
         function renderLearn() {
-            if(currentView !== 'learn') return;
-            const mem = getMem();
+            const mem = JSON.parse(localStorage.getItem('lex_v4') || '{}');
             const now = Date.now();
-            const all = Object.values(vocabulary).flat();
-            const toReview = all.filter(i => mem[i.id] && mem[i.id].time < now);
+            const all = Object.values(data).flat();
+            const toReview = all.filter(i => mem[i.id] && mem[i.id].t < now);
             
-            document.getElementById('dash-review').innerText = toReview.length;
-            const bar = document.getElementById('progress-bar');
-            const offset = 364.4 - (Math.min(toReview.length, 20) / 20 * 364.4);
-            bar.style.strokeDashoffset = offset;
+            document.getElementById('stat-review').innerText = toReview.length;
+            const stage = document.getElementById('card-stage');
+            const empty = document.getElementById('empty-state');
 
-            const container = document.getElementById('learn-card-container');
             if(toReview.length === 0) {
-                document.getElementById('learn-empty').classList.remove('view-hidden');
-                container.innerHTML = '';
+                stage.classList.add('view-hidden');
+                empty.classList.remove('view-hidden');
             } else {
-                document.getElementById('learn-empty').classList.add('view-hidden');
-                const item = toReview[0];
-                container.innerHTML = `
-                    <div class="glass-card p-12 rounded-[3.5rem] shadow-2xl text-center border-b-8 border-blue-500/10 animate-float">
-                        <h2 class="text-5xl font-black mb-10 serif-title tracking-tighter">${item.en}</h2>
-                        <div class="mb-12 h-24 flex flex-col justify-center items-center">
-                            <div id="ans-box" class="opacity-0 transition-all duration-500 transform scale-90">
-                                <p class="text-2xl font-bold mb-2">${item.zh}</p>
-                                <p class="text-xs text-gray-400 px-6 leading-relaxed">${item.detail}</p>
+                stage.classList.remove('view-hidden');
+                empty.classList.add('view-hidden');
+                const i = toReview[0];
+                stage.innerHTML = `
+                    <div class="glass learn-card p-12 rounded-[3.5rem] text-center border-none shadow-2xl">
+                        <h3 class="text-5xl font-black mb-10 serif-title tracking-tighter">${i.en}</h3>
+                        <div class="mb-12 h-20">
+                            <div id="hint" class="opacity-0 transition-all duration-500 scale-95">
+                                <p class="text-2xl font-bold mb-2">${i.zh}</p>
+                                <p class="text-xs text-gray-400 leading-relaxed">${i.d}</p>
                             </div>
-                            <button id="show-btn" onclick="document.getElementById('ans-box').classList.remove('opacity-0','scale-90'); this.remove()" class="text-[10px] font-black tracking-widest text-blue-500 uppercase border-b border-blue-200 pb-1">Show Meaning</button>
+                            <button id="show-btn" onclick="document.getElementById('hint').classList.remove('opacity-0','scale-95'); this.remove()" class="text-[10px] font-black tracking-[0.2em] text-blue-500 uppercase border-b border-blue-100 pb-1">Tap to reveal</button>
                         </div>
-                        <div class="flex space-x-4">
-                            <button onclick="saveMem('${item.id}', true)" class="flex-1 py-5 rounded-3xl bg-blue-500 text-white font-black shadow-lg shadow-blue-500/20 active:scale-95 transition-all">GOT IT</button>
-                            <button onclick="saveMem('${item.id}', false)" class="flex-1 py-5 rounded-3xl bg-gray-100 dark:bg-gray-800 text-gray-400 font-black active:scale-95 transition-all">AGAIN</button>
+                        <div class="flex space-x-3">
+                            <button onclick="updateMem('${i.id}', true)" class="flex-1 py-5 rounded-3xl bg-blue-500 text-white font-black btn-press shadow-lg shadow-blue-500/20">认识</button>
+                            <button onclick="updateMem('${i.id}', false)" class="flex-1 py-5 rounded-3xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-black btn-press">模糊</button>
                         </div>
                     </div>
                 `;
             }
         }
 
-        function setCategory(cat) {
-            currentCat = cat;
-            ['all','legal','gaming','food'].forEach(c => {
-                document.getElementById('cat-'+c).classList.toggle('bg-blue-500', c === cat);
-                document.getElementById('cat-'+c).classList.toggle('text-white', c === cat);
-            });
-            renderSearch();
+        function markKnown(id) {
+            let mem = JSON.parse(localStorage.getItem('lex_v4') || '{}');
+            if(!mem[id]) {
+                mem[id] = { lvl: 1, t: Date.now() + 3600000 };
+                localStorage.setItem('lex_v4', JSON.stringify(mem));
+                renderList();
+            }
         }
 
-        function toggleDarkMode() {
-            isDark = !isDark;
-            document.body.classList.toggle('dark-mode');
-            document.getElementById('dark-icon').innerText = isDark ? '☀️' : '🌙';
-        }
-
-        function renderAll() {
-            renderSearch();
+        function updateMem(id, known) {
+            let mem = JSON.parse(localStorage.getItem('lex_v4') || '{}');
+            let r = mem[id] || { lvl: 0, t: 0 };
+            known ? r.lvl = Math.min(r.lvl+1, 7) : r.lvl = Math.max(r.lvl-1, 0);
+            r.t = Date.now() + reviews[r.lvl] * 3600000;
+            mem[id] = r;
+            localStorage.setItem('lex_v4', JSON.stringify(mem));
             renderLearn();
         }
 
-        window.onload = () => {
-            renderAll();
-            setCategory('all');
-        };
+        function goto(view) {
+            activeTab = view;
+            document.getElementById('page-learn').classList.toggle('view-hidden', view !== 'learn');
+            document.getElementById('page-search').classList.toggle('view-hidden', view !== 'search');
+            document.getElementById('tab-learn').classList.toggle('tab-active', view === 'learn');
+            document.getElementById('tab-search').classList.toggle('tab-active', view === 'search');
+            view === 'learn' ? renderLearn() : renderList();
+        }
+
+        function filter(c) {
+            activeCat = c;
+            ['all','legal','gaming','food'].forEach(cat => {
+                document.getElementById('f-'+cat).classList.toggle('bg-blue-500', cat === c);
+                document.getElementById('f-'+cat).classList.toggle('text-white', cat === c);
+            });
+            renderList();
+        }
+
+        function toggleDark() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.getElementById('dark-btn');
+            icon.innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+        }
+
+        window.onload = () => { renderList(); filter('all'); };
     </script>
 </body>
 </html>
