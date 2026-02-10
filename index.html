@@ -3,238 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LexiFlow - 专注学习与检索</title>
+    <title>LexiFlow - 灵感词库</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Noto+Serif+SC:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Serif+SC:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { transition: background-color 0.4s; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.4); }
-        .dark-mode { background-color: #0f1115 !important; color: #cbd5e1 !important; }
-        .dark-mode .glass-card { background: rgba(30, 32, 38, 0.8); border: 1px solid rgba(255,255,255,0.05); }
+        :root { --primary: #3b82f6; }
+        body { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .dark-mode { background-color: #05070a !important; color: #e2e8f0 !important; }
+        
+        /* 动态背景光晕 */
+        .glow-bg {
+            position: fixed; top: -10%; left: -10%; width: 120%; height: 120%;
+            background: radial-gradient(circle at 50% 50%, rgba(59,130,246,0.05) 0%, transparent 50%);
+            z-index: -1; pointer-events: none;
+        }
+
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(25px); 
+            border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 32px rgba(0,0,0,0.03);
+        }
+        .dark-mode .glass-card { 
+            background: rgba(20, 22, 28, 0.8); border: 1px solid rgba(255,255,255,0.03); 
+        }
+
+        /* 学习卡片动效 */
+        @keyframes floatIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-float { animation: floatIn 0.6s ease-out forwards; }
+
+        .dock-active { color: var(--primary); transform: translateY(-4px); font-weight: 800; }
         .view-hidden { display: none; }
-        .dock-item-active { color: #3b82f6; transform: translateY(-4px); font-weight: bold; }
-        .memory-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 2px; }
+        
+        /* 隐藏滚动条 */
         .scroll-hide::-webkit-scrollbar { display: none; }
-        .serif-title { font-family: 'Noto Serif SC', serif; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-24">
+<body class="bg-slate-50 min-h-screen pb-32">
+    <div class="glow-bg"></div>
 
-    <section id="view-learn" class="px-6 pt-12 max-w-2xl mx-auto">
-        <header class="mb-10 text-center">
-            <h1 class="text-xs uppercase tracking-[0.3em] text-gray-400 mb-2 font-bold">Smart Review</h1>
-            <div class="flex justify-center space-x-12">
-                <div><p class="text-4xl font-bold serif-title" id="dash-learned">0</p><p class="text-[10px] text-gray-400 uppercase mt-1">已掌握</p></div>
-                <div class="w-[1px] h-12 bg-gray-200 dark:bg-gray-800 mt-2"></div>
-                <div><p class="text-4xl font-bold text-blue-500 serif-title" id="dash-review">0</p><p class="text-[10px] text-gray-400 uppercase mt-1">需复习</p></div>
+    <section id="view-learn" class="px-6 pt-16 max-w-lg mx-auto view-hidden">
+        <div class="relative mb-12 flex justify-center">
+            <svg class="w-32 h-32 transform -rotate-90">
+                <circle cx="64" cy="64" r="58" stroke="currentColor" stroke-width="4" fill="transparent" class="text-gray-100 dark:text-gray-800" />
+                <circle id="progress-bar" cx="64" cy="64" r="58" stroke="var(--primary)" stroke-width="4" fill="transparent" 
+                    stroke-dasharray="364.4" stroke-dashoffset="364.4" class="transition-all duration-1000 ease-out" stroke-linecap="round" />
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-3xl font-black serif-title" id="dash-review">0</span>
+                <span class="text-[9px] text-gray-400 font-bold tracking-widest uppercase">Upcoming</span>
             </div>
-        </header>
+        </div>
 
-        <div id="learn-card-container" class="space-y-6">
+        <div id="learn-card-container" class="min-h-[400px]">
             </div>
-        
-        <div id="learn-empty" class="text-center py-24 view-hidden">
-            <div class="text-6xl mb-6">🏆</div>
-            <p class="text-gray-500 font-medium">任务已达成！当前没有待复习词条</p>
-            <button onclick="switchView('search')" class="mt-6 px-8 py-3 bg-blue-500 text-white rounded-full shadow-lg hover:shadow-xl transition-all">去探索新词条</button>
+
+        <div id="learn-empty" class="text-center py-20 view-hidden animate-float">
+            <div class="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">🌿</div>
+            <p class="text-gray-500 font-medium">所有的种子都已播下</p>
+            <button onclick="switchView('search')" class="mt-6 text-blue-500 font-bold text-sm underline underline-offset-8 uppercase tracking-widest">Explore More</button>
         </div>
     </section>
 
-    <section id="view-search" class="px-6 pt-12 max-w-2xl mx-auto view-hidden">
-        <div class="glass-card rounded-[2.5rem] p-10 mb-10 text-center shadow-sm relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
-            <span class="text-[10px] text-blue-500 font-bold uppercase tracking-widest">Featured Card</span>
-            <h2 id="feat-en" class="text-5xl font-bold my-5 serif-title tracking-tight text-slate-800 dark:text-white">...</h2>
-            <p id="feat-zh" class="text-xl text-gray-500 mb-4">加载中</p>
-            <p id="feat-detail" class="text-sm text-gray-400 max-w-xs mx-auto italic"></p>
+    <section id="view-search" class="px-6 pt-12 max-w-2xl mx-auto">
+        <div class="mb-10 animate-float">
+            <h1 class="text-4xl font-black serif-title mb-2">LexiFlow</h1>
+            <p class="text-gray-400 text-xs tracking-widest uppercase">Explore Professional Vocabulary</p>
         </div>
 
-        <div class="sticky top-6 z-50 mb-10">
-            <input type="text" id="global-search" oninput="renderSearch()" placeholder="搜索 90+ 行业词库..." 
-                class="w-full glass-card px-8 py-5 rounded-3xl shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-lg">
+        <div class="glass-card rounded-[2.5rem] p-10 mb-8 border-none relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-8 opacity-5 text-8-xl font-black uppercase pointer-events-none" id="feat-bg-txt">PICK</div>
+            <div class="relative z-10">
+                <h2 id="feat-en" class="text-4xl font-black mb-2 tracking-tight">Focus</h2>
+                <p id="feat-zh" class="text-blue-500 font-medium mb-4">加载中...</p>
+                <p id="feat-detail" class="text-sm text-gray-400 leading-relaxed"></p>
+            </div>
         </div>
 
-        <nav class="flex space-x-3 mb-8 overflow-x-auto scroll-hide pb-2">
-            <button onclick="setCategory('all')" id="cat-all" class="flex-none px-6 py-2 rounded-full glass-card text-xs font-bold transition-all shadow-sm">ALL</button>
-            <button onclick="setCategory('legal')" id="cat-legal" class="flex-none px-6 py-2 rounded-full glass-card text-xs font-bold transition-all shadow-sm">⚖️ 法律</button>
-            <button onclick="setCategory('gaming')" id="cat-gaming" class="flex-none px-6 py-2 rounded-full glass-card text-xs font-bold transition-all shadow-sm">🎮 游戏</button>
-            <button onclick="setCategory('food')" id="cat-food" class="flex-none px-6 py-2 rounded-full glass-card text-xs font-bold transition-all shadow-sm">🍱 食物</button>
-        </nav>
+        <div class="sticky top-6 z-50 mb-8">
+            <div class="glass-card rounded-3xl flex items-center px-6 shadow-2xl border-white/20">
+                <span class="text-xl mr-4">🔍</span>
+                <input type="text" id="global-search" oninput="renderSearch()" placeholder="Search terms..." 
+                    class="w-full bg-transparent py-5 focus:outline-none text-lg font-medium">
+            </div>
+        </div>
 
-        <div id="search-results" class="space-y-4"></div>
+        <div class="flex space-x-2 mb-8 overflow-x-auto scroll-hide pb-2">
+            <button onclick="setCategory('all')" id="cat-all" class="px-5 py-2 rounded-2xl glass-card text-[11px] font-black transition-all">ALL</button>
+            <button onclick="setCategory('legal')" id="cat-legal" class="px-5 py-2 rounded-2xl glass-card text-[11px] font-black transition-all">⚖️ LEGAL</button>
+            <button onclick="setCategory('gaming')" id="cat-gaming" class="px-5 py-2 rounded-2xl glass-card text-[11px] font-black transition-all">🎮 GAMING</button>
+            <button onclick="setCategory('food')" id="cat-food" class="px-5 py-2 rounded-2xl glass-card text-[11px] font-black transition-all">🍱 FOOD</button>
+        </div>
+
+        <div id="search-results" class="space-y-3"></div>
     </section>
 
-    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[300px] h-20 glass-card rounded-[2.5rem] shadow-2xl flex items-center justify-around px-8 z-[100] border-t border-white/50">
-        <button onclick="switchView('learn')" id="dock-learn" class="transition-all duration-300 text-gray-400 flex flex-col items-center">
-            <span class="text-2xl mb-1">📖</span>
-            <span class="text-[9px] font-black uppercase tracking-tighter">Learn</span>
+    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-72 h-20 glass-card rounded-[2.5rem] shadow-2xl flex items-center justify-around px-4 z-[100] border-white/30">
+        <button onclick="switchView('learn')" id="dock-learn" class="flex flex-col items-center transition-all opacity-40 hover:opacity-100">
+            <span class="text-2xl">🌱</span>
+            <span class="text-[8px] font-black uppercase mt-1">Learn</span>
         </button>
-        <button onclick="switchView('search')" id="dock-search" class="transition-all duration-300 dock-item-active flex flex-col items-center">
-            <span class="text-2xl mb-1">🔍</span>
-            <span class="text-[9px] font-black uppercase tracking-tighter">Search</span>
+        <button onclick="switchView('search')" id="dock-search" class="flex flex-col items-center transition-all dock-active">
+            <span class="text-2xl">🧩</span>
+            <span class="text-[8px] font-black uppercase mt-1">Search</span>
         </button>
-        <button onclick="toggleDarkMode()" class="text-gray-400 flex flex-col items-center">
-            <span id="dark-icon" class="text-2xl mb-1">🌙</span>
-            <span class="text-[9px] font-black uppercase tracking-tighter">Theme</span>
+        <button onclick="toggleDarkMode()" class="flex flex-col items-center transition-all opacity-40 hover:opacity-100">
+            <span id="dark-icon" class="text-2xl">🌙</span>
+            <span class="text-[8px] font-black uppercase mt-1">Theme</span>
         </button>
     </nav>
 
     <script>
+        // 核心词汇数据
         const vocabulary = {
             legal: [
-                { id: 'l1', en: "Without Prejudice", zh: "不损害；无偏见", detail: "不构成对自身权利的放弃或对事实的承认。", context: "Litigation" },
-                { id: 'l2', en: "Indemnification", zh: "补偿；赔偿", detail: "一方承诺赔偿另一方遭受的损失。", context: "Contract" },
-                { id: 'l3', en: "Force Majeure", zh: "不可抗力", detail: "不能预见、避免且克服的客观情况。", context: "General" },
-                { id: 'l4', en: "Due Diligence", zh: "尽职调查", detail: "签署合同前的全面审查。", context: "Corporate" },
-                { id: 'l5', en: "Joint and Several Liability", zh: "连带责任", detail: "两个或多个主体共同承担债务。", context: "Tort" },
-                { id: 'l6', en: "Breach of Contract", zh: "违约", detail: "未能按照合同约定履行义务。", context: "Contract" },
-                { id: 'l7', en: "Arbitration", zh: "仲裁", detail: "提交第三方裁决的纠纷解决方式。", context: "Dispute" },
-                { id: 'l8', en: "Intellectual Property", zh: "知识产权", detail: "关于作品、发明等智力成果的权利。", context: "IP Law" },
-                { id: 'l9', en: "Statute of Limitations", zh: "诉讼时效", detail: "权利人请求权的法定期间。", context: "Litigation" },
-                { id: 'l10', en: "Articles of Association", zh: "公司章程", detail: "规定公司组织原则的基本准则。", context: "Corporate" },
-                { id: 'l11', en: "Power of Attorney", zh: "授权委托书", detail: "书面授权他人行使法律权力的文件。", context: "Agency" },
-                { id: 'l12', en: "Liquidated Damages", zh: "约定违约金", detail: "预先约定的违约发生时需支付的金额。", context: "Contract" },
-                { id: 'l13', en: "Good Faith", zh: "诚实信用", detail: "民法基本原则，要求诚实守信。", context: "Civil" },
-                { id: 'l14', en: "Burden of Proof", zh: "举证责任", detail: "当事人对自己主张有证明责任。", context: "Evidence" },
-                { id: 'l15', en: "Conflict of Interest", zh: "利益冲突", detail: "个人利益与职守之间的竞争状态。", context: "Ethics" },
-                { id: 'l16', en: "Confidentiality Agreement", zh: "保密协议", detail: "俗称NDA，约定不泄露信息的协议。", context: "Contract" },
-                { id: 'l17', en: "Exclusive Jurisdiction", zh: "专属管辖", detail: "特定案件只能由特定法院受理。", context: "Litigation" },
-                { id: 'l18', en: "Termination for Convenience", zh: "任意解除", detail: "无需理由即可终止合同的权利。", context: "Contract" },
-                { id: 'l19', en: "Duty of Care", zh: "注意义务", detail: "法律要求个人应达到的合理谨慎程度。", context: "Tort" },
-                { id: 'l20', en: "Legal Entity", zh: "法人实体", detail: "独立承担民事责任的组织。", context: "Corporate" },
-                { id: 'l21', en: "Governing Law", zh: "管辖法律", detail: "解决争议所适用的国家法律。", context: "General" },
-                { id: 'l22', en: "Service of Process", zh: "文书送达", detail: "正式交付法律文书的法定程序。", context: "Procedure" },
-                { id: 'l23', en: "Injunction", zh: "禁令", detail: "法院发布的强制或禁止命令。", context: "Litigation" },
-                { id: 'l24', en: "Assignment", zh: "转让", detail: "将合同权利移交给第三方的行为。", context: "Contract" },
-                { id: 'l25', en: "Pro Bono", zh: "法律援助", detail: "为公众利益而免费提供的专业服务。", context: "Practice" },
-                { id: 'l26', en: "Reasonable Doubt", zh: "合理怀疑", detail: "刑事诉讼中定罪必须排除的标准。", context: "Criminal" },
-                { id: 'l27', en: "Non-Compete Clause", zh: "竞业限制", detail: "离职后不得从事竞争性业务的约定。", context: "Employment" },
-                { id: 'l28', en: "Public Domain", zh: "公有领域", detail: "不再受知识产权保护的作品。", context: "IP Law" },
-                { id: 'l29', en: "Precedent", zh: "判例", detail: "具有指导或约束力的先前裁决。", context: "Common Law" },
-                { id: 'l30', en: "Waiver", zh: "弃权", detail: "自愿放弃已知权利的法律行为。", context: "Contract" }
+                { id: 'l1', en: "Without Prejudice", zh: "不损害；无偏见", detail: "不构成对自身权利的放弃或对事实的承认。" },
+                { id: 'l2', en: "Indemnification", zh: "补偿；赔偿", detail: "一方承诺赔偿另一方遭受的损失。" },
+                { id: 'l3', en: "Force Majeure", zh: "不可抗力", detail: "不能预见、避免且克服的客观情况。" },
+                { id: 'l4', en: "Due Diligence", zh: "尽职调查", detail: "签署合同前的全面审查。" },
+                { id: 'l5', en: "Joint and Several Liability", zh: "连带责任", detail: "多个主体共同承担全部债务。" },
+                { id: 'l6', en: "Breach of Contract", zh: "违约", detail: "未能按照合同约定履行义务。" },
+                { id: 'l7', en: "Arbitration", zh: "仲裁", detail: "提交第三方裁决的纠纷解决方式。" },
+                { id: 'l8', en: "Intellectual Property", zh: "知识产权", detail: "关于作品、发明等智力成果的权利。" },
+                { id: 'l9', en: "Statute of Limitations", zh: "诉讼时效", detail: "权利人请求权的法定期间。" },
+                { id: 'l10', en: "Articles of Association", zh: "公司章程", detail: "规定公司组织原则的基本准则。" },
+                { id: 'l11', en: "Power of Attorney", zh: "授权委托书", detail: "书面授权他人行使法律权力的文件。" },
+                { id: 'l12', en: "Liquidated Damages", zh: "约定违约金", detail: "预先约定的违约赔偿金额。" },
+                { id: 'l13', en: "Good Faith", zh: "诚实信用", detail: "民法基本原则，要求诚实守信。" },
+                { id: 'l14', en: "Burden of Proof", zh: "举证责任", detail: "当事人对自己主张有证明责任。" },
+                { id: 'l15', en: "Conflict of Interest", zh: "利益冲突", detail: "个人利益与职守之间的竞争。" },
+                { id: 'l16', en: "NDA", zh: "保密协议", detail: "约定不向第三方泄露特定信息的协议。" },
+                { id: 'l17', en: "Exclusive Jurisdiction", zh: "专属管辖", detail: "案件只能由特定法院受理。" },
+                { id: 'l18', en: "Termination for Convenience", zh: "任意解除", detail: "无需理由即可终止合同的权利。" },
+                { id: 'l19', en: "Duty of Care", zh: "注意义务", detail: "应达到的合理谨慎程度。" },
+                { id: 'l20', en: "Legal Entity", zh: "法人实体", detail: "独立承担民事责任的组织。" },
+                { id: 'l21', en: "Governing Law", zh: "管辖法律", detail: "解决争议所适用的国家法律。" },
+                { id: 'l22', en: "Service of Process", zh: "文书送达", detail: "交付法律文书的法定程序。" },
+                { id: 'l23', en: "Injunction", zh: "禁令", detail: "法院发布的强制或禁止命令。" },
+                { id: 'l24', en: "Assignment", zh: "转让", detail: "将合同权利移交给第三方的行为。" },
+                { id: 'l25', en: "Pro Bono", zh: "法律援助", detail: "免费提供的专业公益服务。" },
+                { id: 'l26', en: "Reasonable Doubt", zh: "合理怀疑", detail: "刑事诉讼中定罪必须排除的标准。" },
+                { id: 'l27', en: "Non-Compete", zh: "竞业限制", detail: "离职后不得从事竞争业务的约定。" },
+                { id: 'l28', en: "Public Domain", zh: "公有领域", detail: "不再受产权保护的公开作品。" },
+                { id: 'l29', en: "Precedent", zh: "判例", detail: "具有约束力的先前法院裁决。" },
+                { id: 'l30', en: "Waiver", zh: "弃权", detail: "自愿放弃已知权利的法律行为。" }
             ],
             gaming: [
-                { id: 'g1', en: "Fog of War", zh: "战争迷雾", detail: "地图上未探索区域被覆盖的机制。", context: "MOBA" },
-                { id: 'g2', en: "Cooldown", zh: "冷却时间", detail: "再次使用技能前必须等待的时间。", context: "Mechanics" },
-                { id: 'g3', en: "Aggro", zh: "仇恨值", detail: "怪物对玩家攻击欲望的数值。", context: "MMO" },
-                { id: 'g4', en: "Buff / Debuff", zh: "增益/减益", detail: "属性的正面或负面影响。", context: "General" },
-                { id: 'g5', en: "Easter Egg", zh: "彩蛋", detail: "隐藏的惊喜信息或秘密关卡。", context: "Content" },
-                { id: 'g6', en: "Hitbox", zh: "碰撞框", detail: "检测碰撞的隐形几何体。", context: "Combat" },
-                { id: 'g7', en: "Proc", zh: "触发", detail: "特定概率效果被激活。", context: "Mechanics" },
-                { id: 'g8', en: "Loot Box", zh: "开箱", detail: "包含随机奖励的容器。", context: "Business" },
-                { id: 'g9', en: "Fast Travel", zh: "快速旅行", detail: "在发现地点间瞬间移动。", context: "Exploration" },
-                { id: 'g10', en: "Permadeath", zh: "永久死亡", detail: "一旦死亡进度即失效。", context: "Roguelike" },
-                { id: 'g11', en: "Quality of Life", zh: "体验优化", detail: "让操作更便捷的小改动。", context: "Dev" },
-                { id: 'g12', en: "NPC", zh: "非玩家角色", detail: "由电脑控制的角色。", context: "General" },
-                { id: 'g13', en: "Meta", zh: "主流策略", detail: "当前版本公认的最优玩法。", context: "Meta" },
-                { id: 'g14', en: "New Game Plus", zh: "二周目", detail: "通关后带装备重新开始。", context: "Prog" },
-                { id: 'g15', en: "Microtransaction", zh: "内购", detail: "游戏内小额消费行为。", context: "Business" },
-                { id: 'g16', en: "Sandbox", zh: "沙盒", detail: "高自由度的创造玩法。", context: "Genre" },
-                { id: 'g17', en: "Vertical Slice", zh: "垂直切片", detail: "展示成品质感的完整原型。", context: "Industry" },
-                { id: 'g18', en: "Spawn", zh: "生成", detail: "在地图上出现的过程。", context: "Mechanics" },
-                { id: 'g19', en: "Gacha", zh: "抽卡", detail: "随机获取稀有奖励的玩法。", context: "Business" },
-                { id: 'g20', en: "Haptic Feedback", zh: "触觉反馈", detail: "细腻的震动效果。", context: "Hardware" },
-                { id: 'g21', en: "Skill Tree", zh: "技能树", detail: "展示角色成长路径的图。", context: "Prog" },
-                { id: 'g22', en: "Ray Tracing", zh: "光线追踪", detail: "模拟光线行为的技术。", context: "Graphics" },
-                { id: 'g23', en: "Grinding", zh: "刷怪", detail: "机械性重复战斗。", context: "General" },
-                { id: 'g24', en: "Early Access", zh: "抢先体验", detail: "未完工即开放购买测试。", context: "Industry" },
-                { id: 'g25', en: "Speedrun", zh: "速通", detail: "最快速度完成游戏。", context: "Comp" },
-                { id: 'g26', en: "Dynamic Weather", zh: "动态天气", detail: "随时间变化的系统。", context: "Env" },
-                { id: 'g27', en: "Mana / MP", zh: "法力值", detail: "施法消耗的能量。", context: "Attrib" },
-                { id: 'g28', en: "Side Quest", zh: "支线任务", detail: "非主线剧情的额外任务。", context: "Prog" },
-                { id: 'g29', en: "DLC", zh: "扩展包", detail: "额外发布的数字内容。", context: "Business" },
-                { id: 'g30', en: "Mod", zh: "模组", detail: "玩家开发的修改插件。", context: "Community" }
+                { id: 'g1', en: "Fog of War", zh: "战争迷雾", detail: "地图上未探索区域被阴影覆盖的机制。" },
+                { id: 'g2', en: "Cooldown", zh: "冷却时间", detail: "再次使用技能前必须等待的时间。" },
+                { id: 'g3', en: "Aggro", zh: "仇恨值", detail: "衡量怪物对玩家攻击欲望的数值。" },
+                { id: 'g4', en: "Buff / Debuff", zh: "增益/减益", detail: "角色的正面或负面状态影响。" },
+                { id: 'g5', en: "Easter Egg", zh: "彩蛋", detail: "隐藏的惊喜信息或幽默内容。" },
+                { id: 'g6', en: "Hitbox", zh: "碰撞框", detail: "用于检测受击的隐形几何体。" },
+                { id: 'g7', en: "Proc", zh: "触发", detail: "随机概率效果被成功激活。" },
+                { id: 'g8', en: "Loot Box", zh: "开箱", detail: "包含随机虚拟奖励的容器。" },
+                { id: 'g9', en: "Fast Travel", zh: "快速旅行", detail: "在已发现地点间瞬间移动。" },
+                { id: 'g10', en: "Permadeath", zh: "永久死亡", detail: "角色死亡后存档即失效。" },
+                { id: 'g11', en: "QoL", zh: "体验优化", detail: "提升操作便捷度的小改动。" },
+                { id: 'g12', en: "NPC", zh: "非玩家角色", detail: "由电脑控制的角色。" },
+                { id: 'g13', en: "Meta", zh: "主流策略", detail: "当前版本下的最优玩法搭配。" },
+                { id: 'g14', en: "New Game Plus", zh: "二周目", detail: "通关后继承装备重新开始。" },
+                { id: 'g15', en: "Microtransaction", zh: "内购", detail: "游戏内的小额消费行为。" },
+                { id: 'g16', en: "Sandbox", zh: "沙盒", detail: "高自由度的创造类玩法。" },
+                { id: 'g17', en: "Vertical Slice", zh: "垂直切片", detail: "展示最终质感的完整原型。" },
+                { id: 'g18', en: "Spawn", zh: "生成", detail: "角色在地图上出现的点或过程。" },
+                { id: 'g19', en: "Gacha", zh: "抽卡", detail: "随机获取奖励的商业模式。" },
+                { id: 'g20', en: "Haptic", zh: "触觉反馈", detail: "控制器发出的细腻震动效果。" },
+                { id: 'g21', en: "Skill Tree", zh: "技能树", detail: "展示能力成长路径的系统。" },
+                { id: 'g22', en: "Ray Tracing", zh: "光线追踪", detail: "模拟光线物理行为的图形技术。" },
+                { id: 'g23', en: "Grinding", zh: "刷怪", detail: "机械性重复战斗以获取经验。" },
+                { id: 'g24', en: "Early Access", zh: "抢先体验", detail: "未完工即开放购买测试。" },
+                { id: 'g25', en: "Speedrun", zh: "速通", detail: "以最快速度完成游戏挑战。" },
+                { id: 'g26', en: "Dynamic Weather", zh: "动态天气", detail: "随时间自动变化的系统。" },
+                { id: 'g27', en: "Mana / MP", zh: "法力值", detail: "施放技能所消耗的能量。" },
+                { id: 'f28', en: "Side Quest", zh: "支线任务", detail: "非主线的额外可选任务。" },
+                { id: 'g29', en: "DLC", zh: "下载内容", detail: "发售后发布的数字扩展内容。" },
+                { id: 'g30', en: "Mod", zh: "模组", detail: "玩家开发的修改或插件。" }
             ],
             food: [
-                { id: 'f1', en: "Maillard Reaction", zh: "美拉德反应", detail: "高温下产生的褐变反应。", context: "Science" },
-                { id: 'f2', en: "Stir-fry", zh: "煸炒", detail: "中餐最基础的翻炒技法。", context: "Technique" },
-                { id: 'f3', en: "Al Dente", zh: "弹牙", detail: "意面煮得恰到好处。", context: "Texture" },
-                { id: 'f4', en: "Aroma Wheel", zh: "风味轮", detail: "描述风味的气味图谱。", context: "Tasting" },
-                { id: 'f5', en: "Red-braised", zh: "红烧", detail: "利用酱油冰糖上色的技法。", context: "Technique" },
-                { id: 'f6', en: "Farm-to-table", zh: "农场到餐桌", detail: "食材来源新鲜的理念。", context: "Concept" },
-                { id: 'f7', en: "Acidity", zh: "酸度", detail: "明亮酸感，区别于变质。", context: "Tasting" },
-                { id: 'f8', en: "Simmer", zh: "文火慢炖", detail: "保持液体接近沸点加热。", context: "Technique" },
-                { id: 'f9', en: "Palate Cleanser", zh: "清口菜", detail: "清除前一道菜的余味。", context: "Dining" },
-                { id: 'f10', en: "Wok Hei", zh: "镬气", detail: "高温产生的复杂焦香。", context: "Technique" },
-                { id: 'f11', en: "Mouthfeel", zh: "口感", detail: "腔内产生的物理感受。", context: "Tasting" },
-                { id: 'f12', en: "Deep-fry", zh: "油炸", detail: "浸入油脂获得酥脆外皮。", context: "Technique" },
-                { id: 'f13', en: "Umami", zh: "鲜味", detail: "第五种基本味道。", context: "Tasting" },
-                { id: 'f14', en: "Sous-vide", zh: "低温慢煮", detail: "真空恒温水浴加热。", context: "Molecular" },
-                { id: 'f15', en: "Blanch", zh: "焯水", detail: "短暂放入沸水中烫洗。", context: "Technique" },
-                { id: 'f16', en: "Sommelier", zh: "侍酒师", detail: "负责酒水选配的专家。", context: "Profession" },
-                { id: 'f17', en: "Infusion", zh: "浸渍", detail: "提取风味的过程。", context: "Technique" },
-                { id: 'f18', en: "Zest", zh: "皮屑", detail: "柑橘最外层的芳香皮。", context: "Ingredient" },
-                { id: 'f19', en: "Dim Sum", zh: "点心", detail: "粤式精致小吃。", context: "Cuisine" },
-                { id: 'f20', en: "Decant", zh: "醒酒", detail: "与空气接触释放香气。", context: "Tasting" },
-                { id: 'f21', en: "Crispy", zh: "酥脆", detail: "易碎的薄脆质感。", context: "Texture" },
-                { id: 'f22', en: "Garnish", zh: "盘饰", detail: "用于点缀风味的食材。", context: "Pres" },
-                { id: 'f23', en: "Steaming", zh: "蒸", detail: "保留原味营养的烹饪。", context: "Technique" },
-                { id: 'f24', en: "Tannin", zh: "单宁", detail: "涩感来源，来自皮籽。", context: "Tasting" },
-                { id: 'f25', en: "Fermentation", zh: "发酵", detail: "微生物转化成分的过程。", context: "Science" },
-                { id: 'f26', en: "Velveting", zh: "上浆", detail: "肉类包裹淀粉保持鲜嫩。", context: "Technique" },
-                { id: 'f27', en: "Body", zh: "醇厚度", detail: "饮料在口中的重量感。", context: "Tasting" },
-                { id: 'f28', en: "Glaze", zh: "挂汁", detail: "表面涂抹发亮液体。", context: "Pres" },
-                { id: 'f29', en: "Offal", zh: "内脏", detail: "动物的可食用器官。", context: "Ingredient" },
-                { id: 'f30', en: "Aftertaste", zh: "余韵", detail: "吞咽后持续的风味。", context: "Tasting" }
+                { id: 'f1', en: "Maillard", zh: "美拉德反应", detail: "高温下产生的风味褐变反应。" },
+                { id: 'f2', en: "Stir-fry", zh: "煸炒", detail: "少量热油中快速翻炒食材。" },
+                { id: 'f3', en: "Al Dente", zh: "弹牙", detail: "意面煮得中心稍硬有嚼劲。" },
+                { id: 'f4', en: "Aroma Wheel", zh: "风味轮", detail: "描述风味的系统图谱。" },
+                { id: 'f5', en: "Red-braised", zh: "红烧", detail: "利用酱油冰糖上色的技法。" },
+                { id: 'f6', en: "Farm-to-table", zh: "农场到餐桌", detail: "强调食材新鲜当地的理念。" },
+                { id: 'f7', en: "Acidity", zh: "酸度", detail: "明亮且令人愉悦的酸感。" },
+                { id: 'f8', en: "Simmer", zh: "文火慢炖", detail: "保持液体接近沸点小火加热。" },
+                { id: 'f9', en: "Cleanser", zh: "清口菜", detail: "清除前菜余味的冰沙等。" },
+                { id: 'f10', en: "Wok Hei", zh: "镬气", detail: "高温产生的灵魂焦香味。" },
+                { id: 'f11', en: "Mouthfeel", zh: "口感", detail: "口腔内产生的物理感受。" },
+                { id: 'f12', en: "Deep-fry", zh: "油炸", detail: "完全浸入油脂烹饪的方法。" },
+                { id: 'f13', en: "Umami", zh: "鲜味", detail: "除了酸甜苦咸外的第五味。" },
+                { id: 'f14', en: "Sous-vide", zh: "低温慢煮", detail: "真空包装恒温加热技法。" },
+                { id: 'f15', en: "Blanch", zh: "焯水", detail: "短暂放入沸水中烫洗。" },
+                { id: 'f16', en: "Sommelier", zh: "侍酒师", detail: "专业的酒水配餐建议专家。" },
+                { id: 'f17', en: "Infusion", zh: "浸渍", detail: "液体提取食材风味的过程。" },
+                { id: 'f18', en: "Zest", zh: "皮屑", detail: "柑橘类水果最外层芳香皮。" },
+                { id: 'f19', en: "Dim Sum", zh: "点心", detail: "精致的粤式茶点小吃。" },
+                { id: 'f20', en: "Decant", zh: "醒酒", detail: "倒出酒液使其与空气接触。" },
+                { id: 'f21', en: "Texture", zh: "质地", detail: "描述脆、软、酥等物理特征。" },
+                { id: 'f22', en: "Garnish", zh: "盘饰", detail: "用于装饰菜肴的点缀物。" },
+                { id: 'f23', en: "Steaming", zh: "蒸", detail: "利用水蒸气加热保留营养。" },
+                { id: 'f24', en: "Tannin", zh: "单宁", detail: "红酒中带来的收敛涩感。" },
+                { id: 'f25', en: "Fermentation", zh: "发酵", detail: "微生物转化食物的过程。" },
+                { id: 'f26', en: "Velveting", zh: "上浆", detail: "肉类裹淀粉保持鲜嫩质感。" },
+                { id: 'f27', en: "Body", zh: "酒体/醇厚度", detail: "描述液体在口中的重量感。" },
+                { id: 'f28', en: "Glaze", zh: "挂汁", detail: "在食物表面淋上发亮液体。" },
+                { id: 'f29', en: "Offal", zh: "内脏", detail: "动物的可食用器官杂碎。" },
+                { id: 'f30', en: "Aftertaste", zh: "余韵", detail: "吞咽后留在喉间的风味。" }
             ]
         };
 
-        let currentCategory = 'all';
+        let currentCat = 'all';
+        let currentView = 'search';
         let isDark = false;
         const intervals = [0, 1, 12, 24, 48, 168, 360, 720];
 
-        function getMem() { return JSON.parse(localStorage.getItem('lexi_v2') || '{}'); }
+        function getMem() { return JSON.parse(localStorage.getItem('lexi_v3') || '{}'); }
+        
         function saveMem(id, known) {
             let m = getMem();
             let r = m[id] || { level: 0, time: 0 };
             known ? r.level = Math.min(r.level + 1, 7) : r.level = Math.max(r.level - 1, 0);
             r.time = Date.now() + intervals[r.level] * 3600000;
             m[id] = r;
-            localStorage.setItem('lexi_v2', JSON.stringify(m));
+            localStorage.setItem('lexi_v3', JSON.stringify(m));
             renderAll();
         }
 
         function switchView(view) {
+            currentView = view;
             document.getElementById('view-learn').classList.toggle('view-hidden', view !== 'learn');
             document.getElementById('view-search').classList.toggle('view-hidden', view !== 'search');
-            document.getElementById('dock-learn').classList.toggle('dock-item-active', view === 'learn');
-            document.getElementById('dock-search').classList.toggle('dock-item-active', view === 'search');
-            if(view === 'learn') renderLearn(); else renderSearch();
+            document.getElementById('dock-learn').classList.toggle('dock-active', view === 'learn');
+            document.getElementById('dock-search').classList.toggle('dock-active', view === 'search');
+            renderAll();
         }
 
         function renderSearch() {
-            const query = document.getElementById('global-search').value.toLowerCase();
-            let allItems = [];
-            if(currentCategory === 'all') {
-                Object.values(vocabulary).forEach(cat => allItems.push(...cat));
-            } else {
-                allItems = vocabulary[currentCategory] || [];
-            }
+            if(currentView !== 'search') return;
+            const q = document.getElementById('global-search').value.toLowerCase();
+            let list = [];
+            if(currentCat === 'all') Object.values(vocabulary).forEach(c => list.push(...c));
+            else list = vocabulary[currentCat] || [];
 
-            // A-Z 自动排序
-            allItems.sort((a, b) => a.en.localeCompare(b.en));
-
-            const filtered = allItems.filter(i => i.en.toLowerCase().includes(query) || i.zh.includes(query));
+            list.sort((a,b) => a.en.localeCompare(b.en));
+            const filtered = list.filter(i => i.en.toLowerCase().includes(q) || i.zh.includes(q));
             const mem = getMem();
 
             document.getElementById('search-results').innerHTML = filtered.map(item => `
-                <div class="glass-card p-6 rounded-3xl flex justify-between items-center group transition-all hover:scale-[1.02]">
+                <div class="glass-card p-6 rounded-3xl flex justify-between items-center animate-float" onclick="saveMem('${item.id}', true)">
                     <div>
-                        <h3 class="font-bold text-lg">${item.en}</h3>
-                        <p class="text-gray-400 text-sm">${item.zh}</p>
+                        <h3 class="font-bold text-lg tracking-tight">${item.en}</h3>
+                        <p class="text-gray-400 text-sm font-medium">${item.zh}</p>
                     </div>
-                    <div class="flex flex-col items-end">
-                        <span class="text-[8px] text-blue-500 font-mono mb-1 uppercase tracking-tighter">${mem[item.id] ? 'Level '+mem[item.id].level : ''}</span>
-                        <div class="text-[8px] space-x-1 opacity-20 group-hover:opacity-100 transition-opacity">
-                            ${Array.from({length:7}).map((_,i) => `<span class="memory-dot ${i < (mem[item.id]?.level || 0) ? 'bg-blue-500' : 'bg-gray-300'}"></span>`).join('')}
-                        </div>
+                    <div class="flex space-x-0.5">
+                        ${Array.from({length:7}).map((_,i) => `<div class="w-1 h-3 rounded-full ${i < (mem[item.id]?.level || 0) ? 'bg-blue-500' : 'bg-gray-200 dark:bg-gray-800'}"></div>`).join('')}
                     </div>
                 </div>
             `).join('');
 
-            if(!query && allItems.length > 0) {
-                const dayIndex = Math.floor(Date.now()/86400000);
-                const feat = allItems[dayIndex % allItems.length];
+            // 每日推荐
+            if(!q && list.length > 0) {
+                const feat = list[Math.floor(Date.now()/86400000) % list.length];
                 document.getElementById('feat-en').innerText = feat.en;
                 document.getElementById('feat-zh').innerText = feat.zh;
                 document.getElementById('feat-detail').innerText = feat.detail;
@@ -242,13 +274,16 @@
         }
 
         function renderLearn() {
+            if(currentView !== 'learn') return;
             const mem = getMem();
             const now = Date.now();
-            const allItems = Object.values(vocabulary).flat();
-            const toReview = allItems.filter(i => mem[i.id] && mem[i.id].time < now);
+            const all = Object.values(vocabulary).flat();
+            const toReview = all.filter(i => mem[i.id] && mem[i.id].time < now);
             
-            document.getElementById('dash-learned').innerText = Object.keys(mem).length;
             document.getElementById('dash-review').innerText = toReview.length;
+            const bar = document.getElementById('progress-bar');
+            const offset = 364.4 - (Math.min(toReview.length, 20) / 20 * 364.4);
+            bar.style.strokeDashoffset = offset;
 
             const container = document.getElementById('learn-card-container');
             if(toReview.length === 0) {
@@ -256,16 +291,20 @@
                 container.innerHTML = '';
             } else {
                 document.getElementById('learn-empty').classList.add('view-hidden');
-                const nextItem = toReview[0];
+                const item = toReview[0];
                 container.innerHTML = `
-                    <div class="glass-card p-12 rounded-[3.5rem] shadow-2xl text-center border-b-8 border-blue-500/20">
-                        <h2 class="text-5xl font-bold mb-6 serif-title tracking-tighter">${nextItem.en}</h2>
-                        <div class="h-20 flex items-center justify-center mb-8">
-                            <p class="text-gray-300 dark:text-gray-600 text-sm hover:text-blue-500 cursor-pointer transition-all" onclick="this.innerHTML='<span class=\'text-2xl font-bold text-slate-800 dark:text-white\'>${nextItem.zh}</span><br><span class=\'text-xs mt-2 block\'>${nextItem.detail}</span>'">点击揭晓答案</p>
+                    <div class="glass-card p-12 rounded-[3.5rem] shadow-2xl text-center border-b-8 border-blue-500/10 animate-float">
+                        <h2 class="text-5xl font-black mb-10 serif-title tracking-tighter">${item.en}</h2>
+                        <div class="mb-12 h-24 flex flex-col justify-center items-center">
+                            <div id="ans-box" class="opacity-0 transition-all duration-500 transform scale-90">
+                                <p class="text-2xl font-bold mb-2">${item.zh}</p>
+                                <p class="text-xs text-gray-400 px-6 leading-relaxed">${item.detail}</p>
+                            </div>
+                            <button id="show-btn" onclick="document.getElementById('ans-box').classList.remove('opacity-0','scale-90'); this.remove()" class="text-[10px] font-black tracking-widest text-blue-500 uppercase border-b border-blue-200 pb-1">Show Meaning</button>
                         </div>
                         <div class="flex space-x-4">
-                            <button onclick="saveMem('${nextItem.id}', true)" class="flex-1 py-5 rounded-3xl bg-blue-600 text-white font-bold shadow-lg active:scale-95 transition-all">认识</button>
-                            <button onclick="saveMem('${nextItem.id}', false)" class="flex-1 py-5 rounded-3xl bg-slate-100 text-slate-400 dark:bg-slate-800 font-bold active:scale-95 transition-all">模糊</button>
+                            <button onclick="saveMem('${item.id}', true)" class="flex-1 py-5 rounded-3xl bg-blue-500 text-white font-black shadow-lg shadow-blue-500/20 active:scale-95 transition-all">GOT IT</button>
+                            <button onclick="saveMem('${item.id}', false)" class="flex-1 py-5 rounded-3xl bg-gray-100 dark:bg-gray-800 text-gray-400 font-black active:scale-95 transition-all">AGAIN</button>
                         </div>
                     </div>
                 `;
@@ -273,13 +312,12 @@
         }
 
         function setCategory(cat) {
-            currentCategory = cat;
-            renderSearch();
-            // 按钮高亮处理
-            ['all', 'legal', 'gaming', 'food'].forEach(c => {
+            currentCat = cat;
+            ['all','legal','gaming','food'].forEach(c => {
                 document.getElementById('cat-'+c).classList.toggle('bg-blue-500', c === cat);
                 document.getElementById('cat-'+c).classList.toggle('text-white', c === cat);
             });
+            renderSearch();
         }
 
         function toggleDarkMode() {
@@ -293,7 +331,10 @@
             renderLearn();
         }
 
-        window.onload = () => { renderAll(); switchView('search'); setCategory('all'); };
+        window.onload = () => {
+            renderAll();
+            setCategory('all');
+        };
     </script>
 </body>
 </html>
