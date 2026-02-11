@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LexiFlow MTI v8.3.1 Cloud</title>
+    <title>LexiFlow MTI v8.3.2 Cloud</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
@@ -15,13 +15,11 @@
         .serif { font-family: 'Noto Serif SC', serif; }
         .hide { display: none !important; }
         
-        /* 导航胶囊 */
         .nav-capsule { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: white; padding: 12px 30px; border-radius: 100px; display: flex; gap: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 100; border: 1px solid rgba(0,0,0,0.05); }
         .dark .nav-capsule { background: #1E293B; border-color: rgba(255,255,255,0.1); }
         .nav-link { font-size: 24px; transition: all 0.2s; opacity: 0.2; }
         .nav-link.active { opacity: 1; transform: scale(1.1); }
 
-        /* 高级排版卡片样式 */
         .card-base { background: white; border-radius: 2rem; box-shadow: var(--card-shadow); transition: all 0.3s; border: 1px solid transparent; }
         .dark .card-base { background: #1E293B; border: 1px solid rgba(255,255,255,0.05); }
         
@@ -31,12 +29,10 @@
         .context-box { background: #F1F5F9; border-radius: 1.5rem; padding: 1.5rem; margin-top: 1rem; }
         .dark .context-box { background: #0F172A; border: 1px solid rgba(255,255,255,0.05); }
 
-        /* 展开动画逻辑 */
         .expandable-content { max-height: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
         .expanded .expandable-content { max-height: 2000px; opacity: 1; padding-top: 1rem; }
         .expanded .chevron { transform: rotate(180deg); }
 
-        /* 学习卡片翻转逻辑 */
         .card-container { perspective: 2000px; width: 90%; max-width: 380px; height: 520px; margin: auto; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .flipped .flip-card-inner { transform: rotateY(180deg); }
@@ -48,7 +44,6 @@
         .btn-active:active { transform: scale(0.95); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* 书架激活勾选 */
         .book-checkbox { position: absolute; top: 1.25rem; right: 1.25rem; width: 1.5rem; height: 1.5rem; border-radius: 0.5rem; border: 2px solid rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; z-index: 10; }
         .book-checkbox.active { background: white; color: #4F46E5; border-color: white; }
     </style>
@@ -58,11 +53,11 @@
     <section id="auth-screen" class="fixed inset-0 bg-white dark:bg-slate-900 z-[1000] flex flex-col items-center justify-center p-8 text-slate-800 dark:text-white">
         <h1 class="text-4xl weight-black italic mb-8">Lexi<span class="text-indigo-600">Flow</span></h1>
         <div class="w-full max-w-xs space-y-4">
-            <input id="auth-email" type="email" placeholder="邮箱账号" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800">
-            <input id="auth-password" type="password" placeholder="密码" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800">
+            <input id="auth-email" type="email" autocomplete="email" placeholder="邮箱账号" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800">
+            <input id="auth-password" type="password" autocomplete="new-password" placeholder="密码 (至少6位)" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800">
             <button id="auth-submit-btn" onclick="handleAuth('login')" class="w-full bg-indigo-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">立即登录</button>
-            <button id="signup-btn" onclick="handleAuth('signup')" class="w-full text-xs opacity-40 font-bold uppercase tracking-widest">注册新账号</button>
-            <div id="auth-msg" class="text-center text-[11px] font-bold mt-4 min-h-[1.5em]"></div>
+            <button id="signup-btn" onclick="handleAuth('signup')" class="w-full text-xs opacity-40 font-bold uppercase tracking-widest py-2">注册新账号</button>
+            <div id="auth-msg" class="text-center text-[11px] font-bold mt-4 min-h-[1.5em] px-4"></div>
         </div>
     </section>
 
@@ -70,7 +65,7 @@
         <header class="p-8 flex justify-between items-center">
             <div>
                 <h2 class="text-2xl weight-black italic dark:text-white">Lexi<span class="text-indigo-600">Flow</span></h2>
-                <p class="text-[8px] weight-black opacity-30 tracking-[0.2em] uppercase dark:text-white">MTI Master Sync v8.3.1</p>
+                <p class="text-[8px] weight-black opacity-30 tracking-[0.2em] uppercase dark:text-white">MTI Master Sync v8.3.2</p>
             </div>
             <button onclick="toggleSidebar(true)" class="w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center border border-slate-100 dark:border-slate-700">☰</button>
         </header>
@@ -185,19 +180,16 @@
     </aside>
 
     <script>
-        // Supabase 配置
         const SB_URL = "https://dxrswsuuuvstfipcldpz.supabase.co";
         const SB_KEY = "sb_publishable_qU3plC-_p-LY2p91i21n3g_0zrWuAV8";
         const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
         let state = { user: null, books: {}, mem: {}, settings: { dailyLimit: 20, selectedBooks: [], dark: false, voice: 'en-US' }, activeTab: 'home', curCat: 'ALL', queue: [], idx: 0 };
 
-        // --- UI 构建 (复刻截图) ---
         function buildRichContentUI(item, noteValue, isStudy = false) {
             const parts = item.ai.split(/例句[:：]/);
             const analysis = (parts[0] || "暂无解析").trim();
             const example = (parts[1] || "").trim();
-            
             return `
                 <div class="pt-4 space-y-6 text-left w-full">
                     <div>
@@ -205,8 +197,7 @@
                         <h3 class="text-2xl weight-black text-indigo-900 dark:text-indigo-400 serif leading-tight mt-3 mb-2">${item.zh}</h3>
                         <div class="text-[13px] serif text-slate-500 dark:text-slate-400 leading-relaxed">${analysis.replace(/\n/g, '<br>')}</div>
                     </div>
-                    ${example ? `
-                    <div class="context-box relative overflow-hidden">
+                    ${example ? `<div class="context-box relative overflow-hidden">
                         <p class="text-[10px] italic weight-black text-slate-300 dark:text-slate-600 mb-3 uppercase tracking-widest">CONTEXT</p>
                         <p class="text-[14px] weight-black text-slate-700 dark:text-slate-200 leading-snug mb-2">${example.split('\n')[0].trim()}</p>
                         <p class="text-[11px] serif text-slate-400 dark:text-slate-500 italic">${example.split('\n').slice(1).join('<br>')}</p>
@@ -221,48 +212,44 @@
                 </div>`;
         }
 
-        // --- 云端认证 (修复注册无反应) ---
         async function handleAuth(type) {
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value.trim();
             const msg = document.getElementById('auth-msg');
+            const submitBtn = document.getElementById('auth-submit-btn');
             
             if(!email || !password) {
-                msg.style.color = "#ef4444";
-                return msg.innerText = "请填写账号密码";
+                msg.className = "text-center text-[11px] font-bold mt-4 text-rose-500";
+                return msg.innerText = "请输入邮箱和密码";
             }
             if(password.length < 6) {
-                msg.style.color = "#ef4444";
-                return msg.innerText = "密码至少需要6位";
+                msg.className = "text-center text-[11px] font-bold mt-4 text-rose-500";
+                return msg.innerText = "为了安全，密码至少需要6位";
             }
             
-            msg.style.color = "#6366f1";
-            msg.innerText = type === 'signup' ? "正在创建账号..." : "正在验证登录...";
-            
-            try {
-                const { data, error } = type === 'signup' 
-                    ? await supabase.auth.signUp({ email, password })
-                    : await supabase.auth.signInWithPassword({ email, password });
+            msg.className = "text-center text-[11px] font-bold mt-4 text-indigo-500";
+            msg.innerText = type === 'signup' ? "正在请求云端注册..." : "正在验证登录状态...";
+            submitBtn.disabled = true; submitBtn.style.opacity = "0.5";
 
-                if(error) { 
-                    msg.style.color = "#ef4444";
-                    msg.innerText = error.message; 
+            try {
+                if(type === 'signup') {
+                    const { data, error } = await supabase.auth.signUp({ 
+                        email, password,
+                        options: { emailRedirectTo: window.location.href }
+                    });
+                    if(error) throw error;
+                    msg.className = "text-center text-[11px] font-bold mt-4 text-emerald-500";
+                    msg.innerText = "注册请求已发送！请查看邮箱确认，或直接尝试登录。";
                 } else {
-                    if (type === 'signup') {
-                        msg.style.color = "#10b981";
-                        msg.innerText = "注册成功！请登录（若有验证邮件请先查收）";
-                    } else {
-                        state.user = data.user;
-                        msg.innerText = "同步云端数据...";
-                        await syncFromCloud();
-                        document.getElementById('auth-screen').classList.add('hide');
-                        document.getElementById('app-content').classList.remove('hide');
-                        initApp();
-                    }
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                    if(error) throw error;
+                    // 登录成功会触发 onAuthStateChange
                 }
             } catch (err) {
-                msg.style.color = "#ef4444";
-                msg.innerText = "网络连接异常，请稍后重试";
+                msg.className = "text-center text-[11px] font-bold mt-4 text-rose-500";
+                msg.innerText = `错误: ${err.message || '网络连接超时'}`;
+            } finally {
+                submitBtn.disabled = false; submitBtn.style.opacity = "1";
             }
         }
 
@@ -287,14 +274,10 @@
             }
         }
 
-        // --- 核心初始化 ---
         function initApp() {
             document.getElementById('user-id-display').innerText = state.user.email;
-            applyDarkMode();
-            initQuote();
-            updateDash();
-            switchTab('home');
-            renderImportSelect();
+            applyDarkMode(); initQuote(); updateDash();
+            switchTab('home'); renderImportSelect();
         }
 
         function updateDash() {
@@ -346,18 +329,12 @@
             const container = document.getElementById(containerId);
             container.innerHTML = items.map(i => {
                 const m = state.mem[i.id] || {note:""};
-                return `
-                <div class="card-base border border-slate-50 dark:border-slate-800 transition-all overflow-hidden mb-4" onclick="this.classList.toggle('expanded')">
+                return `<div class="card-base border border-slate-50 dark:border-slate-800 transition-all overflow-hidden mb-4" onclick="this.classList.toggle('expanded')">
                     <div class="p-6 flex justify-between items-center cursor-pointer">
-                        <div class="flex-1 text-left">
-                            <h5 class="text-lg weight-black tracking-tighter dark:text-white mb-1">${i.en}</h5>
-                            <span class="tag-eco">MTI</span>
-                        </div>
+                        <div class="flex-1 text-left"><h5 class="text-lg weight-black tracking-tighter dark:text-white mb-1">${i.en}</h5><span class="tag-eco">MTI</span></div>
                         <span class="chevron transition-transform opacity-20 text-[10px] dark:text-white">▼</span>
                     </div>
-                    <div class="expandable-content px-6 pb-6 border-t border-slate-50 dark:border-white/5">
-                        ${buildRichContentUI(i, m.note, false)}
-                    </div>
+                    <div class="expandable-content px-6 pb-6 border-t border-slate-50 dark:border-white/5">${buildRichContentUI(i, m.note, false)}</div>
                 </div>`;
             }).join('');
         }
@@ -399,7 +376,7 @@
         function toggleSidebar(s) { document.getElementById('sidebar').style.transform = s ? 'translateX(0)' : 'translateX(100%)'; document.getElementById('side-overlay').classList.toggle('hide', !s); }
         function toggleDarkMode() { state.settings.dark = document.getElementById('dark-toggle').checked; applyDarkMode(); save(); }
         function applyDarkMode() { document.documentElement.classList.toggle('dark', state.settings.dark); }
-        function initQuote() { document.getElementById('quote-en').innerText = "Language is the blood of the soul."; document.getElementById('quote-zh').innerText = "语言是灵魂的血液。"; }
+        function initQuote() { document.getElementById('quote-en').innerText = "Translation is not just about words."; document.getElementById('quote-zh').innerText = "翻译不仅仅是文字的更替。"; }
         function handleLogout() { supabase.auth.signOut(); localStorage.removeItem(`lexi_cloud_${state.user.id}`); location.reload(); }
         
         function runSearch() {
@@ -411,7 +388,7 @@
 
         function renderImportSelect() {
             const sel = document.getElementById('import-book-sel');
-            sel.innerHTML = Object.keys(state.books).map(k => `<option value="${k}">${k}</option>`).join('');
+            if(sel) sel.innerHTML = Object.keys(state.books).map(k => `<option value="${k}">${k}</option>`).join('');
         }
 
         function doImport() {
@@ -419,10 +396,9 @@
             const zh = document.getElementById('in-zh').value.trim();
             const ai = document.getElementById('in-ai').value.trim();
             const book = document.getElementById('import-book-sel').value;
-            if(!en || !zh) return alert("请填写完整信息");
-            if(!state.books[book]) return alert("词书不存在");
+            if(!en || !zh) return alert("信息不全");
             state.books[book].items.push({ id: 'u'+Date.now(), en, zh, ai, cat: 'MTI' });
-            save(); alert("已成功同步至云端");
+            save(); alert("同步成功");
             document.getElementById('in-en').value = ''; document.getElementById('in-zh').value = ''; document.getElementById('in-ai').value = '';
         }
 
@@ -444,7 +420,6 @@
             msg.lang = state.settings.voice; window.speechSynthesis.speak(msg); 
         }
 
-        // 监听云端登录状态
         supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
                 state.user = session.user;
