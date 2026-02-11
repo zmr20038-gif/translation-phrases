@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LexiFlow MTI v8.3 Cloud</title>
+    <title>LexiFlow MTI v8.3.1 Cloud</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
         .nav-link { font-size: 24px; transition: all 0.2s; opacity: 0.2; }
         .nav-link.active { opacity: 1; transform: scale(1.1); }
 
-        /* 高级排版卡片样式 (基于截图) */
+        /* 高级排版卡片样式 */
         .card-base { background: white; border-radius: 2rem; box-shadow: var(--card-shadow); transition: all 0.3s; border: 1px solid transparent; }
         .dark .card-base { background: #1E293B; border: 1px solid rgba(255,255,255,0.05); }
         
@@ -60,9 +60,9 @@
         <div class="w-full max-w-xs space-y-4">
             <input id="auth-email" type="email" placeholder="邮箱账号" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800">
             <input id="auth-password" type="password" placeholder="密码" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800">
-            <button id="login-btn" onclick="handleAuth('login')" class="w-full bg-indigo-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">立即登录</button>
-            <button onclick="handleAuth('signup')" class="w-full text-xs opacity-40 font-bold uppercase tracking-widest">注册新账号</button>
-            <div id="auth-msg" class="text-center text-[10px] text-red-500 font-bold mt-2"></div>
+            <button id="auth-submit-btn" onclick="handleAuth('login')" class="w-full bg-indigo-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">立即登录</button>
+            <button id="signup-btn" onclick="handleAuth('signup')" class="w-full text-xs opacity-40 font-bold uppercase tracking-widest">注册新账号</button>
+            <div id="auth-msg" class="text-center text-[11px] font-bold mt-4 min-h-[1.5em]"></div>
         </div>
     </section>
 
@@ -70,7 +70,7 @@
         <header class="p-8 flex justify-between items-center">
             <div>
                 <h2 class="text-2xl weight-black italic dark:text-white">Lexi<span class="text-indigo-600">Flow</span></h2>
-                <p class="text-[8px] weight-black opacity-30 tracking-[0.2em] uppercase dark:text-white">MTI Master Sync v8.3</p>
+                <p class="text-[8px] weight-black opacity-30 tracking-[0.2em] uppercase dark:text-white">MTI Master Sync v8.3.1</p>
             </div>
             <button onclick="toggleSidebar(true)" class="w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center border border-slate-100 dark:border-slate-700">☰</button>
         </header>
@@ -102,7 +102,6 @@
 
             <div id="view-explore" class="hide space-y-6">
                 <input type="text" id="search-box" oninput="runSearch()" placeholder="搜索词条..." class="w-full p-5 rounded-2xl bg-white dark:bg-slate-800 shadow-sm outline-none font-bold text-sm">
-                <div id="cat-tags-container" class="flex gap-2 overflow-x-auto no-scrollbar py-2"></div>
                 <div id="search-list" class="space-y-4"></div>
             </div>
 
@@ -186,14 +185,14 @@
     </aside>
 
     <script>
-        // 核心配置：使用用户提供的 Supabase 密钥
+        // Supabase 配置
         const SB_URL = "https://dxrswsuuuvstfipcldpz.supabase.co";
         const SB_KEY = "sb_publishable_qU3plC-_p-LY2p91i21n3g_0zrWuAV8";
         const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-        let state = { user: null, books: {}, mem: {}, settings: { dailyLimit: 20, selectedBooks: [], dark: false, voice: 'en-US' }, activeTab: 'home', curCat: 'ALL', queue: [], idx: 0, categories: ["政治", "经贸", "科技", "文化", "俗语"] };
+        let state = { user: null, books: {}, mem: {}, settings: { dailyLimit: 20, selectedBooks: [], dark: false, voice: 'en-US' }, activeTab: 'home', curCat: 'ALL', queue: [], idx: 0 };
 
-        // --- 进化：复刻截图的高级内容排版 ---
+        // --- UI 构建 (复刻截图) ---
         function buildRichContentUI(item, noteValue, isStudy = false) {
             const parts = item.ai.split(/例句[:：]/);
             const analysis = (parts[0] || "暂无解析").trim();
@@ -206,14 +205,12 @@
                         <h3 class="text-2xl weight-black text-indigo-900 dark:text-indigo-400 serif leading-tight mt-3 mb-2">${item.zh}</h3>
                         <div class="text-[13px] serif text-slate-500 dark:text-slate-400 leading-relaxed">${analysis.replace(/\n/g, '<br>')}</div>
                     </div>
-
                     ${example ? `
                     <div class="context-box relative overflow-hidden">
                         <p class="text-[10px] italic weight-black text-slate-300 dark:text-slate-600 mb-3 uppercase tracking-widest">CONTEXT</p>
                         <p class="text-[14px] weight-black text-slate-700 dark:text-slate-200 leading-snug mb-2">${example.split('\n')[0].trim()}</p>
                         <p class="text-[11px] serif text-slate-400 dark:text-slate-500 italic">${example.split('\n').slice(1).join('<br>')}</p>
                     </div>` : ''}
-
                     <div class="pt-2" onclick="event.stopPropagation()">
                         <p class="text-[8px] weight-black opacity-20 uppercase mb-2 dark:text-white tracking-widest">Personal Notes</p>
                         <textarea oninput="${isStudy?'syncNote()':'saveExternalNote(\''+item.id+'\', this.value)'}" 
@@ -224,32 +221,52 @@
                 </div>`;
         }
 
-        // --- 云端认证逻辑 ---
+        // --- 云端认证 (修复注册无反应) ---
         async function handleAuth(type) {
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
             const msg = document.getElementById('auth-msg');
-            if(!email || !password) return msg.innerText = "请填写账号密码";
             
-            msg.innerText = "处理中...";
-            const { data, error } = type === 'signup' 
-                ? await supabase.auth.signUp({ email, password })
-                : await supabase.auth.signInWithPassword({ email, password });
+            if(!email || !password) {
+                msg.style.color = "#ef4444";
+                return msg.innerText = "请填写账号密码";
+            }
+            if(password.length < 6) {
+                msg.style.color = "#ef4444";
+                return msg.innerText = "密码至少需要6位";
+            }
+            
+            msg.style.color = "#6366f1";
+            msg.innerText = type === 'signup' ? "正在创建账号..." : "正在验证登录...";
+            
+            try {
+                const { data, error } = type === 'signup' 
+                    ? await supabase.auth.signUp({ email, password })
+                    : await supabase.auth.signInWithPassword({ email, password });
 
-            if(error) { msg.innerText = error.message; }
-            else {
-                state.user = data.user;
-                msg.innerText = "加载云端数据...";
-                await syncFromCloud();
-                document.getElementById('auth-screen').classList.add('hide');
-                document.getElementById('app-content').classList.remove('hide');
-                initApp();
+                if(error) { 
+                    msg.style.color = "#ef4444";
+                    msg.innerText = error.message; 
+                } else {
+                    if (type === 'signup') {
+                        msg.style.color = "#10b981";
+                        msg.innerText = "注册成功！请登录（若有验证邮件请先查收）";
+                    } else {
+                        state.user = data.user;
+                        msg.innerText = "同步云端数据...";
+                        await syncFromCloud();
+                        document.getElementById('auth-screen').classList.add('hide');
+                        document.getElementById('app-content').classList.remove('hide');
+                        initApp();
+                    }
+                }
+            } catch (err) {
+                msg.style.color = "#ef4444";
+                msg.innerText = "网络连接异常，请稍后重试";
             }
         }
 
         async function syncFromCloud() {
-            // 获取云端用户配置数据 (Bucket 或 Table)
-            // 简化版：这里演示核心逻辑，正式版建议在 Supabase 创建 'user_data' 表
             const saved = localStorage.getItem(`lexi_cloud_${state.user.id}`);
             if(saved) {
                 const d = JSON.parse(saved);
@@ -267,29 +284,29 @@
                 localStorage.setItem(`lexi_cloud_${state.user.id}`, JSON.stringify({
                     books: state.books, mem: state.mem, settings: state.settings
                 }));
-                // 这里在正式运营时应调用 supabase.from('user_data').upsert(...)
             }
         }
 
-        // --- 应用核心逻辑保留并优化 ---
+        // --- 核心初始化 ---
         function initApp() {
             document.getElementById('user-id-display').innerText = state.user.email;
             applyDarkMode();
             initQuote();
             updateDash();
             switchTab('home');
+            renderImportSelect();
         }
 
         function updateDash() {
             let n = 0, r = 0;
-            const activeBooks = state.settings.selectedBooks;
-            activeBooks.forEach(bk => { if(state.books[bk]) state.books[bk].items.forEach(i => {
+            state.settings.selectedBooks.forEach(bk => { if(state.books[bk]) state.books[bk].items.forEach(i => {
                 const m = state.mem[i.id] || {lv:0};
                 if(m.lv === 0) n++; else if(m.lv < 5 && Date.now() >= (m.next||0)) r++;
             });});
             document.getElementById('num-new').innerText = n;
             document.getElementById('num-rev').innerText = r;
-            document.getElementById('active-book-count').innerText = activeBooks.length;
+            document.getElementById('active-book-count').innerText = state.settings.selectedBooks.length;
+            document.getElementById('plan-text').innerText = state.settings.selectedBooks.join(', ') || '未选词书';
         }
 
         function switchTab(t) {
@@ -300,11 +317,12 @@
             if(document.getElementById('nav-'+t)) document.getElementById('nav-'+t).classList.add('active');
             if(t === 'books') renderBooks();
             if(t === 'explore') runSearch();
+            if(t === 'import') renderImportSelect();
         }
 
         function renderBooks() {
             const grid = document.getElementById('book-grid');
-            let html = Object.keys(state.books).map((k, idx) => {
+            grid.innerHTML = Object.keys(state.books).map((k, idx) => {
                 const isActive = state.settings.selectedBooks.includes(k);
                 const colors = ["from-indigo-600 to-blue-700", "from-rose-500 to-pink-600", "from-emerald-500 to-teal-600"];
                 return `<div onclick="openBook('${k}')" class="aspect-[3/4] rounded-3xl bg-gradient-to-br ${colors[idx%3]} p-6 flex flex-col justify-between text-white shadow-xl btn-active relative overflow-hidden">
@@ -313,7 +331,6 @@
                     <p class="text-[10px] weight-black opacity-70">${state.books[k].items.length} 条目</p>
                 </div>`;
             }).join('');
-            grid.innerHTML = html;
         }
 
         function toggleBookActive(e, k) {
@@ -345,7 +362,6 @@
             }).join('');
         }
 
-        // --- 学习逻辑保留 ---
         function prepStudy(mode) {
             let pool = [];
             state.settings.selectedBooks.forEach(bk => { if(state.books[bk]) state.books[bk].items.forEach(i => {
@@ -353,7 +369,7 @@
                 if(mode === 'new' && m.lv === 0) pool.push({...i, from: bk});
                 else if(mode === 'review' && m.lv > 0 && m.lv < 5 && Date.now() >= (m.next||0)) pool.push({...i, from: bk});
             });});
-            if(!pool.length) return alert("队列为空");
+            if(!pool.length) return alert("当前队列没有单词需要学习");
             state.queue = pool.slice(0, 20); state.idx = 0;
             document.getElementById('study-layer').classList.remove('hide'); renderCard();
         }
@@ -378,36 +394,57 @@
             if(state.idx < state.queue.length) renderCard(); else closeStudy();
         }
 
-        // --- 辅助功能 ---
         function handleCardFlip(e) { if(!e.target.closest('textarea')) document.getElementById('studyCard').classList.toggle('flipped'); }
         function closeStudy() { document.getElementById('study-layer').classList.add('hide'); updateDash(); }
         function toggleSidebar(s) { document.getElementById('sidebar').style.transform = s ? 'translateX(0)' : 'translateX(100%)'; document.getElementById('side-overlay').classList.toggle('hide', !s); }
         function toggleDarkMode() { state.settings.dark = document.getElementById('dark-toggle').checked; applyDarkMode(); save(); }
         function applyDarkMode() { document.documentElement.classList.toggle('dark', state.settings.dark); }
-        function initQuote() { document.getElementById('quote-en').innerText = "Translation is a journey between cultures."; document.getElementById('quote-zh').innerText = "翻译是文化间的旅程。"; }
-        function handleLogout() { supabase.auth.signOut(); location.reload(); }
+        function initQuote() { document.getElementById('quote-en').innerText = "Language is the blood of the soul."; document.getElementById('quote-zh').innerText = "语言是灵魂的血液。"; }
+        function handleLogout() { supabase.auth.signOut(); localStorage.removeItem(`lexi_cloud_${state.user.id}`); location.reload(); }
+        
         function runSearch() {
             const q = document.getElementById('search-box').value.toLowerCase();
             let all = []; Object.values(state.books).forEach(b => all = all.concat(b.items));
             const filtered = all.filter(i => i.en.toLowerCase().includes(q) || i.zh.includes(q));
             renderItemList('search-list', filtered);
         }
+
+        function renderImportSelect() {
+            const sel = document.getElementById('import-book-sel');
+            sel.innerHTML = Object.keys(state.books).map(k => `<option value="${k}">${k}</option>`).join('');
+        }
+
         function doImport() {
             const en = document.getElementById('in-en').value.trim();
             const zh = document.getElementById('in-zh').value.trim();
             const ai = document.getElementById('in-ai').value.trim();
             const book = document.getElementById('import-book-sel').value;
-            if(!en || !zh) return alert("请填写完整");
+            if(!en || !zh) return alert("请填写完整信息");
+            if(!state.books[book]) return alert("词书不存在");
             state.books[book].items.push({ id: 'u'+Date.now(), en, zh, ai, cat: 'MTI' });
-            save(); alert("云端已同步");
+            save(); alert("已成功同步至云端");
             document.getElementById('in-en').value = ''; document.getElementById('in-zh').value = ''; document.getElementById('in-ai').value = '';
         }
+
+        function syncNote() {
+            const i = state.queue[state.idx];
+            if(!state.mem[i.id]) state.mem[i.id] = {lv:0, next:0, note:""};
+            state.mem[i.id].note = document.getElementById('card-note').value;
+            save();
+        }
+
+        function saveExternalNote(id, val) {
+            if(!state.mem[id]) state.mem[id] = {lv:0, next:0, note:""};
+            state.mem[id].note = val;
+            save();
+        }
+
         function playTTS() { 
             const msg = new SpeechSynthesisUtterance(state.queue[state.idx].en);
             msg.lang = state.settings.voice; window.speechSynthesis.speak(msg); 
         }
 
-        // 自动检查登录状态
+        // 监听云端登录状态
         supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
                 state.user = session.user;
