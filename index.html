@@ -2,97 +2,318 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>LexiFlow MTI v8.4.3 Final Fix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>LexiFlow MTI v8.5.5 Stable</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
     <style>
+        :root { --accent: #4F46E5; --bg: #F8FAFC; --card-shadow: 0 10px 30px -5px rgba(0,0,0,0.05); }
+        html.dark { background-color: #0F172A; }
+        body { background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.3s ease; min-height: 100vh; color: #1E293B; margin: 0; }
+        .dark body { color: #F1F5F9; background-color: #0F172A; }
+        .serif { font-family: 'Noto Serif SC', serif; }
         .hide { display: none !important; }
-        .btn-active:active { transform: scale(0.98); }
-        input { border: 2px solid #e2e8f0; transition: all 0.2s; }
-        input:focus { border-color: #4F46E5; outline: none; }
+        
+        /* 核心导航与卡片 UI */
+        .nav-capsule { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: white; padding: 12px 30px; border-radius: 100px; display: flex; gap: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 100; border: 1px solid rgba(0,0,0,0.05); }
+        .dark .nav-capsule { background: #1E293B; border-color: rgba(255,255,255,0.1); }
+        .nav-link { font-size: 24px; transition: all 0.2s; opacity: 0.2; cursor: pointer; border:none; background:none; }
+        .nav-link.active { opacity: 1; transform: scale(1.1); }
+
+        .card-base { background: white; border-radius: 2rem; box-shadow: var(--card-shadow); transition: all 0.3s; border: 1px solid transparent; }
+        .dark .card-base { background: #1E293B; border: 1px solid rgba(255,255,255,0.05); }
+        
+        .tag-eco { background: #F3E8FF; color: #7E22CE; padding: 2px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+        .dark .tag-eco { background: #3B0764; color: #D8B4FE; }
+
+        /* 卡片翻转系统 */
+        .card-container { perspective: 2000px; width: 90%; max-width: 380px; height: 520px; margin: auto; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+        .flipped .flip-card-inner { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 2.5rem; background: white; padding: 2.5rem; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+        .dark .card-face { background: #1E293B; border: 1px solid rgba(255,255,255,0.1); }
+        .card-back { transform: rotateY(180deg); }
+        
+        .weight-black { font-weight: 800; }
+        .btn-active:active { transform: scale(0.95); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .book-checkbox { position: absolute; top: 1.25rem; right: 1.25rem; width: 1.5rem; height: 1.5rem; border-radius: 0.5rem; border: 2px solid rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; z-index: 10; }
+        .book-checkbox.active { background: white; color: #4F46E5; border-color: white; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-6">
+<body>
 
-    <div id="auth-card" class="bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-sm text-center">
-        <h1 class="text-3xl font-black italic mb-2">LexiFlow</h1>
-        <p id="net-status" class="text-[10px] font-bold text-amber-500 mb-8 uppercase tracking-widest">Testing Connection...</p>
-
-        <div id="panel-login" class="space-y-4">
-            <input id="l-email" type="email" placeholder="邮箱" class="w-full p-4 rounded-2xl bg-slate-50 font-bold">
-            <input id="l-pass" type="password" placeholder="密码" class="w-full p-4 rounded-2xl bg-slate-50 font-bold">
-            <button onclick="doAuth('login')" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg btn-active">进入云端</button>
-            <button onclick="forceSwitch('signup')" class="w-full text-xs opacity-40 font-bold py-2">新同学？点此注册</button>
-        </div>
-
-        <div id="panel-signup" class="space-y-4 hide">
-            <input id="s-email" type="email" placeholder="注册邮箱" class="w-full p-4 rounded-2xl bg-indigo-50 font-bold">
-            <input id="s-pass" type="password" placeholder="设置密码" class="w-full p-4 rounded-2xl bg-indigo-50 font-bold">
-            <button onclick="doAuth('signup')" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black shadow-lg btn-active">创建账号</button>
-            <button onclick="forceSwitch('login')" class="w-full text-xs opacity-40 font-bold py-2">已有账号？去登录</button>
-        </div>
+    <section id="auth-screen" class="fixed inset-0 bg-white dark:bg-slate-900 z-[1000] flex flex-col items-center justify-center p-8 text-slate-800 dark:text-white">
+        <h1 class="text-4xl weight-black italic mb-2">Lexi<span class="text-indigo-600">Flow</span></h1>
+        <p id="auth-status-tag" class="text-[9px] weight-black opacity-30 tracking-widest mb-10 uppercase">Booting Cloud Link...</p>
         
-        <div id="msg" class="mt-6 text-[11px] font-bold p-3 rounded-xl hide"></div>
+        <div id="panel-login" class="w-full max-w-xs space-y-4">
+            <input id="l-email" type="email" placeholder="邮箱账号" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 transition-all">
+            <input id="l-pass" type="password" placeholder="密码" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 transition-all">
+            <button onclick="doAuthAction('login')" class="w-full bg-indigo-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">立即登录</button>
+            <button onclick="safeSwitch('signup')" class="w-full text-xs opacity-40 font-bold py-3">注册新账号</button>
+        </div>
+
+        <div id="panel-signup" class="w-full max-w-xs space-y-4 hide">
+            <input id="s-email" type="email" placeholder="设置邮箱" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800 border-2 border-emerald-500/20">
+            <input id="s-pass" type="password" placeholder="设置密码" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800 border-2 border-emerald-500/20">
+            <button onclick="doAuthAction('signup')" class="w-full bg-emerald-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">完成注册</button>
+            <button onclick="safeSwitch('login')" class="w-full text-xs opacity-40 font-bold py-3">返回登录</button>
+        </div>
+        <div id="auth-msg" class="mt-8 text-center text-[11px] font-bold px-6 py-3 rounded-xl hide"></div>
+    </section>
+
+    <div id="app-content" class="hide flex flex-col max-w-2xl mx-auto w-full min-h-screen">
+        <header class="p-8 flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl weight-black italic dark:text-white">Lexi<span class="text-indigo-600">Flow</span></h2>
+                <p class="text-[8px] weight-black opacity-30 tracking-[0.2em] uppercase dark:text-white">Professional MTI Tool</p>
+            </div>
+            <button onclick="toggleSide(true)" class="w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center dark:text-white">☰</button>
+        </header>
+
+        <main class="flex-1 px-8 pb-32">
+            <div id="view-home" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div onclick="prepStudy('new')" class="card-base p-6 border-b-4 border-indigo-500 btn-active cursor-pointer text-left">
+                        <p class="text-[10px] weight-black opacity-30 uppercase mb-1 dark:text-slate-400">New</p>
+                        <p id="num-new" class="text-4xl weight-black text-indigo-600">0</p>
+                    </div>
+                    <div onclick="prepStudy('review')" class="card-base p-6 border-b-4 border-emerald-500 btn-active cursor-pointer text-left">
+                        <p class="text-[10px] weight-black opacity-30 uppercase mb-1 dark:text-slate-400">Review</p>
+                        <p id="num-rev" class="text-4xl weight-black text-emerald-500">0</p>
+                    </div>
+                </div>
+                <div class="card-base p-5 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center">📚</div>
+                        <div class="text-left"><h4 class="text-xs weight-black dark:text-white">活跃词书</h4><p id="plan-text" class="text-[9px] opacity-40 uppercase tracking-widest dark:text-slate-400">---</p></div>
+                    </div>
+                    <span id="active-book-count" class="text-xl weight-black opacity-20 italic pr-6 dark:text-white">0</span>
+                </div>
+            </div>
+
+            <div id="view-explore" class="hide space-y-6">
+                <input type="text" id="search-box" oninput="runSearch()" placeholder="搜索词条..." class="w-full p-5 rounded-2xl bg-white dark:bg-slate-800 shadow-sm outline-none font-bold text-sm dark:text-white">
+                <div id="search-list" class="space-y-4"></div>
+            </div>
+
+            <div id="view-books" class="hide">
+                <h3 class="text-2xl weight-black italic dark:text-white mb-8 text-left">My Library</h3>
+                <div id="book-grid" class="grid grid-cols-2 gap-5 text-left"></div>
+            </div>
+
+            <div id="view-import" class="hide space-y-6">
+                <div class="card-base p-8 space-y-6">
+                    <select id="imp-sel" class="w-full bg-slate-50 p-4 rounded-xl text-xs font-bold outline-none dark:bg-slate-800 dark:text-white"></select>
+                    <input id="in-en" type="text" placeholder="Term (English)" class="w-full bg-slate-50 p-4 rounded-xl text-lg font-black dark:bg-slate-800 dark:text-white">
+                    <input id="in-zh" type="text" placeholder="翻译 (中文)" class="w-full bg-slate-50 p-4 rounded-xl text-lg serif dark:bg-slate-800 dark:text-white">
+                    <textarea id="in-ai" placeholder="AI 笔记与例句..." class="w-full bg-slate-50 p-4 rounded-xl text-xs h-32 resize-none serif dark:bg-slate-800 dark:text-white"></textarea>
+                    <button onclick="doImport()" class="w-full bg-indigo-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">同步至云端</button>
+                </div>
+            </div>
+        </main>
+
+        <nav class="nav-capsule">
+            <button onclick="switchTab('home')" id="nav-home" class="nav-link active">🏠</button>
+            <button onclick="switchTab('explore')" id="nav-explore" class="nav-link">🔍</button>
+            <button onclick="switchTab('books')" id="nav-books" class="nav-link">📚</button>
+            <button onclick="switchTab('import')" id="nav-import" class="nav-link">📥</button>
+        </nav>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <section id="study-layer" class="fixed inset-0 bg-slate-50 dark:bg-slate-900 z-[200] hide flex flex-col">
+        <header class="p-8 flex justify-between items-center">
+            <button onclick="closeStudy()" class="w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center dark:text-white">✕</button>
+            <div id="study-p" class="text-[10px] weight-black opacity-30 dark:text-white">0 / 0</div>
+            <button onclick="playVoice()" class="w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center dark:text-white">🔊</button>
+        </header>
+        <div class="flex-1 flex items-center justify-center p-6">
+            <div class="card-container" id="studyCard">
+                <div class="flip-card-inner" onclick="flipCard(event)">
+                    <div class="card-face flex items-center justify-center px-10 text-center">
+                        <span id="card-src" class="absolute top-6 px-3 py-1 bg-slate-100 dark:bg-slate-700 rounded-full text-[8px] weight-black opacity-40 dark:text-white uppercase">---</span>
+                        <h2 id="card-en" class="text-3xl weight-black italic tracking-tighter dark:text-white">---</h2>
+                    </div>
+                    <div id="card-back-ui" class="card-face card-back no-scrollbar overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+        <footer class="p-10 pb-16 flex gap-4 max-w-2xl mx-auto w-full">
+            <button onclick="finishSRS(1)" class="flex-1 py-5 bg-slate-200 dark:bg-slate-800 rounded-2xl weight-black text-[11px] text-slate-500">FORGOT</button>
+            <button onclick="finishSRS(3)" class="flex-2 py-5 bg-indigo-600 text-white rounded-2xl weight-black text-[11px] shadow-lg">KNOW</button>
+        </footer>
+    </section>
+
     <script>
-        // --- 1. 绝对安全的切换逻辑 (不依赖任何外部库) ---
-        function forceSwitch(target) {
-            console.log("Switching to:", target);
+        const SB_URL = "https://dxrswsuuuvstfipcldpz.supabase.co";
+        const SB_KEY = "sb_publishable_qU3plC-_p-LY2p91i21n3g_0zrWuAV8";
+        let sb_client;
+
+        let state = { user: null, books: {}, mem: {}, settings: { dailyLimit: 20, selectedBooks: [], dark: false } };
+
+        // 1. 绝对安全的界面切换
+        function safeSwitch(target) {
             const l = document.getElementById('panel-login');
             const s = document.getElementById('panel-signup');
-            if(target === 'signup') {
-                l.classList.add('hide');
-                s.classList.remove('hide');
-            } else {
-                s.classList.add('hide');
-                l.classList.remove('hide');
-            }
+            document.getElementById('auth-msg').classList.add('hide');
+            if(target === 'signup') { l.classList.add('hide'); s.classList.remove('hide'); }
+            else { s.classList.add('hide'); l.classList.remove('hide'); }
         }
 
-        // --- 2. 初始化 Supabase ---
-        const CONF = { url: "https://dxrswsuuuvstfipcldpz.supabase.co", key: "sb_publishable_qU3plC-_p-LY2p91i21n3g_0zrWuAV8" };
-        let client;
+        // 2. 核心初始化
+        window.onload = function() {
+            try {
+                sb_client = window.supabase.createClient(SB_URL, SB_KEY);
+                document.getElementById('auth-status-tag').innerText = "Cloud Link Ready";
+                document.getElementById('auth-status-tag').style.color = "#10b981";
+                
+                sb_client.auth.onAuthStateChange((ev, session) => {
+                    if (session) {
+                        state.user = session.user;
+                        document.getElementById('auth-screen').classList.add('hide');
+                        document.getElementById('app-content').classList.remove('hide');
+                        loadData().then(initUI);
+                    }
+                });
+            } catch(e) { console.error("Cloud Init Failed", e); }
+        };
 
-        try {
-            client = window.supabase.createClient(CONF.url, CONF.key);
-            document.getElementById('net-status').innerText = "Cloud Online";
-            document.getElementById('net-status').className = "text-[10px] font-bold text-emerald-500 mb-8 uppercase tracking-widest";
-        } catch(e) {
-            document.getElementById('net-status').innerText = "SDK Blocked by Network";
-            console.error("SDK Load Error");
-        }
-
-        // --- 3. 认证逻辑 ---
-        async function doAuth(type) {
-            const email = document.getElementById(type === 'login' ? 'l-email' : 's-email').value;
-            const pass = document.getElementById(type === 'login' ? 'l-pass' : 's-pass').value;
-            const msg = document.getElementById('msg');
-
-            if(!client) return alert("SDK 未加载，请检查网络或关闭广告拦截器");
+        async function doAuthAction(type) {
+            const email = document.getElementById(type==='login'?'l-email':'s-email').value;
+            const pass = document.getElementById(type==='login'?'l-pass':'s-pass').value;
+            const msg = document.getElementById('auth-msg');
+            msg.className = "mt-8 text-center text-[11px] font-bold px-6 py-3 rounded-xl bg-slate-100";
+            msg.innerText = "Processing..."; msg.classList.remove('hide');
             
-            msg.classList.remove('hide');
-            msg.innerText = "Processing...";
-            msg.className = "mt-6 text-[11px] font-bold p-3 rounded-xl bg-slate-100";
-
             try {
                 let res;
                 if(type === 'signup') {
-                    res = await client.auth.signUp({ email, password: pass });
+                    res = await sb_client.auth.signUp({ email, password: pass });
                     if(res.error) throw res.error;
-                    alert("注册指令已发出！\n如果您已在后台关闭Confirm，现在可直接尝试登录。");
-                    forceSwitch('login');
+                    alert("账号创建成功，请登录！"); safeSwitch('login');
                 } else {
-                    res = await client.auth.signInWithPassword({ email, password: pass });
+                    res = await sb_client.auth.signInWithPassword({ email, password: pass });
                     if(res.error) throw res.error;
-                    alert("登录成功！同步开启。");
-                    // 这里由于是测试版本，成功后直接重载页面即可
-                    location.reload();
                 }
             } catch(e) {
                 msg.innerText = e.message;
-                msg.className = "mt-6 text-[11px] font-bold p-3 rounded-xl bg-red-50 text-red-600";
+                msg.className = "mt-8 text-center text-[11px] font-bold px-6 py-3 rounded-xl bg-rose-50 text-rose-600";
             }
+        }
+
+        // 3. 数据与 UI 回归
+        async function loadData() {
+            const saved = localStorage.getItem(`lexiflow_${state.user.id}`);
+            if(saved) {
+                const d = JSON.parse(saved);
+                state.books = d.books || {}; state.mem = d.mem || {}; state.settings = d.settings || state.settings;
+            } else {
+                state.books = { "MTI 核心词汇": { items: [] } };
+                state.settings.selectedBooks = ["MTI 核心词汇"];
+            }
+        }
+        function save() { localStorage.setItem(`lexiflow_${state.user.id}`, JSON.stringify(state)); }
+
+        function initUI() {
+            switchTab('home'); updateDash(); renderImportSel();
+        }
+
+        function updateDash() {
+            let n=0, r=0;
+            state.settings.selectedBooks.forEach(bk => {
+                if(state.books[bk]) state.books[bk].items.forEach(i => {
+                    const m = state.mem[i.id] || {lv:0};
+                    if(m.lv === 0) n++; else if(m.lv < 5 && Date.now() >= (m.next||0)) r++;
+                });
+            });
+            document.getElementById('num-new').innerText = n;
+            document.getElementById('num-rev').innerText = r;
+            document.getElementById('active-book-count').innerText = state.settings.selectedBooks.length;
+            document.getElementById('plan-text').innerText = state.settings.selectedBooks.join(', ') || 'NONE';
+        }
+
+        function switchTab(t) {
+            ['home','explore','books','import'].forEach(v => document.getElementById('view-'+v).classList.add('hide'));
+            document.getElementById('view-'+t).classList.remove('hide');
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.getElementById('nav-'+t).classList.add('active');
+            if(t === 'books') renderBooks();
+        }
+
+        function renderBooks() {
+            const g = document.getElementById('book-grid');
+            g.innerHTML = Object.keys(state.books).map((k, idx) => {
+                const active = state.settings.selectedBooks.includes(k);
+                return `<div class="aspect-[3/4] rounded-3xl bg-indigo-600 p-6 flex flex-col justify-between text-white shadow-xl relative btn-active">
+                    <div onclick="toggleActive(event, '${k}')" class="book-checkbox ${active?'active':''}">${active?'✓':''}</div>
+                    <h4 class="text-lg weight-black serif leading-tight">${k}</h4>
+                    <p class="text-[10px] weight-black opacity-60">${state.books[k].items.length} 条目</p>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleActive(e, k) {
+            e.stopPropagation();
+            if(state.settings.selectedBooks.includes(k)) state.settings.selectedBooks = state.settings.selectedBooks.filter(x=>x!==k);
+            else state.settings.selectedBooks.push(k);
+            save(); renderBooks(); updateDash();
+        }
+
+        // 4. 学习与 SRS 逻辑
+        function prepStudy(mode) {
+            let pool = [];
+            state.settings.selectedBooks.forEach(bk => {
+                if(state.books[bk]) state.books[bk].items.forEach(i => {
+                    const m = state.mem[i.id] || {lv:0};
+                    if(mode === 'new' && m.lv === 0) pool.push({...i, from: bk});
+                    else if(mode === 'review' && m.lv > 0 && m.lv < 5 && Date.now() >= (m.next||0)) pool.push({...i, from: bk});
+                });
+            });
+            if(!pool.length) return alert("暂无待学内容！");
+            state.queue = pool.slice(0, 20); state.idx = 0;
+            document.getElementById('study-layer').classList.remove('hide');
+            renderCard();
+        }
+
+        function renderCard() {
+            const i = state.queue[state.idx];
+            document.getElementById('studyCard').classList.remove('flipped');
+            document.getElementById('card-en').innerText = i.en;
+            document.getElementById('card-src').innerText = i.from;
+            document.getElementById('card-back-ui').innerHTML = `
+                <div class="pt-4 space-y-6 text-left w-full">
+                    <h3 class="text-2xl weight-black text-indigo-900 serif">${i.zh}</h3>
+                    <div class="text-[13px] serif text-slate-500">${i.ai.replace(/\n/g, '<br>')}</div>
+                </div>`;
+            document.getElementById('study-p').innerText = `${state.idx+1} / ${state.queue.length}`;
+        }
+
+        function finishSRS(score) {
+            const i = state.queue[state.idx];
+            if(!state.mem[i.id]) state.mem[i.id] = {lv:0, next:0};
+            const m = state.mem[i.id];
+            if(score === 3) m.lv++; else m.lv = Math.max(0, m.lv-1);
+            m.next = Date.now() + (score === 3 ? [0, 60000, 86400000, 259200000, 604800000, 1296000000][Math.min(m.lv, 5)] : 0);
+            save(); state.idx++;
+            if(state.idx < state.queue.length) renderCard(); else closeStudy();
+        }
+
+        function flipCard(e) { document.getElementById('studyCard').classList.toggle('flipped'); }
+        function closeStudy() { document.getElementById('study-layer').classList.add('hide'); updateDash(); }
+        function renderImportSel() { document.getElementById('imp-sel').innerHTML = Object.keys(state.books).map(k=>`<option>${k}</option>`).join(''); }
+        
+        function doImport() {
+            const en = document.getElementById('in-en').value;
+            const zh = document.getElementById('in-zh').value;
+            const ai = document.getElementById('in-ai').value;
+            const bk = document.getElementById('imp-sel').value;
+            if(!en || !zh) return alert("请填写完整内容");
+            state.books[bk].items.push({ id: 'u'+Date.now(), en, zh, ai });
+            save(); alert("同步完成！");
+            document.getElementById('in-en').value = ''; document.getElementById('in-zh').value = ''; document.getElementById('in-ai').value = '';
         }
     </script>
 </body>
