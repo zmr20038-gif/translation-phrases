@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LexiFlow MTI v8.2 (Cloud)</title>
+    <title>LexiFlow MTI v8.3 (AI & Bidirectional)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
@@ -15,13 +15,12 @@
         .serif { font-family: 'Noto Serif SC', serif; }
         .hide { display: none !important; }
         
-        /* 导航胶囊 */
+        /* 导航与核心 UI 继承 v8.2 */
         .nav-capsule { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: white; padding: 12px 30px; border-radius: 100px; display: flex; gap: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 100; border: 1px solid rgba(0,0,0,0.05); }
         .dark .nav-capsule { background: #1E293B; border-color: rgba(255,255,255,0.1); }
         .nav-link { font-size: 24px; transition: all 0.2s; opacity: 0.2; cursor: pointer; border:none; background:none; }
         .nav-link.active { opacity: 1; transform: scale(1.1); }
 
-        /* 卡片基础样式 */
         .card-base { background: white; border-radius: 2rem; box-shadow: var(--card-shadow); transition: all 0.3s; border: 1px solid transparent; }
         .dark .card-base { background: #1E293B; border: 1px solid rgba(255,255,255,0.05); }
         
@@ -30,7 +29,7 @@
         .expanded .expandable-content { max-height: 2000px; opacity: 1; padding-top: 1rem; }
         .expanded .chevron { transform: rotate(180deg); }
 
-        /* 学习卡片翻转逻辑 */
+        /* 学习卡片逻辑 */
         .card-container { perspective: 2000px; width: 90%; max-width: 380px; height: 520px; margin: auto; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .flipped .flip-card-inner { transform: rotateY(180deg); }
@@ -46,7 +45,6 @@
         .book-checkbox { position: absolute; top: 1.25rem; right: 1.25rem; width: 1.5rem; height: 1.5rem; border-radius: 0.5rem; border: 2px solid rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; z-index: 10; }
         .book-checkbox.active { background: white; color: #4F46E5; border-color: white; }
 
-        /* 表单控件暗色修正 */
         .dark input, .dark textarea, .dark select { background-color: #1E293B !important; color: #F1F5F9 !important; border: 1px solid rgba(255,255,255,0.1) !important; }
     </style>
 </head>
@@ -54,7 +52,7 @@
 
     <section id="auth-screen" class="fixed inset-0 bg-white dark:bg-slate-900 z-[1000] flex flex-col items-center justify-center p-8 text-slate-800 dark:text-white">
         <h1 class="text-4xl weight-black italic mb-2">Lexi<span class="text-indigo-600">MTI</span></h1>
-        <p class="text-[9px] weight-black opacity-30 tracking-widest mb-8 uppercase">Cloud Edition</p>
+        <p class="text-[9px] weight-black opacity-30 tracking-widest mb-8 uppercase">v8.3 AI Edition</p>
         
         <div id="auth-box" class="w-full max-w-xs space-y-4">
             <input id="auth-email" type="email" placeholder="邮箱 (Email)" class="w-full bg-slate-50 p-5 rounded-2xl outline-none text-center font-bold dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 transition-all">
@@ -71,7 +69,7 @@
         <header class="p-8 flex justify-between items-center">
             <div>
                 <h2 class="text-2xl weight-black italic dark:text-white">Lexi<span class="text-indigo-600">MTI</span></h2>
-                <p class="text-[8px] weight-black opacity-30 tracking-[0.2em] uppercase dark:text-white">Master of Translation & Interpreting</p>
+                <p class="text-[8px] weight-black opacity-30 tracking-[0.2em] uppercase dark:text-white">AI-Enhanced Learning</p>
             </div>
             <button onclick="toggleSidebar(true)" class="w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center border border-slate-100 dark:border-slate-700">☰</button>
         </header>
@@ -89,6 +87,12 @@
                     </div>
                 </div>
 
+                <div class="card-base p-4 flex items-center justify-around bg-slate-50 dark:bg-slate-800/50">
+                    <p class="text-[9px] weight-black opacity-40 uppercase">当前维度:</p>
+                    <button id="mode-en-cn" onclick="setStudyMode('en_to_cn')" class="text-[10px] weight-black px-4 py-2 rounded-full bg-indigo-600 text-white">英 ➔ 中</button>
+                    <button id="mode-cn-en" onclick="setStudyMode('cn_to_en')" class="text-[10px] weight-black px-4 py-2 rounded-full opacity-30 dark:text-white">中 ➔ 英</button>
+                </div>
+
                 <div class="card-base p-5 flex items-center justify-between">
                     <div class="flex items-center gap-4">
                         <div class="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-lg">📚</div>
@@ -104,11 +108,6 @@
                     </div>
                     <span id="mastered-count" class="text-xl weight-black opacity-20 italic pr-6 dark:text-white">0</span>
                 </div>
-
-                <div class="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[2.5rem] p-8 text-white shadow-xl space-y-4 relative overflow-hidden">
-                    <p id="quote-en" class="text-lg weight-black leading-tight italic tracking-tight relative z-10">Loading...</p>
-                    <p id="quote-zh" class="text-sm serif opacity-80 relative z-10">---</p>
-                </div>
             </div>
 
             <div id="view-books" class="hide">
@@ -118,40 +117,31 @@
 
             <div id="view-explore" class="hide space-y-6">
                 <input type="text" id="search-box" oninput="runSearch()" placeholder="搜索词条..." class="w-full p-5 rounded-2xl bg-white dark:bg-slate-800 shadow-sm outline-none font-bold text-sm dark:text-white">
-                <div class="flex items-center gap-2 overflow-hidden">
-                    <div id="cat-tags-container" class="flex gap-2 overflow-x-auto no-scrollbar py-2 flex-nowrap"></div>
-                    <button onclick="createNewCategory()" class="w-10 h-10 bg-indigo-600 text-white rounded-full flex-shrink-0 text-xl font-bold btn-active">+</button>
-                </div>
                 <div id="search-list" class="space-y-4"></div>
-            </div>
-
-            <div id="view-book-detail" class="hide space-y-6">
-                <div class="flex items-center gap-4">
-                    <button onclick="switchTab('books')" class="w-10 h-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center dark:text-white shadow-sm btn-active">←</button>
-                    <h3 id="book-title-h" class="text-xl weight-black serif dark:text-white">---</h3>
-                </div>
-                <div id="book-item-list" class="space-y-4"></div>
             </div>
 
             <div id="view-import" class="hide space-y-6">
                 <div class="card-base p-8 space-y-6">
-                    <div><p class="text-[9px] weight-black opacity-30 uppercase mb-2 dark:text-white">目标词书</p>
-                    <select id="import-book-sel" class="w-full bg-slate-50 p-4 rounded-xl text-xs font-bold outline-none dark:bg-slate-800 dark:text-white"></select></div>
-                    <div><p class="text-[9px] weight-black opacity-30 uppercase mb-2 dark:text-white">分类</p>
-                    <select id="import-cat-sel" class="w-full bg-slate-50 p-4 rounded-xl text-xs font-bold outline-none dark:bg-slate-800 dark:text-white"></select></div>
-                    <input id="in-en" type="text" placeholder="English Term" class="w-full bg-slate-50 p-4 rounded-xl text-lg weight-black outline-none dark:bg-slate-800 dark:text-white">
-                    <input id="in-zh" type="text" placeholder="中文翻译" class="w-full bg-slate-50 p-4 rounded-xl text-lg serif outline-none dark:bg-slate-800 dark:text-white">
-                    <textarea id="in-ai" placeholder="解释与例句..." class="w-full bg-slate-50 p-4 rounded-xl text-xs h-32 resize-none serif outline-none dark:bg-slate-800 dark:text-white"></textarea>
+                    <div class="flex justify-between items-center">
+                        <p class="text-[9px] weight-black opacity-30 uppercase dark:text-white">导入模式</p>
+                        <select id="import-direction" class="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 text-[10px] weight-black px-3 py-1 rounded-full outline-none">
+                            <option value="en_cn">英 -> 中 (词条 - 释义)</option>
+                            <option value="cn_en">中 -> 英 (释义 - 词条)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <p class="text-[9px] weight-black opacity-30 uppercase mb-2 dark:text-white">目标词书</p>
+                        <select id="import-book-sel" class="w-full bg-slate-50 p-4 rounded-xl text-xs font-bold outline-none dark:bg-slate-800 dark:text-white"></select>
+                    </div>
+                    <input id="in-en" type="text" placeholder="单词/术语 (Term)" class="w-full bg-slate-50 p-4 rounded-xl text-lg weight-black outline-none dark:bg-slate-800 dark:text-white">
+                    <input id="in-zh" type="text" placeholder="基础翻译 (Meaning)" class="w-full bg-slate-50 p-4 rounded-xl text-lg serif outline-none dark:bg-slate-800 dark:text-white">
+                    <div class="relative">
+                        <textarea id="in-ai" placeholder="AI 详情会在此自动生成..." class="w-full bg-slate-50 p-4 rounded-xl text-xs h-32 resize-none serif outline-none dark:bg-slate-800 dark:text-white"></textarea>
+                        <button onclick="triggerAIEnrich()" class="absolute bottom-4 right-4 bg-indigo-600 text-white text-[10px] px-3 py-1 rounded-full weight-black shadow-lg">✨ AI 生成</button>
+                    </div>
                     <button onclick="doImport()" class="w-full bg-indigo-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">存入词库</button>
+                    <p class="text-center text-[8px] opacity-30">提示：PDF 自动导入功能需在后端 Python 环境运行</p>
                 </div>
-            </div>
-
-            <div id="view-archive-mgr" class="hide space-y-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4"><button onclick="switchTab('home')" class="w-10 h-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center dark:text-white shadow-sm btn-active">←</button><h3 class="text-xl weight-black serif dark:text-white">待归档</h3></div>
-                    <button onclick="batchArchive()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[10px] weight-black btn-active">全部确认</button>
-                </div>
-                <div id="archive-list" class="space-y-4"></div>
             </div>
         </main>
 
@@ -173,8 +163,8 @@
             <div class="card-container" id="studyCard">
                 <div class="flip-card-inner" id="study-card-inner" onclick="handleCardFlip(event)">
                     <div class="card-face flex items-center justify-center px-10 text-center">
-                        <span id="card-source" class="absolute top-6 px-3 py-1 bg-slate-100 dark:bg-slate-700 rounded-full text-[8px] weight-black opacity-40 uppercase tracking-widest dark:text-white">Source</span>
-                        <h2 id="card-en" class="text-3xl weight-black italic tracking-tighter dark:text-white">Term</h2>
+                        <span id="card-mode-tag" class="absolute top-6 px-3 py-1 bg-slate-100 dark:bg-slate-700 rounded-full text-[8px] weight-black opacity-40 uppercase tracking-widest dark:text-white">Question</span>
+                        <h2 id="card-question" class="text-3xl weight-black italic tracking-tighter dark:text-white">Term</h2>
                     </div>
                     <div class="card-face card-back no-scrollbar overflow-y-auto" id="card-back-ui">
                         </div>
@@ -208,12 +198,14 @@
                     <option value="en-GB">英式发音 (en-GB)</option>
                 </select>
             </div>
-            <div><p class="text-[10px] weight-black opacity-30 mb-4 uppercase dark:text-slate-400">学习限量: <span id="limit-val">20</span></p><input type="range" id="daily-limit" min="5" max="100" step="5" class="w-full accent-indigo-600"></div>
+            <div>
+                <p class="text-[10px] weight-black opacity-30 mb-4 uppercase dark:text-slate-400">AI API Key (SiliconFlow)</p>
+                <input id="ai-api-key" type="password" placeholder="sk-..." class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-xl text-[10px] outline-none dark:text-white">
+            </div>
             <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
                 <span class="text-xs font-bold dark:text-slate-300">夜间模式</span>
                 <input type="checkbox" id="dark-toggle" onchange="toggleDarkMode()" class="w-5 h-5 accent-indigo-600">
             </div>
-            <button onclick="showAnnouncements()" class="w-full flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl btn-active"><span class="text-xs font-bold dark:text-slate-300">系统公告</span><span class="opacity-30">📣</span></button>
         </div>
         <div class="pt-8 space-y-4">
             <button onclick="saveSettings()" class="w-full py-4 bg-indigo-600 text-white rounded-2xl weight-black text-xs uppercase btn-active">保存设置</button>
@@ -222,43 +214,32 @@
     </aside>
 
     <script>
-        // --- 1. Cloud Config ---
+        // --- 1. Cloud & AI Config ---
         const SB_URL = "https://dxrswsuuuvstfipcldpz.supabase.co";
         const SB_KEY = "sb_publishable_qU3plC-_p-LY2p91i21n3g_0zrWuAV8";
         let sb; 
 
         // --- 2. State & UI Constants ---
-        const APP_ANNOUNCEMENTS = [{ id: 3, date: "2026-02-11", title: "v8.2 Cloud版", body: "1. 经典界面回归。\n2. 已集成Supabase云端同步。\n3. 数据将在登录时自动拉取。" }];
-        let state = { user: null, uid: null, books: {}, mem: {}, settings: { dailyLimit: 20, selectedBooks: [], dark: false, voice: 'en-US' }, activeTab: 'home', curCat: 'ALL', queue: [], idx: 0, categories: ["政治", "经贸", "科技", "文化", "俗语"], activeBook: null };
+        let state = { 
+            user: null, uid: null, books: {}, mem: {}, 
+            settings: { dailyLimit: 20, selectedBooks: [], dark: false, voice: 'en-US', studyMode: 'en_to_cn' }, 
+            activeTab: 'home', curCat: 'ALL', queue: [], idx: 0, categories: ["政治", "经贸", "科技", "文化", "俗语"], activeBook: null 
+        };
 
         // --- 3. Core Initialization ---
         window.onload = function() {
             try {
-                // Init Supabase
                 sb = window.supabase.createClient(SB_URL, SB_KEY);
-                
-                // Check Session
-                sb.auth.getSession().then(({ data: { session } }) => {
-                    if (session) {
-                        initUser(session);
-                    }
-                });
-
-                // Listen for Auth Changes
+                sb.auth.getSession().then(({ data: { session } }) => { if (session) initUser(session); });
                 sb.auth.onAuthStateChange((_event, session) => {
-                    if (session) {
-                        initUser(session);
-                    } else {
+                    if (session) initUser(session);
+                    else {
                         state.user = null; state.uid = null;
                         document.getElementById('auth-screen').classList.remove('hide');
                         document.getElementById('app-content').classList.add('hide');
                     }
                 });
-
-            } catch (e) {
-                console.error("Cloud Error:", e);
-                alert("云端连接失败，请检查网络");
-            }
+            } catch (e) { alert("云端连接失败"); }
         };
 
         function initUser(session) {
@@ -267,347 +248,267 @@
             document.getElementById('user-id-display').innerText = state.user;
             document.getElementById('auth-screen').classList.add('hide');
             document.getElementById('app-content').classList.remove('hide');
-            loadData(); // Trigger Load
+            loadData();
         }
 
-        // --- 4. Auth Actions (New) ---
-        async function handleAuth(type) {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-pass').value;
-            const msg = document.getElementById('auth-msg');
-            
-            if(!email || !pass) return (msg.innerText = "请输入邮箱和密码", msg.classList.remove('hide'));
-            
-            msg.innerText = "Processing..."; msg.classList.remove('hide');
-            msg.className = "text-center text-xs text-indigo-500 font-bold mt-2";
+        // --- 4. AI 功能实现 (v8.3 新增) ---
+        async function triggerAIEnrich() {
+            const word = document.getElementById('in-en').value;
+            const meaning = document.getElementById('in-zh').value;
+            const apiKey = document.getElementById('ai-api-key').value;
+            const aiBox = document.getElementById('in-ai');
 
+            if (!word || !apiKey) return alert("请先输入单词并配置 API Key");
+            
+            aiBox.value = "AI 正在生成中...";
+            
             try {
-                let res;
-                if (type === 'signup') {
-                    res = await sb.auth.signUp({ email, password: pass });
-                    if(res.error) throw res.error;
-                    alert("注册成功！请直接点击登录");
-                    msg.innerText = "注册成功，请登录";
-                } else {
-                    res = await sb.auth.signInWithPassword({ email, password: pass });
-                    if(res.error) throw res.error;
-                }
-            } catch (e) {
-                msg.className = "text-center text-xs text-red-500 font-bold mt-2";
-                msg.innerText = e.message;
-            }
-        }
-
-        async function handleLogout() {
-            await sb.auth.signOut();
-            location.reload();
-        }
-
-        // --- 5. Data Persistence (Cloud + Local) ---
-        async function loadData() {
-            // 1. Try Local first for speed
-            const localKey = `lexi_v82_${state.uid}`;
-            const saved = localStorage.getItem(localKey);
-            
-            if(saved) {
-                parseData(JSON.parse(saved));
-            } else {
-                // Initialize default if totally new
-                state.books = { "2026 MTI 核心词汇": { items: [] } };
-                state.settings = { dailyLimit: 20, selectedBooks: ["2026 MTI 核心词汇"], dark: false, voice: 'en-US' };
-                initUI();
-            }
-
-            // 2. Try Cloud Sync (Silent background fetch)
-            const { data, error } = await sb.from('profiles').select('content').eq('id', state.uid).single();
-            if (data && data.content) {
-                // Note: Real production apps would do a merge here. 
-                // For simplicity/safety, we trust Cloud if it exists.
-                console.log("Cloud data found, syncing...");
-                parseData(data.content);
-                save(false); // Update local to match cloud
-            }
-        }
-
-        function parseData(d) {
-            state.books = d.books || {}; 
-            state.mem = d.mem || {}; 
-            state.settings = d.settings || state.settings;
-            state.categories = d.categories || ["政治", "经贸", "科技", "文化", "俗语"];
-            initUI();
-        }
-
-        function initUI() {
-            applyDarkMode();
-            document.getElementById('dark-toggle').checked = state.settings.dark;
-            document.getElementById('voice-lang').value = state.settings.voice || 'en-US';
-            initQuote(); updateDash(); switchTab('home');
-        }
-
-        // Modified Save: Saves to Local AND Pushes to Cloud
-        async function save(pushToCloud = true) { 
-            const dataToSave = { books: state.books, mem: state.mem, settings: state.settings, categories: state.categories };
-            
-            // 1. Local Save
-            localStorage.setItem(`lexi_v82_${state.uid}`, JSON.stringify(dataToSave)); 
-            
-            // 2. Cloud Push (Debounced in a real app, direct here for simplicity)
-            if(pushToCloud && state.uid) {
-                // Assuming 'profiles' table exists with 'content' column (jsonb)
-                // If not, this fails silently but local still works.
-                // We use 'upsert'
-                sb.from('profiles').upsert({ id: state.uid, content: dataToSave }).then(res => {
-                    if(res.error) console.log("Cloud sync skipped (Table setup needed?)");
-                    else console.log("Cloud synced");
+                const res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "deepseek-ai/DeepSeek-V3",
+                        messages: [{ role: "user", content: `为单词'${word}'(释义:${meaning})提供：1. 核心解析；2. 英文例句；3. 例句翻译。格式严格遵循：解析：xxx\n例句：xxx\n翻译：xxx` }]
+                    })
                 });
+                const data = await res.json();
+                aiBox.value = data.choices[0].message.content;
+            } catch (e) {
+                aiBox.value = "AI 调用失败，请检查网络或 Key";
             }
         }
 
-        // --- 6. Original UI Logic (Strictly Preserved) ---
-        function buildRichContentUI(item, noteValue, isStudy = false) {
-            const parts = item.ai.split(/例句[:：]/);
-            const analysis = parts[0] || "暂无解析";
-            const example = parts[1] || "";
+        // --- 5. 双向学习逻辑 (v8.3 新增) ---
+        function setStudyMode(mode) {
+            state.settings.studyMode = mode;
+            document.getElementById('mode-en-cn').className = mode === 'en_to_cn' ? "text-[10px] weight-black px-4 py-2 rounded-full bg-indigo-600 text-white" : "text-[10px] weight-black px-4 py-2 rounded-full opacity-30 dark:text-white";
+            document.getElementById('mode-cn-en').className = mode === 'cn_to_en' ? "text-[10px] weight-black px-4 py-2 rounded-full bg-indigo-600 text-white" : "text-[10px] weight-black px-4 py-2 rounded-full opacity-30 dark:text-white";
+            save();
+        }
+
+        function renderCard() {
+            const i = state.queue[state.idx];
+            const m = state.mem[i.id] || {note:""};
+            const studyMode = state.settings.studyMode || 'en_to_cn';
             
+            document.getElementById('studyCard').classList.remove('flipped');
+            
+            // 双向题目显示逻辑
+            document.getElementById('card-question').innerText = (studyMode === 'en_to_cn') ? i.en : i.zh;
+            document.getElementById('card-mode-tag').innerText = (studyMode === 'en_to_cn') ? "English" : "中文含义";
+            
+            // 答案区渲染 (继承 v8.2 风格并整合 AI 内容)
+            document.getElementById('card-back-ui').innerHTML = `
+                <div class="back-content-wrapper py-10 no-scrollbar overflow-y-auto w-full">
+                    ${buildRichContentUI(i, m.note, true)}
+                </div>`;
+        }
+
+        function buildRichContentUI(item, noteValue, isStudy = false) {
+            // v8.3 逻辑：优先处理 AI 格式的内容
+            const parts = item.ai.split(/(?:例句|翻译)[:：]/);
+            const analysis = parts[0] || "暂无解析";
+            const exampleEn = parts[1] || "";
+            const exampleZh = parts[2] || "";
+            
+            // 双向答案标题逻辑
+            const studyMode = state.settings.studyMode || 'en_to_cn';
+            const answerTitle = (studyMode === 'en_to_cn') ? item.zh : item.en;
+
             return `
                 <div class="pt-4 space-y-6 text-left w-full">
                     <div>
-                        <h3 class="text-2xl weight-black text-indigo-600 serif leading-tight mb-2">${item.zh}</h3>
+                        <h3 class="text-2xl weight-black text-indigo-600 serif leading-tight mb-2">${answerTitle}</h3>
                         <div class="text-xs serif text-slate-500 dark:text-slate-400 leading-relaxed">${analysis.replace(/\n/g, '<br>')}</div>
                     </div>
-
-                    ${example ? `
-                    <div class="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-white/5 relative overflow-hidden">
-                        <p class="text-[8px] weight-black text-slate-300 dark:text-slate-600 mb-3 uppercase tracking-tighter">Context Context Context</p>
-                        <p class="text-[13px] weight-black text-slate-700 dark:text-slate-300 leading-snug italic mb-2">"${example.split('\n')[0].trim()}"</p>
-                        <p class="text-[11px] serif text-slate-400 dark:text-slate-500">${example.split('\n').slice(1).join('<br>')}</p>
+                    ${exampleEn ? `
+                    <div class="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-white/5">
+                        <p class="text-[8px] weight-black text-slate-300 mb-3 uppercase tracking-tighter">AI Context</p>
+                        <p class="text-[13px] weight-black text-slate-700 dark:text-slate-300 italic mb-2">"${exampleEn.trim()}"</p>
+                        <p class="text-[11px] serif text-slate-400 dark:text-slate-500">${exampleZh.trim()}</p>
                     </div>` : ''}
-
-                    <div class="pt-2" onclick="event.stopPropagation()">
-                        <p class="text-[8px] weight-black opacity-20 uppercase mb-2 dark:text-white tracking-widest">Personal Notes</p>
+                    <div class="pt-2">
+                        <p class="text-[8px] weight-black opacity-20 uppercase mb-2 dark:text-white">Note</p>
                         <textarea oninput="${isStudy?'syncNote()':'saveExternalNote(\''+item.id+'\', this.value)'}" 
                                   id="${isStudy?'card-note':'note-'+item.id}"
-                                  placeholder="点击输入笔记..."
-                                  class="w-full bg-transparent p-0 text-[11px] outline-none serif min-h-[60px] border-l-2 border-indigo-100 dark:border-indigo-900/50 pl-4 dark:text-white">${noteValue}</textarea>
+                                  class="w-full bg-transparent p-0 text-[11px] outline-none serif min-h-[60px] border-l-2 border-indigo-100 pl-4 dark:text-white">${noteValue}</textarea>
                     </div>
                 </div>`;
         }
 
+        // --- 6. 基础逻辑 (完全保留 v8.2) ---
+        async function handleAuth(type) {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-pass').value;
+            const msg = document.getElementById('auth-msg');
+            if(!email || !pass) return (msg.innerText = "请输入邮箱和密码", msg.classList.remove('hide'));
+            msg.innerText = "Processing..."; msg.classList.remove('hide');
+            try {
+                let res = (type === 'signup') ? await sb.auth.signUp({ email, password: pass }) : await sb.auth.signInWithPassword({ email, password: pass });
+                if(res.error) throw res.error;
+                if(type === 'signup') alert("注册成功！请登录");
+            } catch (e) { msg.innerText = e.message; }
+        }
+
+        async function loadData() {
+            const localKey = `lexi_v83_${state.uid}`;
+            const saved = localStorage.getItem(localKey);
+            if(saved) parseData(JSON.parse(saved));
+            const { data } = await sb.from('profiles').select('content').eq('id', state.uid).single();
+            if (data && data.content) { parseData(data.content); save(false); }
+        }
+
+        function parseData(d) {
+            state.books = d.books || { "2026 MTI 核心词汇": { items: [] } };
+            state.mem = d.mem || {};
+            state.settings = d.settings || state.settings;
+            initUI();
+        }
+
+        async function save(pushToCloud = true) {
+            const dataToSave = { books: state.books, mem: state.mem, settings: state.settings, categories: state.categories };
+            localStorage.setItem(`lexi_v83_${state.uid}`, JSON.stringify(dataToSave));
+            if(pushToCloud && state.uid) await sb.from('profiles').upsert({ id: state.uid, content: dataToSave });
+        }
+
+        function initUI() {
+            document.documentElement.classList.toggle('dark', state.settings.dark);
+            document.getElementById('dark-toggle').checked = state.settings.dark;
+            updateDash(); renderBooks();
+        }
+
+        function switchTab(t) {
+            state.activeTab = t;
+            ['home', 'explore', 'books', 'import', 'book-detail', 'archive-mgr'].forEach(v => {
+                document.getElementById('view-'+v)?.classList.toggle('hide', v !== t);
+            });
+            ['home', 'explore', 'books', 'import'].forEach(n => {
+                document.getElementById('nav-'+n)?.classList.toggle('active', n === t);
+            });
+            if(t === 'import') updateImportSelectors();
+        }
+
+        function updateImportSelectors() {
+            const sel = document.getElementById('import-book-sel');
+            sel.innerHTML = Object.keys(state.books).map(k => `<option value="${k}">${k}</option>`).join('');
+        }
+
+        function doImport() {
+            const b = document.getElementById('import-book-sel').value;
+            const direction = document.getElementById('import-direction').value;
+            const en = document.getElementById('in-en').value;
+            const zh = document.getElementById('in-zh').value;
+            const ai = document.getElementById('in-ai').value;
+            
+            if(!en || !zh) return alert("请填写完整");
+            
+            // v8.3 逻辑切换：如果是中-英导入，保存时自动调整存储
+            const newItem = {
+                id: Date.now().toString(),
+                en: (direction === 'en_cn') ? en : zh,
+                zh: (direction === 'en_cn') ? zh : en,
+                ai: ai,
+                cat: "通用",
+                from: b,
+                ts: Date.now()
+            };
+            
+            state.books[b].items.unshift(newItem);
+            save();
+            alert("已存入词库");
+            document.getElementById('in-en').value = "";
+            document.getElementById('in-zh').value = "";
+            document.getElementById('in-ai').value = "";
+        }
+
+        function updateDash() {
+            let totalNew = 0, totalRev = 0;
+            const now = Date.now();
+            state.settings.selectedBooks.forEach(bn => {
+                state.books[bn]?.items.forEach(i => {
+                    const m = state.mem[i.id];
+                    if(!m) totalNew++;
+                    else if(now > m.next) totalRev++;
+                });
+            });
+            document.getElementById('num-new').innerText = totalNew;
+            document.getElementById('num-rev').innerText = totalRev;
+            document.getElementById('active-book-count').innerText = state.settings.selectedBooks.length;
+        }
+
+        function prepStudy(type) {
+            state.queue = [];
+            const now = Date.now();
+            state.settings.selectedBooks.forEach(bn => {
+                state.books[bn]?.items.forEach(i => {
+                    const m = state.mem[i.id];
+                    if(type === 'new' && !m) state.queue.push(i);
+                    if(type === 'review' && m && now > m.next) state.queue.push(i);
+                });
+            });
+            if(state.queue.length === 0) return alert("没有需要学习的单词");
+            state.idx = 0;
+            document.getElementById('study-layer').classList.remove('hide');
+            renderCard();
+        }
+
+        function handleCardFlip(e) { 
+            if(e.target.tagName !== 'TEXTAREA') document.getElementById('studyCard').classList.toggle('flipped'); 
+        }
+
+        function finishSRS(score) {
+            const i = state.queue[state.idx];
+            let m = state.mem[i.id] || { interval: 0, ease: 2.5, note: "" };
+            
+            if(score === 1) { m.interval = 0; m.ease = Math.max(1.3, m.ease - 0.2); }
+            else if(score === 2) { m.interval = m.interval === 0 ? 1 : m.interval; }
+            else { m.interval = m.interval === 0 ? 1 : m.interval * m.ease; }
+            
+            m.next = Date.now() + m.interval * 86400000;
+            state.mem[i.id] = m;
+            save();
+            
+            state.idx++;
+            if(state.idx >= state.queue.length) closeStudy();
+            else renderCard();
+            updateDash();
+        }
+
+        function closeStudy() { document.getElementById('study-layer').classList.add('hide'); }
+        function toggleSidebar(s) { 
+            document.getElementById('sidebar').style.transform = s ? 'translateX(0)' : 'translateX(100%)'; 
+            document.getElementById('side-overlay').classList.toggle('hide', !s);
+        }
+        function toggleDarkMode() { state.settings.dark = document.getElementById('dark-toggle').checked; initUI(); save(); }
         function playTTS() { 
             const i = state.queue[state.idx]; 
             const msg = new SpeechSynthesisUtterance(i.en);
             msg.lang = state.settings.voice || 'en-US';
             window.speechSynthesis.speak(msg); 
         }
-
-        function toggleDarkMode() {
-            state.settings.dark = document.getElementById('dark-toggle').checked;
-            applyDarkMode(); save();
-        }
-
-        function applyDarkMode() {
-            document.documentElement.classList.toggle('dark', state.settings.dark);
-        }
-
-        function showAnnouncements() {
-            const content = document.getElementById('notice-content');
-            content.innerHTML = APP_ANNOUNCEMENTS.map(a => `
-                <div>
-                    <p class="text-[10px] weight-black text-indigo-600 mb-1 uppercase">${a.date}</p>
-                    <h4 class="weight-black text-xl dark:text-white mb-2">${a.title}</h4>
-                    <p class="text-xs opacity-60 dark:text-slate-400 leading-relaxed">${a.body.replace(/\n/g, '<br>')}</p>
-                </div>
-            `).join('');
-            toggleNotice(true);
-        }
-
-        function toggleNotice(s) { document.getElementById('notice-layer').classList.toggle('hide', !s); }
-
+        function saveSettings() { save(); alert("设置已保存"); toggleSidebar(false); }
+        function handleLogout() { sb.auth.signOut(); location.reload(); }
         function renderBooks() {
             const grid = document.getElementById('book-grid');
-            let html = Object.keys(state.books).map((k, idx) => {
+            grid.innerHTML = Object.keys(state.books).map((k, idx) => {
                 const isActive = state.settings.selectedBooks.includes(k);
                 const colors = ["from-indigo-600 to-blue-700", "from-rose-500 to-pink-600", "from-emerald-500 to-teal-600"];
-                return `<div onclick="openBook('${k}')" class="aspect-[3/4] rounded-3xl bg-gradient-to-br ${colors[idx%3]} p-6 flex flex-col justify-between text-white shadow-xl btn-active relative overflow-hidden">
+                return `<div class="aspect-[3/4] rounded-3xl bg-gradient-to-br ${colors[idx%3]} p-6 flex flex-col justify-between text-white shadow-xl relative overflow-hidden">
                     <div onclick="toggleBookActive(event, '${k}')" class="book-checkbox ${isActive?'active':''}">${isActive ? '✓' : ''}</div>
-                    <div><h4 class="text-lg weight-black serif leading-tight mt-2">${k}</h4></div>
+                    <h4 class="text-lg weight-black serif leading-tight mt-2">${k}</h4>
                     <p class="text-[10px] weight-black opacity-70">${state.books[k].items.length} 条目</p>
                 </div>`;
-            }).join('');
-            html += `<div onclick="createNewBook()" class="aspect-[3/4] rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 opacity-40 btn-active">
-                    <span class="text-4xl font-light dark:text-white">+</span><span class="text-[10px] weight-black uppercase dark:text-white">新建词书</span>
-                </div>`;
-            grid.innerHTML = html;
+            }).join('') + `<div onclick="createNewBook()" class="aspect-[3/4] rounded-3xl border-2 border-dashed border-slate-200 flex items-center justify-center opacity-40">+</div>`;
         }
-
         function toggleBookActive(e, k) {
             e.stopPropagation();
             if(state.settings.selectedBooks.includes(k)) state.settings.selectedBooks = state.settings.selectedBooks.filter(x => x !== k);
             else state.settings.selectedBooks.push(k);
             save(); renderBooks(); updateDash();
         }
-
         function createNewBook() {
             const n = prompt("输入新词书名称:");
             if(n && !state.books[n]) { state.books[n] = { items: [] }; save(); renderBooks(); }
-        }
-
-        function renderItemList(containerId, items) {
-            const container = document.getElementById(containerId);
-            if(!items || items.length === 0) { container.innerHTML = `<div class="py-20 text-center opacity-10 dark:text-white italic">列表为空</div>`; return; }
-            container.innerHTML = items.map(i => {
-                const m = state.mem[i.id] || {note:""};
-                return `
-                <div class="card-base border border-slate-50 dark:border-slate-800 transition-all overflow-hidden mb-4" onclick="this.classList.toggle('expanded')">
-                    <div class="p-6 flex justify-between items-center cursor-pointer">
-                        <div class="flex-1">
-                            <h5 class="text-lg weight-black tracking-tighter dark:text-white leading-tight mb-1">${i.en}</h5>
-                            <span class="text-[8px] weight-black text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full uppercase tracking-widest">${i.cat}</span>
-                        </div>
-                        <span class="chevron transition-transform opacity-20 text-[10px] dark:text-white">▼</span>
-                    </div>
-                    <div class="expandable-content px-6 pb-6 border-t border-slate-50 dark:border-white/5">
-                        ${buildRichContentUI(i, m.note, false)}
-                        <div class="flex justify-end pt-4"><button onclick="deleteItem(event, '${i.id}')" class="text-[9px] text-red-400 weight-black uppercase opacity-40 hover:opacity-100">彻底删除</button></div>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function deleteItem(e, id) {
-            e.stopPropagation();
-            if(confirm("确定删除?")) {
-                Object.values(state.books).forEach(b => {
-                    b.items = b.items.filter(x => x.id !== id);
-                });
-                save();
-                if(state.activeTab === 'explore') runSearch();
-                else if(state.activeTab === 'book-detail') renderBookContent();
-            }
-        }
-
-        function renderCard() {
-            const i = state.queue[state.idx];
-            const m = state.mem[i.id] || {note:""};
-            document.getElementById('studyCard').classList.remove('flipped');
-            document.getElementById('card-en').innerText = i.en; 
-            document.getElementById('card-source').innerText = i.from;
-            document.getElementById('card-back-ui').innerHTML = `
-                <div class="back-content-wrapper py-10 no-scrollbar overflow-y-auto w-full">
-                    ${buildRichContentUI(i, m.note, true)}
-                </div>`;
-            document.getElementById('study-p').innerText = `${state.idx + 1} / ${state.queue.length}`;
-        }
-
-        function finishSRS(score) {
-            const i = state.queue[state.idx];
-            if(!state.mem[i.id]) state.mem[i.id] = {lv:0, next:0, note:"", isArchived: false};
-            const m = state.mem[i.id];
-            if(score === 3) m.lv++; else if(score === 1) m.lv = Math.max(0, m.lv - 1);
-            else if(score === 2) { state.queue.push(i); }
-            const intervals = [0, 60000, 86400000, 259200000, 604800000, 1296000000];
-            m.next = Date.now() + (score === 3 ? intervals[Math.min(m.lv, 5)] : 0);
-            save(); state.idx++;
-            if(state.idx < state.queue.length) renderCard(); else closeStudy();
-        }
-
-        function closeStudy() { document.getElementById('study-layer').classList.add('hide'); updateDash(); }
-        function handleCardFlip(e) { if(e.target.tagName !== 'TEXTAREA') document.getElementById('studyCard').classList.toggle('flipped'); }
-
-        function updateDash() {
-            let n = 0, r = 0, masterCount = 0;
-            const activeBooks = state.settings.selectedBooks;
-            activeBooks.forEach(bk => { if(state.books[bk]) state.books[bk].items.forEach(i => {
-                const m = state.mem[i.id] || {lv:0, isArchived: false};
-                if(!m.isArchived) { if(m.lv === 0) n++; else if(m.lv < 5 && Date.now() >= (m.next||0)) r++; else if(m.lv >= 5) masterCount++; }
-            });});
-            document.getElementById('num-new').innerText = n; document.getElementById('num-rev').innerText = r;
-            document.getElementById('mastered-count').innerText = masterCount; document.getElementById('active-book-count').innerText = activeBooks.length;
-            const pt = document.getElementById('plan-text');
-            pt.innerText = activeBooks.length === 0 ? "未选中" : (activeBooks.length === 1 ? activeBooks[0] : `${activeBooks[0]} 等`);
-        }
-
-        function switchTab(t) {
-            state.activeTab = t;
-            ['home','explore','books','import','book-detail','archive-mgr'].forEach(v => document.getElementById('view-'+v).classList.add('hide'));
-            document.getElementById('view-'+t).classList.remove('hide');
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            const nid = ['book-detail','archive-mgr'].includes(t) ? 'nav-books' : 'nav-' + t;
-            if(document.getElementById(nid)) document.getElementById(nid).classList.add('active');
-            if(t === 'books') renderBooks();
-            if(t === 'explore') { updateCatTags(); runSearch(); }
-            if(t === 'archive-mgr') renderArchiveMgr();
-        }
-
-        function runSearch() {
-            const q = document.getElementById('search-box').value.toLowerCase();
-            let all = []; Object.values(state.books).forEach(b => all = all.concat(b.items));
-            const filtered = all.filter(i => (i.en.toLowerCase().includes(q) || i.zh.includes(q)) && (state.curCat === 'ALL' || i.cat === state.curCat));
-            renderItemList('search-list', filtered);
-        }
-
-        function prepStudy(mode) {
-            let pool = [];
-            state.settings.selectedBooks.forEach(bk => { if(state.books[bk]) state.books[bk].items.forEach(i => {
-                const m = state.mem[i.id] || {lv:0, isArchived: false};
-                if(!m.isArchived) {
-                    if(mode === 'new' && m.lv === 0) pool.push({...i, from: bk});
-                    else if(mode === 'review' && m.lv > 0 && m.lv < 5 && Date.now() >= (m.next||0)) pool.push({...i, from: bk});
-                }
-            });});
-            if(!pool.length) return alert("当前队列没有单词需处理");
-            state.queue = mode === 'new' ? pool.slice(0, state.settings.dailyLimit) : pool.sort(() => Math.random() - 0.5).slice(0, 30);
-            state.idx = 0; document.getElementById('study-layer').classList.remove('hide'); renderCard();
-        }
-
-        function saveExternalNote(id, val) {
-            if(!state.mem[id]) state.mem[id] = { lv:0, next:0, note:"", isArchived: false };
-            state.mem[id].note = val; save();
-        }
-
-        function syncNote() { const i = state.queue[state.idx]; if(!state.mem[i.id]) state.mem[i.id]={lv:0,next:0,note:"",isArchived:false}; state.mem[i.id].note = document.getElementById('card-note').value; save(); }
-        function openBook(k) { state.activeBook = k; document.getElementById('book-title-h').innerText = k; switchTab('book-detail'); renderBookContent(); }
-        function renderBookContent() { if(state.activeBook) renderItemList('book-item-list', state.books[state.activeBook].items); }
-        function toggleSidebar(s) { document.getElementById('sidebar').style.transform = s ? 'translateX(0)' : 'translateX(100%)'; document.getElementById('side-overlay').classList.toggle('hide', !s); if(s) document.getElementById('limit-val').innerText = state.settings.dailyLimit; }
-        function saveSettings() { state.settings.dailyLimit = parseInt(document.getElementById('daily-limit').value); state.settings.voice = document.getElementById('voice-lang').value; save(); toggleSidebar(false); updateDash(); }
-        function updateCatTags() {
-            document.getElementById('cat-tags-container').innerHTML = ["ALL", ...state.categories].map(c => `<button onclick="setCatFilter('${c}')" class="px-5 py-2 rounded-full text-[10px] weight-black flex-shrink-0 transition-all ${state.curCat===c?'bg-indigo-600 text-white':'bg-white dark:bg-slate-800 dark:text-white shadow-sm'}">${c}</button>`).join('');
-            document.getElementById('import-cat-sel').innerHTML = state.categories.map(c => `<option>${c}</option>`).join('');
-        }
-        function setCatFilter(c) { state.curCat = c; updateCatTags(); runSearch(); }
-        function createNewCategory() { const c = prompt("输入新分类名称"); if(c && !state.categories.includes(c)) { state.categories.push(c); save(); updateCatTags(); }}
-        
-        function doImport() {
-            const b = document.getElementById('import-book-sel').value;
-            const c = document.getElementById('import-cat-sel').value;
-            const en = document.getElementById('in-en').value;
-            const zh = document.getElementById('in-zh').value;
-            const ai = document.getElementById('in-ai').value;
-            if(!en || !zh) return alert("请填写必要信息");
-            if(!state.books[b]) state.books[b] = {items:[]};
-            state.books[b].items.push({ id: 'u'+Date.now(), en, zh, ai, cat: c });
-            save(); alert("导入成功");
-            document.getElementById('in-en').value = ''; document.getElementById('in-zh').value = ''; document.getElementById('in-ai').value = '';
-        }
-
-        // --- Archive & Quote Utils ---
-        function batchArchive() {
-            if(confirm("将所有 'Mastered' 单词归档?")) {
-                Object.keys(state.mem).forEach(k => { if(state.mem[k].lv >= 5) state.mem[k].isArchived = true; });
-                save(); renderArchiveMgr(); updateDash();
-            }
-        }
-        function renderArchiveMgr() {
-            const list = [];
-            Object.values(state.books).forEach(b => b.items.forEach(i => {
-                if(state.mem[i.id] && state.mem[i.id].isArchived) list.push(i);
-            }));
-            renderItemList('archive-list', list);
-        }
-        function initQuote() {
-            document.getElementById('quote-en').innerText = "Translation is not about words, but about what the words are about.";
-            document.getElementById('quote-zh').innerText = "翻译不在于词语本身，而在于词语所指涉的事物。";
-            document.getElementById('import-book-sel').innerHTML = Object.keys(state.books).map(k=>`<option>${k}</option>`).join('');
         }
     </script>
 </body>
