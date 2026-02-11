@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LexiFlow MTI v8.3.9 Cloud</title>
+    <title>LexiFlow MTI v8.4.0 Cloud</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
@@ -15,6 +15,7 @@
         .serif { font-family: 'Noto Serif SC', serif; }
         .hide { display: none !important; }
         
+        /* 导航与核心 UI 样式 - 绝对保留 */
         .nav-capsule { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: white; padding: 12px 30px; border-radius: 100px; display: flex; gap: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 100; border: 1px solid rgba(0,0,0,0.05); }
         .dark .nav-capsule { background: #1E293B; border-color: rgba(255,255,255,0.1); }
         .nav-link { font-size: 24px; transition: all 0.2s; opacity: 0.2; }
@@ -30,6 +31,7 @@
         .expanded .expandable-content { max-height: 2000px; opacity: 1; padding-top: 1rem; }
         .expanded .chevron { transform: rotate(180deg); }
 
+        /* 卡片翻转系统 - 绝对保留 */
         .card-container { perspective: 2000px; width: 90%; max-width: 380px; height: 520px; margin: auto; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .flipped .flip-card-inner { transform: rotateY(180deg); }
@@ -48,32 +50,33 @@
 <body>
 
     <section id="auth-screen" class="fixed inset-0 bg-white dark:bg-slate-900 z-[1000] flex flex-col items-center justify-center p-8 text-slate-800 dark:text-white">
-        <h1 class="text-4xl weight-black italic mb-8">Lexi<span class="text-indigo-600">Flow</span></h1>
+        <div class="mb-10 text-center">
+            <h1 class="text-4xl weight-black italic">Lexi<span class="text-indigo-600">Flow</span></h1>
+            <p id="auth-status-tag" class="text-[9px] font-bold opacity-30 tracking-widest mt-2">OFFLINE MODE READY</p>
+        </div>
         
-        <div id="login-panel" class="w-full max-w-xs space-y-4">
-            <p class="text-[10px] weight-black opacity-30 uppercase tracking-[0.2em] mb-2 text-center">Login to Sync</p>
-            <input id="login-email" type="email" placeholder="邮箱账号" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800">
-            <input id="login-password" type="password" placeholder="密码" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800">
-            <button onclick="executeAuth('login')" class="w-full bg-indigo-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">立即登录</button>
-            <button onclick="toggleAuthPanel('signup')" class="w-full text-xs opacity-40 font-bold uppercase tracking-widest py-3">还没有账号？去注册</button>
+        <div id="panel-login" class="w-full max-w-xs space-y-4">
+            <input id="login-email" type="email" placeholder="登录邮箱" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500">
+            <input id="login-password" type="password" placeholder="密码" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500">
+            <button onclick="authAction('login')" id="btn-login-exec" class="w-full bg-indigo-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">立即进入</button>
+            <button onclick="switchPanel('signup')" class="w-full text-xs opacity-40 font-bold py-3 uppercase tracking-tighter">新同学？点击这里注册账号</button>
         </div>
 
-        <div id="signup-panel" class="w-full max-w-xs space-y-4 hide">
-            <p class="text-[10px] weight-black text-indigo-600 uppercase tracking-[0.2em] mb-2 text-center">Create New Account</p>
-            <input id="signup-email" type="email" placeholder="输入注册邮箱" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800 border-2 border-indigo-100 dark:border-indigo-900/30">
-            <input id="signup-password" type="password" placeholder="设置登录密码" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800 border-2 border-indigo-100 dark:border-indigo-900/30">
-            <button onclick="executeAuth('signup')" class="w-full bg-indigo-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">完成注册并创建云端空间</button>
-            <button onclick="toggleAuthPanel('login')" class="w-full text-xs opacity-40 font-bold uppercase tracking-widest py-3">返回登录</button>
+        <div id="panel-signup" class="w-full max-w-xs space-y-4 hide">
+            <input id="signup-email" type="email" placeholder="注册邮箱" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800 border-2 border-indigo-100">
+            <input id="signup-password" type="password" placeholder="设置密码" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800 border-2 border-indigo-100">
+            <button onclick="authAction('signup')" id="btn-signup-exec" class="w-full bg-emerald-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">创建云端档案</button>
+            <button onclick="switchPanel('login')" class="w-full text-xs opacity-40 font-bold py-3 uppercase tracking-tighter">已有账号？返回登录</button>
         </div>
 
-        <div id="auth-msg" class="text-center text-[11px] font-bold mt-6 min-h-[1.5em] px-4"></div>
+        <div id="auth-msg-box" class="mt-8 text-center text-[11px] font-bold px-6 py-3 rounded-xl hide"></div>
     </section>
 
     <div id="app-content" class="hide flex flex-col max-w-2xl mx-auto w-full min-h-screen">
         <header class="p-8 flex justify-between items-center">
             <div>
                 <h2 class="text-2xl weight-black italic dark:text-white">Lexi<span class="text-indigo-600">Flow</span></h2>
-                <p class="text-[8px] weight-black opacity-30 tracking-[0.2em] uppercase dark:text-white">MTI Master Sync v8.3.9</p>
+                <p class="text-[8px] weight-black opacity-30 tracking-[0.2em] uppercase dark:text-white">MTI Master Sync v8.4.0</p>
             </div>
             <button onclick="toggleSidebar(true)" class="w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center border border-slate-100 dark:border-slate-700">☰</button>
         </header>
@@ -184,69 +187,99 @@
     </aside>
 
     <script>
+        // 核心配置与初始化检测
         const SB_URL = "https://dxrswsuuuvstfipcldpz.supabase.co";
         const SB_KEY = "sb_publishable_qU3plC-_p-LY2p91i21n3g_0zrWuAV8";
-        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+        
+        let supabase;
+        try {
+            if(typeof window.supabase === 'undefined') {
+                throw new Error("SDK_MISSING");
+            }
+            supabase = window.supabase.createClient(SB_URL, SB_KEY);
+            document.getElementById('auth-status-tag').innerText = "CLOUD SYNC ACTIVE";
+            document.getElementById('auth-status-tag').className = "text-[9px] font-bold text-emerald-500 tracking-widest mt-2";
+        } catch(e) {
+            console.error(e);
+            alert("⚠️ 网络连接异常：无法加载 Supabase 云端组件。请检查网络或刷新页面。");
+        }
 
         let state = { user: null, books: {}, mem: {}, settings: { dailyLimit: 20, selectedBooks: [], dark: false, voice: 'en-US' }, activeTab: 'home', queue: [], idx: 0 };
 
-        // --- 核心优化：跳转注册流程逻辑 ---
-        function toggleAuthPanel(target) {
-            const loginP = document.getElementById('login-panel');
-            const signupP = document.getElementById('signup-panel');
-            const msg = document.getElementById('auth-msg');
-            msg.innerText = ""; // 清空消息
+        // --- 核心认证逻辑加固：解决“点击无反应” ---
+        
+        function switchPanel(target) {
+            // 使用最直接的 style 操作，绕过可能的 JS 报错中断
+            const lp = document.getElementById('panel-login');
+            const sp = document.getElementById('panel-signup');
+            const msg = document.getElementById('auth-msg-box');
             
+            msg.classList.add('hide');
             if(target === 'signup') {
-                loginP.classList.add('hide');
-                signupP.classList.remove('hide');
+                lp.style.display = 'none';
+                sp.style.display = 'block';
+                sp.classList.remove('hide');
             } else {
-                signupP.classList.add('hide');
-                loginP.classList.remove('hide');
+                sp.style.display = 'none';
+                lp.style.display = 'block';
+                lp.classList.remove('hide');
             }
         }
 
-        async function executeAuth(type) {
-            const msg = document.getElementById('auth-msg');
+        async function authAction(type) {
+            const msgBox = document.getElementById('auth-msg-box');
             const email = document.getElementById(type + '-email').value.trim();
             const password = document.getElementById(type + '-password').value.trim();
 
-            if(!email || !password) return alert("账号或密码不能为空");
+            if(!email || !password) {
+                alert("请先填写邮箱和密码");
+                return;
+            }
 
-            msg.innerText = type === 'signup' ? "正在创建云端账号..." : "正在验证身份...";
-            msg.className = "text-center text-[11px] font-bold mt-6 text-indigo-500 animate-pulse";
+            // 显示反馈
+            msgBox.classList.remove('hide');
+            msgBox.innerText = type === 'signup' ? "🚀 正在建立云端连接..." : "🔑 正在验证账号...";
+            msgBox.className = "mt-8 text-center text-[11px] font-bold px-6 py-3 rounded-xl bg-indigo-50 text-indigo-600";
 
             try {
                 let res;
                 if(type === 'signup') {
-                    res = await supabase.auth.signUp({ email, password });
+                    // 核心逻辑：创建账号
+                    res = await supabase.auth.signUp({ 
+                        email: email, 
+                        password: password 
+                    });
                     if(res.error) throw res.error;
-                    alert("账号创建成功！\n现在请直接点击“立即登录”");
-                    toggleAuthPanel('login');
-                    msg.innerText = "✅ 注册完成，请输入密码登录";
-                    msg.className = "text-center text-[11px] font-bold mt-6 text-emerald-500";
+                    
+                    alert("🎉 注册指令已成功！\n\n如果已关闭邮件验证，现在可直接登录。\n如果未关闭，请检查邮箱。");
+                    switchPanel('login');
+                    msgBox.innerText = "注册成功！请输入刚才的密码登录";
+                    msgBox.className = "mt-8 text-center text-[11px] font-bold px-6 py-3 rounded-xl bg-emerald-50 text-emerald-600";
                 } else {
                     res = await supabase.auth.signInWithPassword({ email, password });
                     if(res.error) throw res.error;
-                    // 成功会通过 onAuthStateChange 处理
                 }
             } catch (err) {
-                alert("失败: " + err.message);
-                msg.innerText = "❌ " + err.message;
-                msg.className = "text-center text-[11px] font-bold mt-6 text-rose-500";
+                console.error("Auth Error:", err);
+                alert("操作失败：" + err.message);
+                msgBox.innerText = "❌ 失败: " + err.message;
+                msgBox.className = "mt-8 text-center text-[11px] font-bold px-6 py-3 rounded-xl bg-rose-50 text-rose-500";
             }
         }
 
-        supabase.auth.onAuthStateChange((event, session) => {
-            if (session) {
-                state.user = session.user;
-                document.getElementById('auth-screen').classList.add('hide');
-                document.getElementById('app-content').classList.remove('hide');
-                syncFromCloud().then(initApp);
-            }
-        });
+        // 统一的状态监听
+        if(supabase) {
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (session && session.user) {
+                    state.user = session.user;
+                    document.getElementById('auth-screen').classList.add('hide');
+                    document.getElementById('app-content').classList.remove('hide');
+                    syncFromCloud().then(initApp);
+                }
+            });
+        }
 
-        // --- 其余已有逻辑绝对保留 ---
+        // --- 以下所有学习业务逻辑 100% 绝对保留 ---
         async function syncFromCloud() {
             const saved = localStorage.getItem(`lexi_cloud_${state.user.id}`);
             if(saved) {
@@ -288,7 +321,10 @@
 
         function switchTab(t) {
             state.activeTab = t;
-            ['home','explore','books','import','book-detail'].forEach(v => document.getElementById('view-'+v).classList.add('hide'));
+            ['home','explore','books','import','book-detail'].forEach(v => {
+                const el = document.getElementById('view-'+v);
+                if(el) el.classList.add('hide');
+            });
             document.getElementById('view-'+t).classList.remove('hide');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             if(document.getElementById('nav-'+t)) document.getElementById('nav-'+t).classList.add('active');
