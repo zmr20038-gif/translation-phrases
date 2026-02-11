@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LexiFlow MTI v8.3.2 Cloud</title>
+    <title>LexiFlow MTI v8.3.8 Cloud</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
@@ -15,6 +15,7 @@
         .serif { font-family: 'Noto Serif SC', serif; }
         .hide { display: none !important; }
         
+        /* UI 导航与容器 */
         .nav-capsule { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: white; padding: 12px 30px; border-radius: 100px; display: flex; gap: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 100; border: 1px solid rgba(0,0,0,0.05); }
         .dark .nav-capsule { background: #1E293B; border-color: rgba(255,255,255,0.1); }
         .nav-link { font-size: 24px; transition: all 0.2s; opacity: 0.2; }
@@ -26,13 +27,12 @@
         .tag-eco { background: #F3E8FF; color: #7E22CE; padding: 2px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
         .dark .tag-eco { background: #3B0764; color: #D8B4FE; }
 
-        .context-box { background: #F1F5F9; border-radius: 1.5rem; padding: 1.5rem; margin-top: 1rem; }
-        .dark .context-box { background: #0F172A; border: 1px solid rgba(255,255,255,0.05); }
-
+        /* 列表展开动画 */
         .expandable-content { max-height: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
         .expanded .expandable-content { max-height: 2000px; opacity: 1; padding-top: 1rem; }
         .expanded .chevron { transform: rotate(180deg); }
 
+        /* 卡片翻转系统 */
         .card-container { perspective: 2000px; width: 90%; max-width: 380px; height: 520px; margin: auto; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .flipped .flip-card-inner { transform: rotateY(180deg); }
@@ -53,10 +53,10 @@
     <section id="auth-screen" class="fixed inset-0 bg-white dark:bg-slate-900 z-[1000] flex flex-col items-center justify-center p-8 text-slate-800 dark:text-white">
         <h1 class="text-4xl weight-black italic mb-8">Lexi<span class="text-indigo-600">Flow</span></h1>
         <div class="w-full max-w-xs space-y-4">
-            <input id="auth-email" type="email" autocomplete="email" placeholder="邮箱账号" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800">
-            <input id="auth-password" type="password" autocomplete="new-password" placeholder="密码 (至少6位)" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800">
-            <button id="auth-submit-btn" onclick="handleAuth('login')" class="w-full bg-indigo-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">立即登录</button>
-            <button id="signup-btn" onclick="handleAuth('signup')" class="w-full text-xs opacity-40 font-bold uppercase tracking-widest py-2">注册新账号</button>
+            <input id="auth-email" type="email" placeholder="邮箱账号" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800">
+            <input id="auth-password" type="password" placeholder="密码" class="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold dark:bg-slate-800">
+            <button id="login-btn" onclick="handleAuth('login')" class="w-full bg-indigo-600 text-white py-5 rounded-2xl weight-black shadow-lg btn-active">立即登录</button>
+            <button id="signup-btn" onclick="handleAuth('signup')" class="w-full text-xs opacity-40 font-bold uppercase tracking-widest py-3">注册新账号</button>
             <div id="auth-msg" class="text-center text-[11px] font-bold mt-4 min-h-[1.5em] px-4"></div>
         </div>
     </section>
@@ -65,7 +65,7 @@
         <header class="p-8 flex justify-between items-center">
             <div>
                 <h2 class="text-2xl weight-black italic dark:text-white">Lexi<span class="text-indigo-600">Flow</span></h2>
-                <p class="text-[8px] weight-black opacity-30 tracking-[0.2em] uppercase dark:text-white">MTI Master Sync v8.3.2</p>
+                <p class="text-[8px] weight-black opacity-30 tracking-[0.2em] uppercase dark:text-white">MTI Master Sync v8.3.8</p>
             </div>
             <button onclick="toggleSidebar(true)" class="w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center border border-slate-100 dark:border-slate-700">☰</button>
         </header>
@@ -174,9 +174,7 @@
                 <input type="checkbox" id="dark-toggle" onchange="toggleDarkMode()" class="w-5 h-5 accent-indigo-600">
             </div>
         </div>
-        <div class="pt-8 space-y-4">
-            <button onclick="handleLogout()" class="w-full py-4 bg-slate-100 dark:bg-slate-800 text-red-500 rounded-2xl weight-black text-xs uppercase btn-active">退出账号</button>
-        </div>
+        <button onclick="handleLogout()" class="w-full py-4 bg-slate-100 dark:bg-slate-800 text-red-500 rounded-2xl weight-black text-xs uppercase btn-active mt-8">退出账号</button>
     </aside>
 
     <script>
@@ -184,75 +182,55 @@
         const SB_KEY = "sb_publishable_qU3plC-_p-LY2p91i21n3g_0zrWuAV8";
         const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-        let state = { user: null, books: {}, mem: {}, settings: { dailyLimit: 20, selectedBooks: [], dark: false, voice: 'en-US' }, activeTab: 'home', curCat: 'ALL', queue: [], idx: 0 };
+        let state = { user: null, books: {}, mem: {}, settings: { dailyLimit: 20, selectedBooks: [], dark: false, voice: 'en-US' }, activeTab: 'home', queue: [], idx: 0 };
 
-        function buildRichContentUI(item, noteValue, isStudy = false) {
-            const parts = item.ai.split(/例句[:：]/);
-            const analysis = (parts[0] || "暂无解析").trim();
-            const example = (parts[1] || "").trim();
-            return `
-                <div class="pt-4 space-y-6 text-left w-full">
-                    <div>
-                        <span class="tag-eco">ECO</span>
-                        <h3 class="text-2xl weight-black text-indigo-900 dark:text-indigo-400 serif leading-tight mt-3 mb-2">${item.zh}</h3>
-                        <div class="text-[13px] serif text-slate-500 dark:text-slate-400 leading-relaxed">${analysis.replace(/\n/g, '<br>')}</div>
-                    </div>
-                    ${example ? `<div class="context-box relative overflow-hidden">
-                        <p class="text-[10px] italic weight-black text-slate-300 dark:text-slate-600 mb-3 uppercase tracking-widest">CONTEXT</p>
-                        <p class="text-[14px] weight-black text-slate-700 dark:text-slate-200 leading-snug mb-2">${example.split('\n')[0].trim()}</p>
-                        <p class="text-[11px] serif text-slate-400 dark:text-slate-500 italic">${example.split('\n').slice(1).join('<br>')}</p>
-                    </div>` : ''}
-                    <div class="pt-2" onclick="event.stopPropagation()">
-                        <p class="text-[8px] weight-black opacity-20 uppercase mb-2 dark:text-white tracking-widest">Personal Notes</p>
-                        <textarea oninput="${isStudy?'syncNote()':'saveExternalNote(\''+item.id+'\', this.value)'}" 
-                                  id="${isStudy?'card-note':'note-'+item.id}"
-                                  placeholder="点击输入笔记..."
-                                  class="w-full bg-transparent p-0 text-[11px] outline-none serif min-h-[60px] border-l-2 border-indigo-100 dark:border-indigo-900/50 pl-4 dark:text-white">${noteValue || ""}</textarea>
-                    </div>
-                </div>`;
-        }
-
+        // --- 核心认证逻辑 (优化无反应问题) ---
         async function handleAuth(type) {
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value.trim();
             const msg = document.getElementById('auth-msg');
-            const submitBtn = document.getElementById('auth-submit-btn');
-            
-            if(!email || !password) {
-                msg.className = "text-center text-[11px] font-bold mt-4 text-rose-500";
-                return msg.innerText = "请输入邮箱和密码";
-            }
-            if(password.length < 6) {
-                msg.className = "text-center text-[11px] font-bold mt-4 text-rose-500";
-                return msg.innerText = "为了安全，密码至少需要6位";
-            }
-            
-            msg.className = "text-center text-[11px] font-bold mt-4 text-indigo-500";
-            msg.innerText = type === 'signup' ? "正在请求云端注册..." : "正在验证登录状态...";
-            submitBtn.disabled = true; submitBtn.style.opacity = "0.5";
+            const loginBtn = document.getElementById('login-btn');
+            const signupBtn = document.getElementById('signup-btn');
+
+            if(!email || !password) return alert("请填写完整信息");
+
+            // 视觉反馈
+            msg.innerText = type === 'signup' ? "正在请求云端注册..." : "正在验证身份...";
+            msg.className = "text-center text-[11px] font-bold mt-4 text-indigo-500 animate-pulse";
+            loginBtn.disabled = true; signupBtn.disabled = true;
 
             try {
                 if(type === 'signup') {
-                    const { data, error } = await supabase.auth.signUp({ 
-                        email, password,
-                        options: { emailRedirectTo: window.location.href }
-                    });
+                    const { data, error } = await supabase.auth.signUp({ email, password });
                     if(error) throw error;
+                    msg.innerText = "注册成功！现在可以直接登录";
                     msg.className = "text-center text-[11px] font-bold mt-4 text-emerald-500";
-                    msg.innerText = "注册请求已发送！请查看邮箱确认，或直接尝试登录。";
+                    alert("账号创建成功！\n请点击“立即登录”开始你的 MTI 之旅。");
                 } else {
                     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                     if(error) throw error;
-                    // 登录成功会触发 onAuthStateChange
+                    // 登录成功会触发下面的 onAuthStateChange
                 }
             } catch (err) {
+                console.error(err);
+                msg.innerText = "错误: " + err.message;
                 msg.className = "text-center text-[11px] font-bold mt-4 text-rose-500";
-                msg.innerText = `错误: ${err.message || '网络连接超时'}`;
+                alert("操作失败: " + err.message);
             } finally {
-                submitBtn.disabled = false; submitBtn.style.opacity = "1";
+                loginBtn.disabled = false; signupBtn.disabled = false;
             }
         }
 
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                state.user = session.user;
+                document.getElementById('auth-screen').classList.add('hide');
+                document.getElementById('app-content').classList.remove('hide');
+                syncFromCloud().then(initApp);
+            }
+        });
+
+        // --- 应用逻辑 ---
         async function syncFromCloud() {
             const saved = localStorage.getItem(`lexi_cloud_${state.user.id}`);
             if(saved) {
@@ -339,6 +317,31 @@
             }).join('');
         }
 
+        function buildRichContentUI(item, noteValue, isStudy = false) {
+            const parts = item.ai.split(/例句[:：]/);
+            const analysis = (parts[0] || "暂无解析").trim();
+            const example = (parts[1] || "").trim();
+            return `
+                <div class="pt-4 space-y-6 text-left w-full">
+                    <div>
+                        <h3 class="text-2xl weight-black text-indigo-900 dark:text-indigo-400 serif leading-tight mb-2">${item.zh}</h3>
+                        <div class="text-[13px] serif text-slate-500 dark:text-slate-400 leading-relaxed">${analysis.replace(/\n/g, '<br>')}</div>
+                    </div>
+                    ${example ? `<div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl relative overflow-hidden">
+                        <p class="text-[10px] italic weight-black text-slate-300 dark:text-slate-600 mb-2 uppercase">CONTEXT</p>
+                        <p class="text-[14px] weight-black text-slate-700 dark:text-slate-200 leading-snug mb-1">${example.split('\n')[0]}</p>
+                        <p class="text-[11px] serif text-slate-400 dark:text-slate-500 italic">${example.split('\n').slice(1).join('<br>')}</p>
+                    </div>` : ''}
+                    <div class="pt-2" onclick="event.stopPropagation()">
+                        <p class="text-[8px] weight-black opacity-20 uppercase mb-2 dark:text-white">Personal Notes</p>
+                        <textarea oninput="${isStudy?'syncNote()':'saveExternalNote(\''+item.id+'\', this.value)'}" 
+                                  id="${isStudy?'card-note':'note-'+item.id}"
+                                  placeholder="输入笔记..."
+                                  class="w-full bg-transparent p-0 text-[11px] outline-none serif min-h-[60px] border-l-2 border-indigo-100 pl-4 dark:text-white">${noteValue || ""}</textarea>
+                    </div>
+                </div>`;
+        }
+
         function prepStudy(mode) {
             let pool = [];
             state.settings.selectedBooks.forEach(bk => { if(state.books[bk]) state.books[bk].items.forEach(i => {
@@ -346,7 +349,7 @@
                 if(mode === 'new' && m.lv === 0) pool.push({...i, from: bk});
                 else if(mode === 'review' && m.lv > 0 && m.lv < 5 && Date.now() >= (m.next||0)) pool.push({...i, from: bk});
             });});
-            if(!pool.length) return alert("当前队列没有单词需要学习");
+            if(!pool.length) return alert("当前无待学单词");
             state.queue = pool.slice(0, 20); state.idx = 0;
             document.getElementById('study-layer').classList.remove('hide'); renderCard();
         }
@@ -376,7 +379,7 @@
         function toggleSidebar(s) { document.getElementById('sidebar').style.transform = s ? 'translateX(0)' : 'translateX(100%)'; document.getElementById('side-overlay').classList.toggle('hide', !s); }
         function toggleDarkMode() { state.settings.dark = document.getElementById('dark-toggle').checked; applyDarkMode(); save(); }
         function applyDarkMode() { document.documentElement.classList.toggle('dark', state.settings.dark); }
-        function initQuote() { document.getElementById('quote-en').innerText = "Translation is not just about words."; document.getElementById('quote-zh').innerText = "翻译不仅仅是文字的更替。"; }
+        function initQuote() { document.getElementById('quote-en').innerText = "Translation is a bridge between worlds."; document.getElementById('quote-zh').innerText = "翻译是连接两个世界的桥梁。"; }
         function handleLogout() { supabase.auth.signOut(); localStorage.removeItem(`lexi_cloud_${state.user.id}`); location.reload(); }
         
         function runSearch() {
@@ -419,15 +422,6 @@
             const msg = new SpeechSynthesisUtterance(state.queue[state.idx].en);
             msg.lang = state.settings.voice; window.speechSynthesis.speak(msg); 
         }
-
-        supabase.auth.onAuthStateChange((event, session) => {
-            if (session) {
-                state.user = session.user;
-                document.getElementById('auth-screen').classList.add('hide');
-                document.getElementById('app-content').classList.remove('hide');
-                syncFromCloud().then(initApp);
-            }
-        });
     </script>
 </body>
 </html>
