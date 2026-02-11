@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ book.title }} - 学习模式</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .study-container { background: white; width: 90%; max-width: 600px; padding: 30px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+        .mode-switcher { margin-bottom: 20px; }
+        .word-display { font-size: 2.5rem; font-weight: bold; color: #2c3e50; margin: 20px 0; }
+        .meaning-area { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+        .ai-content { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: left; border-left: 4px solid #3498db; }
+        .btn { padding: 10px 20px; cursor: pointer; border-radius: 5px; border: none; font-size: 1rem; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-toggle { background: #95a5a6; color: white; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="study-container">
+        <div class="mode-switcher">
+            <a href="?mode=en_to_cn" class="btn {% if mode=='en_to_cn' %}btn-primary{% else %}btn-toggle{% endif %}">英 ➔ 中</a>
+            <a href="?mode=cn_to_en" class="btn {% if mode=='cn_to_en' %}btn-primary{% else %}btn-toggle{% endif %}">中 ➔ 英</a>
+        </div>
+
+        <div id="word-card">
+            <div class="word-display" id="q-text">加载中...</div>
+            
+            <button class="btn btn-primary" onclick="showAnswer()">查看答案</button>
+
+            <div class="meaning-area" id="answer-area">
+                <h2 id="a-text" style="color: #e67e22;"></h2>
+                <div class="ai-content">
+                    <p><strong>AI 详解:</strong> <span id="ai-detail"></span></p>
+                    <p><strong>例句:</strong> <em id="eg-en"></em></p>
+                    <p><strong>翻译:</strong> <span id="eg-cn"></span></p>
+                </div>
+                <button class="btn btn-toggle" onclick="nextWord()">下一个</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const words = {{ words|tojson }};
+        const mode = "{{ mode }}";
+        let currentIndex = 0;
+
+        function updateCard() {
+            const word = words[currentIndex];
+            const qElement = document.getElementById('q-text');
+            const aElement = document.getElementById('a-text');
+            
+            // 双向逻辑切换
+            if (mode === 'en_to_cn') {
+                qElement.innerText = word.spelling;
+                aElement.innerText = word.meaning;
+            } else {
+                qElement.innerText = word.meaning;
+                aElement.innerText = word.spelling;
+            }
+
+            document.getElementById('ai-detail').innerText = word.ai_detail || "AI 正在思考中...";
+            document.getElementById('eg-en').innerText = word.eg_en || "";
+            document.getElementById('eg-cn').innerText = word.eg_cn || "";
+            document.getElementById('answer-area').style.display = 'none';
+        }
+
+        function showAnswer() {
+            document.getElementById('answer-area').style.display = 'block';
+        }
+
+        function nextWord() {
+            currentIndex = (currentIndex + 1) % words.length;
+            updateCard();
+        }
+
+        updateCard();
+    </script>
+</body>
+</html>
