@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LexiFlow MTI v7.7</title>
+    <title>LexiFlow MTI v7.8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
     <style>
@@ -15,7 +15,6 @@
         .serif { font-family: 'Noto Serif SC', serif; }
         .hide { display: none !important; }
         
-        /* 导航胶囊 */
         .nav-capsule { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: white; padding: 12px 30px; border-radius: 100px; display: flex; gap: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 100; border: 1px solid rgba(0,0,0,0.05); }
         .dark .nav-capsule { background: #1E293B; border-color: rgba(255,255,255,0.1); }
         .nav-link { font-size: 24px; transition: all 0.2s; opacity: 0.2; }
@@ -24,12 +23,10 @@
         .card-base { background: white; border-radius: 2rem; box-shadow: var(--card-shadow); transition: all 0.3s; }
         .dark .card-base { background: #1E293B; border: 1px solid rgba(255,255,255,0.05); }
         
-        /* 列表动画 */
         .expandable-content { max-height: 0; overflow: hidden; transition: all 0.4s ease-out; opacity: 0; }
         .expanded .expandable-content { max-height: 800px; opacity: 1; padding-top: 1rem; }
         .expanded .chevron { transform: rotate(180deg); }
 
-        /* 学习卡片 */
         .card-container { perspective: 2000px; width: 90%; max-width: 380px; height: 500px; margin: auto; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .flipped .flip-card-inner { transform: rotateY(180deg); }
@@ -38,15 +35,17 @@
         .card-back { transform: rotateY(180deg); }
         .back-content-wrapper { margin: auto 0; width: 100%; }
 
-        /* 设置栏夜间文字修复 */
+        /* 设置栏夜间修复 */
         .dark #sidebar { background: #1E293B; color: #F1F5F9; border-left: 1px solid rgba(255,255,255,0.05); }
         .dark #sidebar p { color: #94A3B8; }
         .dark #sidebar span { color: #CBD5E1; }
-        .dark #sidebar h3 { color: #FFFFFF; border-bottom: 1px solid rgba(255,255,255,0.1); }
-
+        
         .weight-black { font-weight: 800; }
         .btn-active:active { transform: scale(0.95); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* 公告红点 */
+        .dot { position: absolute; top: 0; right: 0; width: 8px; height: 8px; background: #EF4444; border-radius: 50%; border: 2px solid white; }
     </style>
 </head>
 <body>
@@ -78,12 +77,10 @@
                     <div onclick="prepStudy('new')" class="card-base p-6 border-b-4 border-indigo-500 btn-active">
                         <p class="text-[10px] weight-black opacity-30 uppercase mb-1 dark:text-slate-400">New Words</p>
                         <p id="num-new" class="text-4xl weight-black text-indigo-600">0</p>
-                        <p class="text-[9px] opacity-40 mt-1 dark:text-slate-400">今日需学</p>
                     </div>
                     <div onclick="prepStudy('review')" class="card-base p-6 border-b-4 border-emerald-500 btn-active">
                         <p class="text-[10px] weight-black opacity-30 uppercase mb-1 dark:text-slate-400">Review</p>
                         <p id="num-rev" class="text-4xl weight-black text-emerald-500">0</p>
-                        <p class="text-[9px] opacity-40 mt-1 dark:text-slate-400">即刻复习</p>
                     </div>
                 </div>
 
@@ -98,17 +95,17 @@
                     <span id="archive-count" class="text-xl weight-black opacity-20 italic dark:text-white">0</span>
                 </div>
 
-                <div onclick="switchTab('archive-mgr')" class="card-base p-5 flex items-center justify-between border-l-4 border-amber-400 btn-active">
+                <div onclick="switchTab('archive-mgr')" class="card-base p-5 flex items-center justify-between btn-active">
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center text-lg">📥</div>
+                        <div class="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-lg">📥</div>
                         <div>
                             <h4 class="text-xs weight-black dark:text-white">归档管理</h4>
                             <p class="text-[9px] opacity-40 uppercase tracking-widest dark:text-slate-400">Archive Manager</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span id="mastered-count" class="text-xs weight-black text-amber-500 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded-lg">0</span>
-                        <span class="opacity-20 text-[10px]">→</span>
+                        <span id="mastered-count" class="text-xs weight-black opacity-40 dark:text-white">0</span>
+                        <span class="opacity-10 text-[10px]">→</span>
                     </div>
                 </div>
 
@@ -119,9 +116,7 @@
             </div>
 
             <div id="view-books" class="hide">
-                <div class="flex justify-between items-end mb-8">
-                    <h3 class="text-2xl weight-black italic dark:text-white">我的书架</h3>
-                </div>
+                <div class="flex justify-between items-end mb-8"><h3 class="text-2xl weight-black italic dark:text-white">我的书架</h3></div>
                 <div id="book-grid" class="grid grid-cols-2 gap-5"></div>
             </div>
 
@@ -144,14 +139,10 @@
 
             <div id="view-import" class="hide space-y-6">
                 <div class="card-base p-8 space-y-6">
-                    <div>
-                        <p class="text-[9px] weight-black opacity-30 uppercase mb-2 dark:text-white">目标词书</p>
-                        <select id="import-book-sel" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-xs font-bold outline-none dark:text-white"></select>
-                    </div>
-                    <div>
-                        <p class="text-[9px] weight-black opacity-30 uppercase mb-2 dark:text-white">词条分类 (需在搜索页新建)</p>
-                        <select id="import-cat-sel" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-xs font-bold outline-none dark:text-white"></select>
-                    </div>
+                    <div><p class="text-[9px] weight-black opacity-30 uppercase mb-2 dark:text-white">目标词书</p>
+                    <select id="import-book-sel" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-xs font-bold outline-none dark:text-white"></select></div>
+                    <div><p class="text-[9px] weight-black opacity-30 uppercase mb-2 dark:text-white">词条分类</p>
+                    <select id="import-cat-sel" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-xs font-bold outline-none dark:text-white"></select></div>
                     <input id="in-en" type="text" placeholder="English Term" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-lg weight-black outline-none dark:text-white">
                     <input id="in-zh" type="text" placeholder="中文翻译" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-lg serif outline-none dark:text-white">
                     <textarea id="in-ai" placeholder="解释与例句..." class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-xs h-32 resize-none serif outline-none dark:text-white"></textarea>
@@ -165,9 +156,8 @@
                         <button onclick="switchTab('home')" class="w-10 h-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center dark:text-white">←</button>
                         <h3 class="text-xl weight-black serif dark:text-white">已掌握归档</h3>
                     </div>
-                    <button onclick="batchArchive()" class="bg-amber-500 text-white px-4 py-2 rounded-xl text-[10px] weight-black">全部正式归档</button>
+                    <button onclick="batchArchive()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[10px] weight-black">全部确认归档</button>
                 </div>
-                <p class="text-[10px] opacity-40 px-2 italic">注：等级达到 Level 5 的词条会自动显示在此处，归档后将永久移出复习队列。</p>
                 <div id="archive-list" class="space-y-4"></div>
             </div>
         </main>
@@ -209,16 +199,39 @@
             </div>
         </div>
         <footer class="p-10 pb-16 flex gap-4 max-w-2xl mx-auto w-full">
-            <button onclick="finishSRS(1)" class="flex-1 py-5 bg-slate-100 dark:bg-slate-800 rounded-2xl weight-black text-[10px] uppercase text-slate-400 btn-active">遗忘</button>
-            <button onclick="finishSRS(2)" class="flex-1 py-5 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl weight-black text-[10px] uppercase text-indigo-400 btn-active">模糊</button>
-            <button onclick="finishSRS(3)" class="flex-1 py-5 bg-indigo-600 text-white rounded-2xl weight-black text-[10px] uppercase shadow-lg shadow-indigo-100 btn-active">认识</button>
+            <button onclick="finishSRS(1)" class="flex-1 py-5 bg-slate-100 dark:bg-slate-800 rounded-2xl weight-black text-[10px] uppercase text-slate-400">遗忘</button>
+            <button onclick="finishSRS(2)" class="flex-1 py-5 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl weight-black text-[10px] uppercase text-indigo-400">模糊</button>
+            <button onclick="finishSRS(3)" class="flex-1 py-5 bg-indigo-600 text-white rounded-2xl weight-black text-[10px] uppercase shadow-lg shadow-indigo-100">认识</button>
         </footer>
     </section>
 
+    <div id="notice-layer" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[500] hide flex items-end sm:items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 space-y-6">
+            <div class="flex justify-between items-center border-b dark:border-slate-800 pb-4">
+                <h3 class="text-xl weight-black italic dark:text-white">系统公告</h3>
+                <button onclick="toggleNotice(false)" class="text-xs opacity-40 weight-black uppercase dark:text-white">Close</button>
+            </div>
+            <div id="notice-content" class="max-h-96 overflow-y-auto space-y-4 no-scrollbar"></div>
+        </div>
+    </div>
+
     <div id="side-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[300] hide"></div>
     <aside id="sidebar" class="fixed top-0 right-0 h-full w-72 bg-white z-[301] p-10 translate-x-full transition-transform duration-300 flex flex-col shadow-2xl">
-        <h3 class="text-2xl weight-black mb-8 italic pb-4">Console</h3>
+        <div class="flex items-center gap-4 mb-8">
+            <div id="user-avatar" class="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">?</div>
+            <div>
+                <p id="user-id-display" class="text-xs weight-black dark:text-white">未登录用户</p>
+                <p class="text-[8px] opacity-40 uppercase font-bold dark:text-white">Lexi User ID</p>
+            </div>
+        </div>
+
         <div class="flex-1 space-y-8 overflow-y-auto no-scrollbar">
+            <button onclick="showAnnouncements()" class="w-full flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl relative">
+                <span class="text-xs font-bold">系统公告</span>
+                <div id="new-notice-dot" class="dot hide"></div>
+                <span class="opacity-30">📣</span>
+            </button>
+
             <div>
                 <p class="text-[10px] weight-black opacity-30 mb-4 uppercase">学习限量: <span id="limit-val">20</span></p>
                 <input type="range" id="daily-limit" min="5" max="100" step="5" class="w-full accent-indigo-600">
@@ -228,23 +241,32 @@
                 <input type="checkbox" id="dark-toggle" onchange="toggleDarkMode()" class="w-5 h-5 accent-indigo-600">
             </div>
             <div>
-                <p class="text-[10px] weight-black opacity-30 mb-4 uppercase">活跃词书 (支持多选并行)</p>
+                <p class="text-[10px] weight-black opacity-30 mb-4 uppercase">活跃词书 (可并行勾选)</p>
                 <div id="book-picker" class="space-y-3"></div>
             </div>
         </div>
         <div class="pt-8 space-y-4">
             <button onclick="saveSettings()" class="w-full py-4 bg-indigo-600 text-white rounded-2xl weight-black text-xs uppercase btn-active">保存设置</button>
-            <button onclick="handleLogout()" class="w-full py-4 bg-slate-100 dark:bg-slate-800 text-red-500 rounded-2xl weight-black text-xs uppercase btn-active">退出/切换账号</button>
+            <button onclick="handleLogout()" class="w-full py-4 bg-slate-100 dark:bg-slate-800 text-red-500 rounded-2xl weight-black text-xs uppercase btn-active">退出 / 登录</button>
         </div>
     </aside>
 
     <script>
+        // 管理员配置项
+        const APP_VERSION = "7.8";
+        const APP_ANNOUNCEMENTS = [
+            { id: 1, date: "2026-02-11", title: "v7.8 升级日志", body: "1. 统一了归档管理样式。\n2. 接入了手机号脱敏显示与头像系统。\n3. 新增公告系统。" },
+            { id: 2, date: "2026-02-10", title: "多词书并行说明", body: "现在您可以在设置栏同时勾选多个词书，系统会自动混合生成学习计划。" }
+        ];
+
         let state = {
-            user: null, books: {}, mem: {}, settings: { dailyLimit: 20, selectedBooks: [], dark: false },
-            activeTab: 'home', curCat: 'ALL', queue: [], idx: 0, categories: ["政治", "经贸", "科技", "文化", "俗语"]
+            user: null, books: {}, mem: {}, 
+            settings: { dailyLimit: 20, selectedBooks: [], dark: false, lastNoticeId: 0 },
+            activeTab: 'home', curCat: 'ALL', queue: [], idx: 0, 
+            categories: ["政治", "经贸", "科技", "文化", "俗语"]
         };
 
-        // --- 系统驱动 ---
+        // --- 用户系统 ---
         function handleLogin() {
             const p = document.getElementById('auth-phone').value;
             const c = document.getElementById('auth-code').value;
@@ -256,23 +278,40 @@
             loadData();
         }
 
+        function updateUserInfo() {
+            const avatar = document.getElementById('user-avatar');
+            const idDisp = document.getElementById('user-id-display');
+            if(state.user) {
+                const colors = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+                avatar.style.backgroundColor = colors[parseInt(state.user.slice(-1)) % 5];
+                avatar.innerText = state.user.slice(-1);
+                idDisp.innerText = state.user.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+            } else {
+                avatar.style.backgroundColor = '#CBD5E1';
+                avatar.innerText = '?';
+                idDisp.innerText = "未登录";
+            }
+            // 检查新公告红点
+            const latest = APP_ANNOUNCEMENTS[0]?.id || 0;
+            document.getElementById('new-notice-dot').classList.toggle('hide', state.settings.lastNoticeId >= latest);
+        }
+
         function loadData() {
             const saved = localStorage.getItem(`lexi_v7_data_${state.user}`);
             if(saved) {
                 const d = JSON.parse(saved);
                 state.books = d.books || {}; state.mem = d.mem || {}; 
-                state.settings = d.settings || { dailyLimit: 20, selectedBooks: [], dark: false };
+                state.settings = d.settings || { dailyLimit: 20, selectedBooks: [], dark: false, lastNoticeId: 0 };
                 state.categories = d.categories || ["政治", "经贸", "科技", "文化", "俗语"];
             } else {
                 state.books = { "2026 MTI 核心词汇": { items: [] } };
-                state.settings = { dailyLimit: 20, selectedBooks: ["2026 MTI 核心词汇"], dark: false };
+                state.settings = { dailyLimit: 20, selectedBooks: ["2026 MTI 核心词汇"], dark: false, lastNoticeId: 0 };
             }
-            // 规则：登录强制白天模式
-            state.settings.dark = false;
+            state.settings.dark = false; // 登录强制白天
             document.documentElement.classList.remove('dark');
             document.getElementById('dark-toggle').checked = false;
             
-            initQuote(); updateDash(); switchTab('home'); save();
+            initQuote(); updateDash(); updateUserInfo(); switchTab('home'); save();
         }
 
         function save() { 
@@ -281,24 +320,40 @@
             })); 
         }
 
-        // --- 多词书 & 归档逻辑 ---
+        // --- 公告系统 ---
+        function showAnnouncements() {
+            const container = document.getElementById('notice-content');
+            container.innerHTML = APP_ANNOUNCEMENTS.map(a => `
+                <div class="p-5 bg-slate-50 dark:bg-slate-800 rounded-2xl space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[9px] weight-black text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-md uppercase">${a.date}</span>
+                    </div>
+                    <h4 class="weight-black text-sm dark:text-white">${a.title}</h4>
+                    <p class="text-[11px] leading-relaxed opacity-60 serif dark:text-slate-400">${a.body.replace(/\n/g, '<br>')}</p>
+                </div>
+            `).join('');
+            toggleNotice(true);
+            state.settings.lastNoticeId = APP_ANNOUNCEMENTS[0]?.id || 0;
+            save();
+            updateUserInfo();
+        }
+
+        function toggleNotice(s) { document.getElementById('notice-layer').classList.toggle('hide', !s); }
+
+        // --- 核心驱动 (已保留历史逻辑) ---
         function updateDash() {
             let n = 0, r = 0, total = 0, masterCount = 0;
             const activeBooks = state.settings.selectedBooks;
-            
             activeBooks.forEach(bk => {
                 if(!state.books[bk]) return;
                 state.books[bk].items.forEach(i => {
-                    const m = state.mem[i.id] || {lv:0, next:0, isArchived: false};
-                    if(m.isArchived) return; // 归档不计入首页复习
-                    
-                    if(m.lv === 0) n++;
-                    else if(m.lv < 5 && Date.now() >= m.next) r++;
+                    const m = state.mem[i.id] || {lv:0, isArchived: false};
+                    if(m.isArchived) return;
+                    if(m.lv === 0) n++; else if(m.lv < 5 && Date.now() >= (m.next||0)) r++;
                     else if(m.lv >= 5) masterCount++;
                     total++;
                 });
             });
-
             document.getElementById('num-new').innerText = n;
             document.getElementById('num-rev').innerText = r;
             document.getElementById('archive-count').innerText = total;
@@ -310,14 +365,13 @@
             let pool = [];
             state.settings.selectedBooks.forEach(bk => {
                 state.books[bk]?.items.forEach(i => {
-                    const m = state.mem[i.id] || {lv:0, next:0, isArchived: false};
+                    const m = state.mem[i.id] || {lv:0, isArchived: false};
                     if(m.isArchived) return;
-                    
                     if(mode === 'new' && m.lv === 0) pool.push({...i, from: bk});
-                    else if(mode === 'review' && m.lv > 0 && m.lv < 5 && Date.now() >= m.next) pool.push({...i, from: bk});
+                    else if(mode === 'review' && m.lv > 0 && m.lv < 5 && Date.now() >= (m.next||0)) pool.push({...i, from: bk});
                 });
             });
-            if(!pool.length) return alert("当前没有待处理词条");
+            if(!pool.length) return alert("队列为空");
             state.queue = mode === 'new' ? pool.slice(0, state.settings.dailyLimit) : pool.sort(() => Math.random() - 0.5).slice(0, 30);
             state.idx = 0;
             document.getElementById('study-layer').classList.remove('hide');
@@ -339,18 +393,15 @@
             const i = state.queue[state.idx];
             if(!state.mem[i.id]) state.mem[i.id] = {lv:0, next:0, note:"", isArchived: false};
             const m = state.mem[i.id];
-            
-            if(score === 3) m.lv++;
-            else if(score === 1) m.lv = Math.max(0, m.lv - 1);
+            if(score === 3) m.lv++; else if(score === 1) m.lv = Math.max(0, m.lv - 1);
             else if(score === 2) { state.queue.push(i); }
-
             const intervals = [0, 60000, 86400000, 259200000, 604800000, 1296000000];
             m.next = Date.now() + (score === 3 ? intervals[Math.min(m.lv, 5)] : 0);
-            
             save(); state.idx++;
             if(state.idx < state.queue.length) renderCard(); else closeStudy();
         }
 
+        // --- 归档列表渲染 ---
         function renderArchiveMgr() {
             const list = document.getElementById('archive-list');
             let items = [];
@@ -360,37 +411,23 @@
                     if(m && m.lv >= 5 && !m.isArchived) items.push({...i, from: bk});
                 });
             });
-
-            if(!items.length) {
-                list.innerHTML = `<div class="py-20 text-center opacity-10 weight-black italic dark:text-white">没有待归档项</div>`;
-                return;
-            }
+            if(!items.length) { list.innerHTML = `<div class="py-20 text-center opacity-10 weight-black italic dark:text-white">暂无待归档</div>`; return; }
             list.innerHTML = items.map(i => `
                 <div class="card-base p-6 flex justify-between items-center">
-                    <div>
-                        <h5 class="weight-black dark:text-white">${i.en}</h5>
-                        <p class="text-[8px] opacity-40 uppercase">${i.from}</p>
-                    </div>
-                    <button onclick="singleArchive('${i.id}')" class="text-[9px] weight-black text-amber-600 bg-amber-50 dark:bg-amber-900/30 px-3 py-1 rounded-lg uppercase">归档</button>
+                    <div><h5 class="weight-black dark:text-white">${i.en}</h5><p class="text-[8px] opacity-40 uppercase">${i.from}</p></div>
+                    <button onclick="singleArchive('${i.id}')" class="text-[9px] weight-black text-indigo-600 px-3 py-1 rounded-lg uppercase">归档</button>
                 </div>`).join('');
         }
 
-        function singleArchive(id) {
-            if(state.mem[id]) state.mem[id].isArchived = true;
-            save(); renderArchiveMgr(); updateDash();
-        }
-
+        function singleArchive(id) { if(state.mem[id]) state.mem[id].isArchived = true; save(); renderArchiveMgr(); updateDash(); }
         function batchArchive() {
             state.settings.selectedBooks.forEach(bk => {
-                state.books[bk].items.forEach(i => {
-                    const m = state.mem[i.id];
-                    if(m && m.lv >= 5) m.isArchived = true;
-                });
+                state.books[bk].items.forEach(i => { if((state.mem[i.id]?.lv||0) >= 5) state.mem[i.id].isArchived = true; });
             });
-            save(); renderArchiveMgr(); updateDash(); alert("已完成批量归档");
+            save(); renderArchiveMgr(); updateDash(); alert("完成");
         }
 
-        // --- UI & 其他 ---
+        // --- 路由与开关 ---
         function switchTab(t) {
             state.activeTab = t;
             ['home','explore','books','import','book-detail','archive-mgr'].forEach(v => document.getElementById('view-'+v).classList.add('hide'));
@@ -398,30 +435,10 @@
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             const navId = ['book-detail','archive-mgr'].includes(t) ? 'nav-books' : 'nav-' + t;
             if(document.getElementById(navId)) document.getElementById(navId).classList.add('active');
-            
             if(t === 'books') renderBooks();
             if(t === 'explore') { updateCatTags(); runSearch(); }
             if(t === 'import') updateCatTags();
             if(t === 'archive-mgr') renderArchiveMgr();
-        }
-
-        function updateCatTags() {
-            const container = document.getElementById('cat-tags-container');
-            container.innerHTML = ["ALL", ...state.categories].map(c => `
-                <button onclick="setCatFilter('${c}')" class="px-5 py-2 rounded-full text-[10px] weight-black whitespace-nowrap transition-all ${state.curCat===c?'bg-indigo-600 text-white shadow-lg shadow-indigo-200':'bg-white dark:bg-slate-800 dark:text-white'}">${c}</button>
-            `).join('');
-            document.getElementById('import-cat-sel').innerHTML = state.categories.map(c => `<option value="${c}">${c}</option>`).join('');
-            document.getElementById('import-book-sel').innerHTML = Object.keys(state.books).map(k => `<option value="${k}">${k}</option>`).join('');
-        }
-
-        function renderBooks() {
-            const colors = ["from-indigo-600 to-blue-700", "from-rose-500 to-pink-600", "from-emerald-500 to-teal-600"];
-            document.getElementById('book-grid').innerHTML = Object.keys(state.books).map((k, idx) => `
-                <div onclick="openBook('${k}')" class="aspect-[3/4] rounded-3xl bg-gradient-to-br ${colors[idx%3]} p-6 flex flex-col justify-between text-white shadow-xl btn-active relative">
-                    ${state.settings.selectedBooks.includes(k) ? '<div class="absolute top-4 right-4 text-xs font-bold">ACTIVE</div>' : ''}
-                    <div><h4 class="text-lg weight-black serif leading-tight mt-2">${k}</h4></div>
-                    <p class="text-[10px] weight-black opacity-70">${state.books[k].items.length} 条目</p>
-                </div>`).join('');
         }
 
         function toggleSidebar(s) {
@@ -437,23 +454,16 @@
             }
         }
 
-        function saveSettings() {
-            state.settings.selectedBooks = Array.from(document.querySelectorAll('.book-chk:checked')).map(c => c.value);
-            state.settings.dailyLimit = parseInt(document.getElementById('daily-limit').value);
-            save(); toggleSidebar(false); updateDash();
-        }
-
-        // --- 保留的历史核心逻辑 ---
+        // --- 其它保留功能 ---
         function runSearch() {
             const q = document.getElementById('search-box').value.toLowerCase();
             let all = []; Object.values(state.books).forEach(b => all = all.concat(b.items));
             const filtered = all.filter(i => (i.en.toLowerCase().includes(q) || i.zh.includes(q)) && (state.curCat === 'ALL' || i.cat === state.curCat));
             renderItems('search-list', filtered);
         }
-
         function renderItems(containerId, items) {
             const container = document.getElementById(containerId);
-            if(!items.length) { container.innerHTML = `<div class="py-20 text-center opacity-10 weight-black italic dark:text-white">NO DATA</div>`; return; }
+            if(!items.length) { container.innerHTML = `<div class="py-20 text-center opacity-10 italic dark:text-white">NO DATA</div>`; return; }
             container.innerHTML = items.map(i => `
                 <div class="card-base border border-slate-50 dark:border-slate-800 transition-all overflow-hidden" onclick="this.classList.toggle('expanded')">
                     <div class="p-6 flex justify-between items-center cursor-pointer">
@@ -466,51 +476,58 @@
                     <div class="expandable-content px-6 pb-6 border-t border-slate-50 dark:border-slate-800">
                         <div class="pt-4 space-y-4 text-left">
                             <p class="text-xl weight-black serif text-indigo-600">${i.zh}</p>
-                            <div class="text-xs serif text-slate-500 leading-relaxed dark:text-slate-400">${i.ai.replace(/\n/g, '<br>')}</div>
-                            <div class="flex justify-end pt-2">
-                                <button onclick="deleteItem(event, '${i.id}')" class="text-[9px] text-red-400 weight-black uppercase tracking-widest">Delete</button>
-                            </div>
+                            <div class="text-xs serif text-slate-500 dark:text-slate-400">${i.ai.replace(/\n/g, '<br>')}</div>
+                            <div class="flex justify-end pt-2"><button onclick="deleteItem(event, '${i.id}')" class="text-[9px] text-red-400 weight-black uppercase">Delete</button></div>
                         </div>
                     </div>
                 </div>`).join('');
         }
 
-        function handleCardFlip(e) { if(e.target.closest('textarea') || e.target.closest('button')) return; document.getElementById('studyCard').classList.toggle('flipped'); }
         function syncNote() {
             const i = state.queue[state.idx];
             if(!state.mem[i.id]) state.mem[i.id] = { lv:0, next:0, note:"", isArchived: false };
             state.mem[i.id].note = document.getElementById('card-note').value;
             save();
         }
+        function saveSettings() {
+            state.settings.selectedBooks = Array.from(document.querySelectorAll('.book-chk:checked')).map(c => c.value);
+            state.settings.dailyLimit = parseInt(document.getElementById('daily-limit').value);
+            save(); toggleSidebar(false); updateDash();
+        }
         function toggleDarkMode() {
             state.settings.dark = document.getElementById('dark-toggle').checked;
             document.documentElement.classList.toggle('dark', state.settings.dark);
             save();
         }
-        function openBook(k) { state.activeBook = k; document.getElementById('book-title-h').innerText = k; renderBookContent(); switchTab('book-detail'); }
-        function renderBookContent() { renderItems('book-item-list', state.books[state.activeBook].items); }
-        function createNewCategory() { const n = prompt("分类名称:"); if(n && !state.categories.includes(n)) { state.categories.push(n); save(); updateCatTags(); } }
-        function setCatFilter(cat) { state.curCat = cat; updateCatTags(); runSearch(); }
-        function doImport() {
-            const en = document.getElementById('in-en').value.trim();
-            const zh = document.getElementById('in-zh').value.trim();
-            const book = document.getElementById('import-book-sel').value;
-            const cat = document.getElementById('import-cat-sel').value;
-            if(!en || !zh || !book) return alert("必填项缺失");
-            state.books[book].items.push({ id: 'u'+Date.now(), en, zh, cat, ai: document.getElementById('in-ai').value });
-            save(); alert("已入库"); ['in-en','in-zh','in-ai'].forEach(id => document.getElementById(id).value = ''); updateDash();
+        function updateCatTags() {
+            document.getElementById('cat-tags-container').innerHTML = ["ALL", ...state.categories].map(c => `<button onclick="setCatFilter('${c}')" class="px-5 py-2 rounded-full text-[10px] weight-black transition-all ${state.curCat===c?'bg-indigo-600 text-white':'bg-white dark:bg-slate-800 dark:text-white'}">${c}</button>`).join('');
+            document.getElementById('import-cat-sel').innerHTML = state.categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            document.getElementById('import-book-sel').innerHTML = Object.keys(state.books).map(k => `<option value="${k}">${k}</option>`).join('');
         }
-        function handleLogout() { if(confirm("确定退出？")) { localStorage.removeItem('lexi_v7_user'); location.reload(); } }
+        function handleLogout() { if(confirm("确认退出/切换？")) { localStorage.removeItem('lexi_v7_user'); location.reload(); } }
         function closeStudy() { document.getElementById('study-layer').classList.add('hide'); updateDash(); }
         function playTTS() { const i = state.queue[state.idx]; const msg = new SpeechSynthesisUtterance(i.en); msg.lang = 'en-US'; window.speechSynthesis.speak(msg); }
-        function initQuote() {
-            document.getElementById('quote-en').innerText = "The limits of my language mean the limits of my world.";
-            document.getElementById('quote-zh').innerText = "语言的边界，即是世界的边界。";
+        function initQuote() { document.getElementById('quote-en').innerText = "The limits of my language mean the limits of my world."; document.getElementById('quote-zh').innerText = "语言的边界，即是世界的边界。"; }
+        function deleteItem(e, id) { e.stopPropagation(); if(confirm("永久移除？")) { Object.keys(state.books).forEach(bk => { state.books[bk].items = state.books[bk].items.filter(item => item.id !== id); }); save(); state.activeTab === 'book-detail' ? renderBookContent() : runSearch(); updateDash(); } }
+        function openBook(k) { state.activeBook = k; document.getElementById('book-title-h').innerText = k; renderBookContent(); switchTab('book-detail'); }
+        function renderBookContent() { renderItems('book-item-list', state.books[state.activeBook].items); }
+        function createNewCategory() { const n = prompt("分类名:"); if(n && !state.categories.includes(n)) { state.categories.push(n); save(); updateCatTags(); } }
+        function setCatFilter(cat) { state.curCat = cat; updateCatTags(); runSearch(); }
+        function handleCardFlip(e) { if(!e.target.closest('textarea') && !e.target.closest('button')) document.getElementById('studyCard').classList.toggle('flipped'); }
+        function renderBooks() {
+            const colors = ["from-indigo-600 to-blue-700", "from-rose-500 to-pink-600", "from-emerald-500 to-teal-600"];
+            document.getElementById('book-grid').innerHTML = Object.keys(state.books).map((k, idx) => `
+                <div onclick="openBook('${k}')" class="aspect-[3/4] rounded-3xl bg-gradient-to-br ${colors[idx%3]} p-6 flex flex-col justify-between text-white shadow-xl btn-active relative">
+                    ${state.settings.selectedBooks.includes(k) ? '<div class="absolute top-4 right-4 text-xs font-bold">ACTIVE</div>' : ''}
+                    <div><h4 class="text-lg weight-black serif leading-tight mt-2">${k}</h4></div>
+                    <p class="text-[10px] weight-black opacity-70">${state.books[k].items.length} 条目</p>
+                </div>`).join('');
         }
-        function deleteItem(e, id) {
-            e.stopPropagation(); if(!confirm("确定永久移除？")) return;
-            Object.keys(state.books).forEach(bk => { state.books[bk].items = state.books[bk].items.filter(item => item.id !== id); });
-            save(); state.activeTab === 'book-detail' ? renderBookContent() : runSearch(); updateDash();
+        function doImport() {
+            const en = document.getElementById('in-en').value.trim(); const zh = document.getElementById('in-zh').value.trim(); const book = document.getElementById('import-book-sel').value; const cat = document.getElementById('import-cat-sel').value;
+            if(!en || !zh || !book) return alert("缺失");
+            state.books[book].items.push({ id: 'u'+Date.now(), en, zh, cat, ai: document.getElementById('in-ai').value });
+            save(); alert("入库成功"); ['in-en','in-zh','in-ai'].forEach(id => document.getElementById(id).value = ''); updateDash();
         }
 
         if(localStorage.getItem('lexi_v7_user')) {
