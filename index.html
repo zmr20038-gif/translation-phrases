@@ -14,7 +14,7 @@
         .app-container { max-width: 600px; margin: 0 auto; }
         .hide { display: none !important; }
         
-        /* 状态样式 */
+        /* 交互反馈 */
         .active-tab { color: var(--accent) !important; opacity: 1 !important; font-weight: 800; transform: translateY(-2px); }
         .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); }
         .dark .glass { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.05); }
@@ -23,31 +23,31 @@
         #settings-sidebar { transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
         #settings-sidebar.open { transform: translateX(0); }
 
-        /* 学习卡片：完美垂直/水平居中布局 */
-        .card-container { perspective: 1200px; height: 460px; width: 100%; }
+        /* 学习卡片：精确定位 */
+        .card-container { perspective: 1200px; height: 460px; width: 100%; position: relative; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; cursor: pointer; }
         .flipped .flip-card-inner { transform: rotateY(180deg); }
-        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 2.5rem; padding: 2.5rem; background: var(--card); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); }
         
-        /* 卡片正面布局：内容居中 */
-        .card-front { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        /* 底部提示词：绝对定位锁定底部 */
-        .tap-hint { position: absolute; bottom: 2rem; left: 0; right: 0; text-align: center; font-[800] text-[10px] opacity-20 tracking-[0.4em] uppercase; }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 3rem; background: var(--card); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.08); }
+        
+        /* 正面：Flex 强制垂直居中 */
+        .card-front { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
+        .tap-hint { position: absolute; bottom: 2.5rem; width: 100%; text-align: center; font-[800] text-[10px] opacity-20 tracking-[0.5em] uppercase; pointer-events: none; }
 
-        .card-back { transform: rotateY(180deg); border: 2px solid var(--accent); overflow-y: auto; display: flex; flex-direction: column; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        /* 背面：内容区 */
+        .card-back { transform: rotateY(180deg); border: 2px solid var(--accent); padding: 2.5rem; display: flex; flex-direction: column; }
         
-        /* 按钮反馈 */
-        .btn-press { transition: all 0.1s; }
-        .btn-press:active { transform: scale(0.92); opacity: 0.8; }
+        /* 列表项进入动画 */
+        .list-anim { animation: fadeInUp 0.4s ease-out; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="select-none min-h-screen pb-36">
+<body class="select-none min-h-screen pb-40">
 
     <header class="app-container px-6 pt-12 pb-6 flex justify-between items-center relative z-50">
         <div>
             <h1 class="text-3xl font-[900] tracking-tighter italic">Lexi<span class="text-indigo-600">MTI</span></h1>
-            <p class="text-[10px] font-black opacity-30 uppercase tracking-[0.2em] mt-1">Flagship v17.5 Pro</p>
+            <p class="text-[10px] font-black opacity-30 uppercase tracking-[0.2em] mt-1">Version 17.5 Flagship</p>
         </div>
         <div class="flex gap-3">
             <button onclick="switchTab('import')" class="w-12 h-12 glass rounded-full flex items-center justify-center btn-press shadow-sm text-xl">📥</button>
@@ -59,41 +59,37 @@
         <main id="view-home" class="px-6 space-y-6">
             <div class="grid grid-cols-2 gap-4">
                 <div onclick="startStudy('new')" class="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-sm btn-press cursor-pointer border-b-4 border-indigo-100 dark:border-slate-700">
-                    <span class="text-[10px] font-black opacity-40 uppercase tracking-widest">待学习</span>
+                    <span class="text-[10px] font-black opacity-40 uppercase tracking-widest italic">New Items</span>
                     <p id="num-new" class="text-4xl font-[900] mt-2 text-indigo-600">0</p>
                 </div>
                 <div onclick="startStudy('review')" class="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-sm btn-press cursor-pointer border-b-4 border-emerald-100 dark:border-slate-700">
-                    <span class="text-[10px] font-black opacity-40 uppercase tracking-widest">需复习</span>
+                    <span class="text-[10px] font-black opacity-40 uppercase tracking-widest italic">Due Today</span>
                     <p id="num-review" class="text-4xl font-[900] mt-2 text-emerald-500">0</p>
                 </div>
             </div>
             <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full -mr-16 -mt-16"></div>
-                <p id="quote-en" class="text-lg font-bold font-serif italic leading-relaxed z-10 relative">"Translation is not a matter of words only: it is a matter of making the whole culture intelligible."</p>
+                <p id="quote-en" class="text-lg font-bold font-serif italic leading-relaxed z-10 relative">"A translation is like a woman. If it is beautiful, it is not faithful. If it is faithful, it is most certainly not beautiful."</p>
             </div>
         </main>
 
         <main id="view-explore" class="px-6 hide">
-            <div class="relative mb-6">
-                <input type="text" id="search-input" oninput="renderExplore()" placeholder="搜索术语、笔记或分类..." class="w-full p-6 pl-14 rounded-[2.2rem] bg-white dark:bg-slate-800 border-none outline-none shadow-sm text-sm font-medium">
-                <span class="absolute left-6 top-6 opacity-30">🔍</span>
-            </div>
+            <input type="text" id="search-input" oninput="renderExplore()" placeholder="搜索术语、笔记..." class="w-full p-6 rounded-[2.2rem] bg-white dark:bg-slate-800 border-none outline-none shadow-sm text-sm font-medium mb-6">
             <div id="explore-cats" class="flex gap-3 mb-6 overflow-x-auto no-scrollbar pb-2"></div>
             <div id="explore-list" class="space-y-4 pb-20"></div>
         </main>
 
         <main id="view-learned" class="px-6 hide pb-20">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-[900] italic">归档/已掌握</h2>
-                <button onclick="toggleEditMode()" id="btn-edit" class="text-[10px] font-black bg-white dark:bg-slate-800 px-5 py-2.5 rounded-full shadow-sm btn-press">批量管理</button>
+                <h2 class="text-xl font-[900] italic">归档管理</h2>
+                <button onclick="toggleEditMode()" id="btn-edit" class="text-[10px] font-black bg-white dark:bg-slate-800 px-5 py-2.5 rounded-full shadow-sm btn-press">批量操作</button>
             </div>
             <div id="learned-list" class="space-y-3"></div>
         </main>
 
         <main id="view-books" class="px-6 hide pb-20">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-[900] italic">词书架</h2>
-                <button onclick="createNewBook()" class="text-[10px] bg-slate-900 text-white dark:bg-white dark:text-black px-5 py-2.5 rounded-2xl font-black btn-press">+ 新建词书</button>
+                <h2 class="text-xl font-[900] italic">词书库</h2>
+                <button onclick="createNewBook()" class="text-[10px] bg-slate-900 text-white dark:bg-white dark:text-black px-5 py-2.5 rounded-2xl font-black btn-press">+ NEW</button>
             </div>
             <div id="bookshelf-list" class="grid grid-cols-2 gap-5"></div>
         </main>
@@ -102,27 +98,27 @@
             <div class="flex items-center gap-4 mb-8">
                 <button onclick="switchTab('books')" class="w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full shadow-sm btn-press">←</button>
                 <div class="truncate">
-                    <h2 id="detail-book-name" class="text-xl font-[900] serif truncate">词书名</h2>
-                    <p id="detail-count" class="text-[8px] font-black opacity-30 uppercase tracking-widest mt-1">0 ITEMS</p>
+                    <h2 id="detail-book-name" class="text-xl font-[900] serif truncate">-</h2>
+                    <p id="detail-count" class="text-[8px] font-black opacity-30 tracking-widest uppercase">0 ITEMS</p>
                 </div>
             </div>
             <div id="book-items-list" class="space-y-4"></div>
         </main>
 
         <main id="view-import" class="px-6 hide">
-            <div class="bg-white dark:bg-slate-800 rounded-[3rem] p-10 shadow-sm border-2 border-indigo-500/5 space-y-5">
+            <div class="bg-white dark:bg-slate-800 rounded-[3rem] p-10 shadow-sm space-y-5">
                 <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-xl font-[900]">导入词条</h2>
+                    <h2 class="text-xl font-[900]">快速导入</h2>
                     <select id="import-book-select" class="text-[10px] font-black text-indigo-600 bg-indigo-50 dark:bg-indigo-900/40 px-4 py-2 rounded-xl outline-none border-none cursor-pointer"></select>
                 </div>
-                <input id="in-en" type="text" placeholder="英文术语 (必填) *" class="w-full p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none outline-none text-sm font-bold focus:ring-2 ring-indigo-500/20">
-                <input id="in-zh" type="text" placeholder="中文对应 (必填) *" class="w-full p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none outline-none text-sm serif focus:ring-2 ring-indigo-500/20">
-                <textarea id="in-d" placeholder="MTI 专业解释 / 术语背景" class="w-full p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none outline-none text-xs h-24 resize-none"></textarea>
+                <input id="in-en" type="text" placeholder="英文术语 *" class="w-full p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none outline-none text-sm font-bold">
+                <input id="in-zh" type="text" placeholder="中文对应 *" class="w-full p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none outline-none text-sm serif">
+                <textarea id="in-d" placeholder="详细释义或背景" class="w-full p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none outline-none text-xs h-24 resize-none"></textarea>
                 <div class="grid grid-cols-2 gap-4">
                     <input id="in-scene-en" type="text" placeholder="英文例句" class="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none outline-none text-[10px]">
                     <input id="in-scene-zh" type="text" placeholder="中文翻译" class="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none outline-none text-[10px] serif">
                 </div>
-                <button onclick="handleManualImport()" class="w-full bg-indigo-600 text-white py-6 rounded-3xl font-[900] shadow-xl btn-press text-sm uppercase tracking-widest">保存并入库</button>
+                <button onclick="handleManualImport()" class="w-full bg-indigo-600 text-white py-6 rounded-3xl font-[900] shadow-xl btn-press text-sm tracking-widest uppercase">存入词书</button>
             </div>
         </main>
     </div>
@@ -132,25 +128,25 @@
             <button onclick="closeStudy()" class="w-12 h-12 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center btn-press shadow-sm text-lg">✕</button>
             <div class="text-center">
                 <span id="study-progress" class="text-[10px] font-black opacity-30 tracking-[0.4em]">0 / 0</span>
-                <p id="study-book-tag" class="text-[8px] font-black text-indigo-500 uppercase mt-1">BOOK</p>
+                <p id="study-book-tag" class="text-[8px] font-black text-indigo-500 uppercase mt-1">TAG</p>
             </div>
             <button onclick="speakCurrent()" class="w-12 h-12 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center btn-press shadow-sm text-lg">🔊</button>
         </div>
         
-        <div class="flex-1 p-6 flex items-center justify-center w-full max-w-lg mx-auto">
-            <div class="card-container" id="studyCardMain">
+        <div class="flex-1 p-6 flex items-center justify-center">
+            <div class="card-container max-w-sm mx-auto w-full" id="studyCardMain">
                 <div class="flip-card-inner" onclick="this.parentElement.classList.toggle('flipped')">
                     <div class="card-face card-front">
-                        <h2 id="card-en" class="text-3xl font-[900] leading-tight px-4 tracking-tighter">Ready?</h2>
-                        <p class="tap-hint">Tap to Reveal</p>
+                        <h2 id="card-en" class="text-3xl font-[900] leading-tight tracking-tighter">Term</h2>
+                        <div class="tap-hint">Tap to Flip</div>
                     </div>
                     <div class="card-face card-back no-scrollbar">
-                        <div class="flex-1">
-                            <h3 id="card-zh" class="text-2xl font-[900] text-indigo-600 mb-4 serif leading-tight">中文释义</h3>
-                            <p id="card-d" class="text-sm opacity-60 leading-relaxed mb-8 serif"></p>
-                            <div id="card-scene-box" class="w-full bg-slate-100/50 dark:bg-slate-900/50 p-6 rounded-[2rem] border border-white/20">
-                                <p id="card-scene-en" class="text-xs font-bold mb-3 italic leading-relaxed"></p>
-                                <p id="card-scene-zh" class="text-[11px] opacity-40 serif leading-relaxed"></p>
+                        <div class="flex-1 flex flex-col">
+                            <h3 id="card-zh" class="text-2xl font-[900] text-indigo-600 mb-4 serif">解释</h3>
+                            <p id="card-d" class="text-sm opacity-60 leading-relaxed serif mb-6"></p>
+                            <div id="card-scene-box" class="mt-auto bg-slate-50 dark:bg-slate-900/50 p-6 rounded-[2rem]">
+                                <p id="card-scene-en" class="text-xs font-bold italic mb-2"></p>
+                                <p id="card-scene-zh" class="text-[11px] opacity-40 serif"></p>
                             </div>
                         </div>
                     </div>
@@ -159,21 +155,21 @@
         </div>
 
         <div class="p-8 pb-16 bg-white dark:bg-slate-900 rounded-t-[4rem] shadow-2xl app-container w-full grid grid-cols-3 gap-4">
-            <button onclick="handleLearn(1)" class="py-6 bg-slate-100 dark:bg-slate-800 rounded-3xl font-black text-[10px] opacity-40 btn-press">忘了</button>
-            <button onclick="handleLearn(2)" class="py-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl font-black text-[10px] text-indigo-600 btn-press">模糊</button>
-            <button onclick="handleLearn(3)" class="py-6 bg-indigo-600 text-white rounded-3xl font-black text-[10px] shadow-lg shadow-indigo-500/30 btn-press">认识</button>
+            <button onclick="handleLearn(1)" class="py-6 bg-slate-100 dark:bg-slate-800 rounded-3xl font-black text-[10px] opacity-40 btn-press uppercase">Forgot</button>
+            <button onclick="handleLearn(2)" class="py-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl font-black text-[10px] text-indigo-600 btn-press uppercase">Vague</button>
+            <button onclick="handleLearn(3)" class="py-6 bg-indigo-600 text-white rounded-3xl font-black text-[10px] shadow-lg btn-press uppercase">Know</button>
         </div>
     </section>
 
     <div id="settings-overlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[300] hide"></div>
     <aside id="settings-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 z-[301] p-10 flex flex-col shadow-2xl">
         <h2 class="text-2xl font-[900] mb-10 italic">Settings</h2>
-        <div class="flex-1 space-y-8 overflow-y-auto no-scrollbar">
+        <div class="space-y-6">
             <div class="p-6 bg-slate-50 dark:bg-slate-800 rounded-[2.5rem]">
-                <p class="text-[10px] font-black opacity-30 uppercase mb-4 tracking-widest italic text-center">发音偏好 / Accent</p>
+                <p class="text-[10px] font-black opacity-30 uppercase mb-4 text-center tracking-widest italic">Accent / 发音</p>
                 <div class="flex bg-white dark:bg-slate-900 p-1.5 rounded-2xl shadow-inner">
-                    <button onclick="updateAccent('us')" id="acc-us" class="flex-1 py-3 text-[10px] font-black rounded-xl transition-all">AMERICAN</button>
-                    <button onclick="updateAccent('uk')" id="acc-uk" class="flex-1 py-3 text-[10px] font-black rounded-xl transition-all">BRITISH</button>
+                    <button onclick="updateAccent('us')" id="acc-us" class="flex-1 py-3 text-[10px] font-black rounded-xl">US</button>
+                    <button onclick="updateAccent('uk')" id="acc-uk" class="flex-1 py-3 text-[10px] font-black rounded-xl">UK</button>
                 </div>
             </div>
             <button onclick="toggleDarkMode()" class="w-full p-6 bg-slate-50 dark:bg-slate-800 rounded-[2.5rem] flex justify-between items-center font-bold text-xs btn-press">
@@ -183,10 +179,8 @@
     </aside>
 
     <div id="batch-bar" class="fixed bottom-32 left-6 right-6 max-w-lg mx-auto glass shadow-2xl rounded-[2.5rem] p-5 flex justify-between items-center hide z-[150] border-2 border-indigo-500/20">
-        <div class="ml-4">
-            <span class="text-xs font-black text-indigo-600 italic">已选中 <span id="selected-count" class="text-xl mx-1">0</span> 项</span>
-        </div>
-        <button onclick="batchRemove()" class="bg-red-500 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest btn-press shadow-lg shadow-red-500/30">移出归档</button>
+        <span class="text-xs font-black text-indigo-600 italic ml-4">Selected <span id="selected-count" class="text-xl mx-1">0</span></span>
+        <button onclick="batchRemove()" class="bg-red-500 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest btn-press">Reset Items</button>
     </div>
 
     <nav id="main-nav" class="fixed bottom-10 left-1/2 -translate-x-1/2 glass rounded-[2.5rem] shadow-2xl flex items-center px-10 py-5 gap-12 border-t border-white/20 z-[100]">
@@ -197,14 +191,14 @@
     </nav>
 
     <script>
-        // --- 核心状态 (完全恢复并升级) ---
+        // --- 核心数据 ---
         let state = {
             mem: JSON.parse(localStorage.getItem('lexi_v175_mem') || '{}'),
             notes: JSON.parse(localStorage.getItem('lexi_v175_notes') || '{}'),
             books: JSON.parse(localStorage.getItem('lexi_v175_books') || JSON.stringify({
-                '默认备考词库': { id:'bk_default', color:'from-indigo-600 to-indigo-800', items: [] }
+                '考研英语词库': { id:'bk_1', color:'from-indigo-600 to-indigo-800', items: [] }
             })),
-            activeBookKey: '默认备考词库',
+            activeBookKey: '考研英语词库',
             viewingBook: null,
             accent: localStorage.getItem('lexi_v175_accent') || 'us',
             isDark: localStorage.getItem('lexi_v175_dark') === 'true',
@@ -212,129 +206,225 @@
             editMode: false, selectedItems: new Set()
         };
 
+        // --- 初始化 ---
         function init() {
             if(state.isDark) document.body.classList.add('dark');
             updateAccentUI();
             updateDashboard();
             switchTab('home');
+            // 初始化 TTS
+            window.speechSynthesis.getVoices();
         }
 
-        // --- 1. 探索系统 (v16.5 搜索+分类+笔记完全恢复) ---
-        function renderExplore() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            let allItems = [];
-            Object.values(state.books).forEach(b => allItems.push(...b.items));
+        function save() {
+            localStorage.setItem('lexi_v175_mem', JSON.stringify(state.mem));
+            localStorage.setItem('lexi_v175_books', JSON.stringify(state.books));
+            localStorage.setItem('lexi_v175_notes', JSON.stringify(state.notes));
+            localStorage.setItem('lexi_v175_dark', state.isDark);
+            localStorage.setItem('lexi_v175_accent', state.accent);
+        }
+
+        // --- TTS 优化 ---
+        function speakCurrent() {
+            const item = state.queue[state.idx];
+            if(!item) return;
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(item.en);
+            const lang = state.accent === 'us' ? 'en-US' : 'en-GB';
+            const voices = window.speechSynthesis.getVoices();
+            const qualityVoice = voices.find(v => v.lang.startsWith(lang) && (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Daniel') || v.name.includes('Natural')));
+            msg.voice = qualityVoice || voices.find(v => v.lang.startsWith(lang));
+            msg.rate = 0.85;
+            window.speechSynthesis.speak(msg);
+        }
+
+        // --- 切换 Tab & 逻辑刷新 (修复的核心) ---
+        function switchTab(t) {
+            ['home','explore','learned','books','import','book-detail'].forEach(v => {
+                document.getElementById('view-'+v)?.classList.add('hide');
+            });
+            document.getElementById('view-'+t).classList.remove('hide');
             
-            // 去重逻辑
-            const uniqueItems = Array.from(new Map(allItems.map(i => [i.id, i])).values());
+            // 导航高亮
+            document.querySelectorAll('nav button').forEach(b => b.classList.add('opacity-20', 'scale-100'));
+            const navMap = { 'books':'btn-books', 'book-detail':'btn-books', 'import':'btn-books', 'home':'btn-home', 'explore':'btn-explore', 'learned':'btn-learned' };
+            document.getElementById(navMap[t])?.classList.remove('opacity-20');
+            document.getElementById(navMap[t])?.classList.add('active-tab');
 
-            // 分类渲染
-            const cats = ['all', ...new Set(uniqueItems.map(i => i.cat || 'CUSTOM'))];
-            document.getElementById('explore-cats').innerHTML = cats.map(c => `
-                <button onclick="state.filter='${c}';renderExplore()" class="text-[10px] font-[900] px-6 py-2.5 rounded-full shadow-sm whitespace-nowrap transition-all ${state.filter===c?'bg-indigo-600 text-white scale-105 shadow-indigo-200':'glass opacity-50'}">${c.toUpperCase()}</button>
-            `).join('');
-
-            // 过滤渲染
-            const filtered = uniqueItems.filter(i => (state.filter==='all' || (i.cat||'CUSTOM')===state.filter) && (i.en.toLowerCase().includes(query) || i.zh.includes(query) || (state.notes[i.id]||'').includes(query)));
-            
-            document.getElementById('explore-list').innerHTML = filtered.length ? filtered.map(i => `
-                <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] p-7 shadow-sm border border-transparent hover:border-indigo-500/20 transition-all">
-                    <div onclick="toggleExploreDetail('${i.id}')" class="flex justify-between items-center cursor-pointer">
-                        <div>
-                            <p class="text-[8px] font-black text-indigo-500 uppercase tracking-widest mb-1">${i.cat || 'CUSTOM'}</p>
-                            <h4 class="text-lg font-[900] tracking-tight">${i.en}</h4>
-                        </div>
-                        <div class="w-10 h-10 rounded-full glass flex items-center justify-center text-xs opacity-30">▼</div>
-                    </div>
-                    <div id="det-${i.id}" class="hide mt-6 pt-6 border-t border-slate-100 dark:border-slate-700 space-y-4 animate-in slide-in-from-top-2">
-                        <p class="text-sm font-bold text-indigo-600 serif">${i.zh}</p>
-                        <p class="text-xs opacity-60 leading-relaxed">${i.d || '暂无详细释义'}</p>
-                        <div class="space-y-2">
-                            <label class="text-[8px] font-black opacity-30 uppercase tracking-widest">学习笔记 / Notes</label>
-                            <textarea oninput="saveNote('${i.id}', this.value)" placeholder="输入备考笔记、记忆点或变体..." class="w-full bg-slate-50 dark:bg-slate-900 p-5 rounded-2xl text-xs h-24 resize-none outline-none focus:ring-2 ring-indigo-500/10 transition-all">${state.notes[i.id] || ''}</textarea>
-                        </div>
-                    </div>
-                </div>
-            `).join('') : `<div class="py-20 text-center opacity-20 font-black italic">NO RESULTS FOUND</div>`;
+            // 触发对应视图的数据刷新
+            if(t === 'books') renderBookshelf();
+            if(t === 'book-detail') renderBookDetail();
+            if(t === 'import') populateImportSelect();
+            if(t === 'explore') renderExplore();
+            if(t === 'learned') renderLearned();
         }
 
-        function toggleExploreDetail(id) {
-            const el = document.getElementById(`det-${id}`);
-            el.classList.toggle('hide');
-        }
-
-        // --- 2. 词书详情系统 (v17 新增：物理删除 + 列表管理) ---
+        // --- 词书 & 详情逻辑 ---
         function renderBookshelf() {
             const list = document.getElementById('bookshelf-list');
             list.innerHTML = Object.keys(state.books).map(k => `
                 <div onclick="openBookDetail('${k}')" class="relative aspect-[4/5] rounded-r-[3rem] rounded-l-lg bg-gradient-to-br ${state.books[k].color} text-white p-8 flex flex-col justify-between shadow-2xl btn-press cursor-pointer">
                     <div class="border-l-4 border-white/20 pl-5">
-                        <p class="text-[9px] opacity-60 font-black tracking-widest uppercase">${state.books[k].items.length} 条词条</p>
+                        <p class="text-[9px] opacity-60 font-black tracking-widest uppercase">${state.books[k].items.length} 条目</p>
                         <h3 class="font-[900] text-xl mt-3 serif leading-tight">${k}</h3>
                     </div>
-                    <div class="flex items-center gap-2">
-                         <span class="text-[10px] font-black opacity-40 italic tracking-widest uppercase">管理库 →</span>
-                    </div>
+                    <span class="text-[10px] font-black opacity-40 italic tracking-widest">DETAILS →</span>
                 </div>
             `).join('');
         }
 
         function openBookDetail(k) {
             state.viewingBook = k;
-            state.activeBookKey = k;
             switchTab('book-detail');
         }
 
         function renderBookDetail() {
-            const bName = state.viewingBook;
-            const book = state.books[bName];
-            document.getElementById('detail-book-name').innerText = bName;
-            document.getElementById('detail-count').innerText = `${book.items.length} ITEMS`;
-            
-            // A-Z 排序渲染
-            const items = [...book.items].sort((a,b) => a.en.localeCompare(b.en));
-            
+            const b = state.viewingBook;
+            if(!b || !state.books[b]) return;
+            document.getElementById('detail-book-name').innerText = b;
+            document.getElementById('detail-count').innerText = `${state.books[b].items.length} ITEMS`;
+            const items = [...state.books[b].items].sort((a,b) => a.en.localeCompare(b.en));
             document.getElementById('book-items-list').innerHTML = items.length ? items.map(i => `
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm flex justify-between items-center group animate-in fade-in slide-in-from-bottom-2">
-                    <div>
-                        <h4 class="text-sm font-[900] text-indigo-600 tracking-tight">${i.en}</h4>
-                        <p class="text-[11px] opacity-50 serif mt-1">${i.zh}</p>
-                    </div>
-                    <button onclick="deleteItem('${bName}','${i.id}')" class="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all hover:bg-red-500 hover:text-white btn-press">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm flex justify-between items-center list-anim group">
+                    <div><h4 class="text-sm font-black text-indigo-600">${i.en}</h4><p class="text-[11px] opacity-50 serif mt-1">${i.zh}</p></div>
+                    <button onclick="deleteItem('${b}','${i.id}')" class="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all hover:bg-red-500 hover:text-white">✕</button>
                 </div>
-            `).join('') : `<div class="py-20 text-center opacity-20 font-[900] italic">空空如也</div>`;
+            `).join('') : '<p class="text-center opacity-20 py-10 font-bold italic">No items in this book.</p>';
         }
 
-        function deleteItem(bn, id) {
-            if(!confirm('确定要从词书中“物理删除”这个词条吗？（不可撤销）')) return;
-            state.books[bn].items = state.books[bn].items.filter(i => i.id !== id);
+        function deleteItem(bookName, id) {
+            if(!confirm('确定要从词书中彻底删除吗？')) return;
+            state.books[bookName].items = state.books[bookName].items.filter(i => i.id !== id);
             save(); renderBookDetail(); updateDashboard();
         }
 
-        // --- 3. 归档管理 (v16.5 批量管理完全恢复) ---
-        function renderLearned() {
-            let learnedItems = [];
-            Object.values(state.books).forEach(b => {
-                learnedItems.push(...b.items.filter(i => state.mem[i.id]?.lv >= 5));
-            });
+        // --- 导入逻辑 ---
+        function populateImportSelect() {
+            const sel = document.getElementById('import-book-select');
+            sel.innerHTML = Object.keys(state.books).map(k => `<option value="${k}" ${k === state.activeBookKey ? 'selected' : ''}>${k}</option>`).join('');
+        }
 
-            document.getElementById('learned-list').innerHTML = learnedItems.length ? learnedItems.map(i => `
-                <div onclick="handleSelect('${i.id}')" class="bg-white dark:bg-slate-800 p-6 rounded-[2.2rem] flex justify-between items-center border-2 transition-all cursor-pointer ${state.selectedItems.has(i.id)?'border-indigo-600 shadow-lg':'border-transparent shadow-sm'}">
-                    <div class="flex items-center gap-4">
-                        ${state.editMode ? `<div class="w-6 h-6 rounded-full border-2 transition-all ${state.selectedItems.has(i.id)?'bg-indigo-600 border-indigo-600 scale-110 shadow-lg shadow-indigo-200':'border-slate-300'}"></div>` : ''}
-                        <div><h5 class="text-sm font-[900]">${i.en}</h5><p class="text-[10px] opacity-30 serif">${i.zh}</p></div>
-                    </div>
-                    <span class="text-[8px] font-black px-2 py-1 bg-emerald-50 text-emerald-600 rounded">MASTERED</span>
+        function handleManualImport() {
+            const en = document.getElementById('in-en').value.trim();
+            const zh = document.getElementById('in-zh').value.trim();
+            const targetBook = document.getElementById('import-book-select').value;
+            if(!en || !zh) return alert("英文和中文为必填项！");
+            
+            const newItem = {
+                id: 'item_' + Date.now(),
+                cat: 'CUSTOM', en, zh,
+                d: document.getElementById('in-d').value,
+                scene: { en: document.getElementById('in-scene-en').value, zh: document.getElementById('in-scene-zh').value }
+            };
+            
+            state.books[targetBook].items.push(newItem);
+            state.activeBookKey = targetBook; // 记忆上次选择
+            save();
+            ['in-en','in-zh','in-d','in-scene-en','in-scene-zh'].forEach(id => document.getElementById(id).value = '');
+            alert(`已成功存入词书：${targetBook}`);
+            updateDashboard();
+        }
+
+        // --- 学习与 SRS ---
+        function startStudy(mode) {
+            let list = [];
+            const now = Date.now();
+            Object.keys(state.books).forEach(k => {
+                const b = state.books[k];
+                const items = (mode === 'new') 
+                    ? b.items.filter(i => !state.mem[i.id] || state.mem[i.id].lv === 0).slice(0, 15)
+                    : b.items.filter(i => state.mem[i.id]?.lv > 0 && state.mem[i.id].lv < 5 && now >= state.mem[i.id].next);
+                list.push(...items.map(i => ({...i, bookTag: k})));
+            });
+            if(!list.length) return alert("目前没有需要学习的任务。");
+            state.queue = list.sort(() => Math.random() - 0.5);
+            state.idx = 0;
+            document.getElementById('study-layer').classList.remove('hide');
+            renderCard();
+        }
+
+        function renderCard() {
+            const item = state.queue[state.idx];
+            const main = document.getElementById('studyCardMain');
+            main.classList.remove('flipped');
+            document.getElementById('card-en').innerText = item.en;
+            document.getElementById('card-zh').innerText = item.zh;
+            document.getElementById('card-d').innerText = item.d || '暂无释义背景';
+            document.getElementById('study-progress').innerText = `${state.idx + 1} / ${state.queue.length}`;
+            document.getElementById('study-book-tag').innerText = item.bookTag;
+            
+            const hasScene = item.scene && (item.scene.en || item.scene.zh);
+            document.getElementById('card-scene-box').classList.toggle('hide', !hasScene);
+            document.getElementById('card-scene-en').innerText = item.scene.en || '';
+            document.getElementById('card-scene-zh').innerText = item.scene.zh || '';
+        }
+
+        function handleLearn(score) {
+            const id = state.queue[state.idx].id;
+            if(!state.mem[id]) state.mem[id] = { lv: 0, next: 0 };
+            const m = state.mem[id];
+            if(score === 3) m.lv++; else if(score === 1) m.lv = Math.max(0, m.lv - 1);
+            m.next = Date.now() + ([0, 1, 1440, 4320, 10080][Math.min(m.lv, 4)] * 60000);
+            save();
+            state.idx++;
+            if(state.idx < state.queue.length) renderCard(); else closeStudy();
+        }
+
+        // --- 其他工具 ---
+        function updateDashboard() {
+            let n = 0, r = 0;
+            Object.values(state.books).forEach(b => {
+                n += b.items.filter(i => !state.mem[i.id] || state.mem[i.id].lv === 0).length;
+                r += b.items.filter(i => state.mem[i.id]?.lv > 0 && state.mem[i.id].lv < 5 && Date.now() >= state.mem[i.id].next).length;
+            });
+            document.getElementById('num-new').innerText = n;
+            document.getElementById('num-review').innerText = r;
+        }
+
+        function updateAccent(a) { state.accent = a; save(); updateAccentUI(); }
+        function updateAccentUI() {
+            document.getElementById('acc-us').className = `flex-1 py-3 text-[10px] font-black rounded-xl ${state.accent === 'us' ? 'bg-indigo-600 text-white shadow-lg' : 'opacity-20'}`;
+            document.getElementById('acc-uk').className = `flex-1 py-3 text-[10px] font-black rounded-xl ${state.accent === 'uk' ? 'bg-indigo-600 text-white shadow-lg' : 'opacity-20'}`;
+        }
+        function toggleDarkMode() { state.isDark = !state.isDark; document.body.classList.toggle('dark', state.isDark); save(); }
+        function toggleSidebar(s) { document.getElementById('settings-sidebar').classList.toggle('open', s); document.getElementById('settings-overlay').classList.toggle('hide', !s); }
+        function closeStudy() { document.getElementById('study-layer').classList.add('hide'); updateDashboard(); }
+        function createNewBook() {
+            const n = prompt("输入新词书名称:");
+            if(n && !state.books[n]) {
+                const cols = ['from-indigo-600 to-indigo-800', 'from-rose-500 to-rose-700', 'from-emerald-600 to-emerald-800'];
+                state.books[n] = { id:'bk_'+Date.now(), color: cols[Math.floor(Math.random()*cols.length)], items: [] };
+                save(); renderBookshelf();
+            }
+        }
+
+        // --- 搜索与归档视图渲染 ---
+        function renderExplore() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            let all = []; Object.values(state.books).forEach(b => all.push(...b.items));
+            const unique = Array.from(new Map(all.map(i => [i.id, i])).values());
+            const filtered = unique.filter(i => i.en.toLowerCase().includes(query) || i.zh.includes(query));
+            document.getElementById('explore-list').innerHTML = filtered.map(i => `
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm">
+                    <h4 class="font-black text-indigo-600">${i.en}</h4>
+                    <p class="text-xs opacity-60 mt-1 serif">${i.zh}</p>
                 </div>
-            `).join('') : `<div class="py-20 text-center opacity-20 font-[900] italic">还没有已掌握的词条</div>`;
+            `).join('');
+        }
+
+        function renderLearned() {
+            let list = [];
+            Object.values(state.books).forEach(b => list.push(...b.items.filter(i => state.mem[i.id]?.lv >= 5)));
+            document.getElementById('learned-list').innerHTML = list.length ? list.map(i => `
+                <div onclick="handleSelect('${i.id}')" class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] flex justify-between items-center border-2 ${state.selectedItems.has(i.id)?'border-indigo-600':'border-transparent'}">
+                    <div><h5 class="text-sm font-black">${i.en}</h5><p class="text-[10px] opacity-30 serif">${i.zh}</p></div>
+                    <span class="text-[8px] font-black bg-emerald-50 text-emerald-600 px-2 py-1 rounded">MASTERED</span>
+                </div>
+            `).join('') : '<p class="text-center opacity-20 py-20 font-black italic uppercase">Nothing mastered yet.</p>';
         }
 
         function toggleEditMode() {
-            state.editMode = !state.editMode;
-            state.selectedItems.clear();
-            document.getElementById('btn-edit').innerText = state.editMode ? "取消" : "批量管理";
+            state.editMode = !state.editMode; state.selectedItems.clear();
             document.getElementById('batch-bar').classList.toggle('hide', !state.editMode);
             renderLearned();
         }
@@ -347,175 +437,12 @@
         }
 
         function batchRemove() {
-            if(state.selectedItems.size === 0) return;
-            if(!confirm(`确定将选中的 ${state.selectedItems.size} 个词条移回学习队列吗？`)) return;
-            state.selectedItems.forEach(id => {
-                if(state.mem[id]) state.mem[id].lv = 1; // 重置到等级 1
-            });
-            state.editMode = false;
-            state.selectedItems.clear();
+            if(!confirm(`确认将选中的 ${state.selectedItems.size} 个词条重置并移出归档？`)) return;
+            state.selectedItems.forEach(id => { if(state.mem[id]) state.mem[id].lv = 1; });
+            state.editMode = false; state.selectedItems.clear();
             document.getElementById('batch-bar').classList.add('hide');
             save(); renderLearned(); updateDashboard();
         }
-
-        // --- 4. 学习与语音系统 (v17 终极增强) ---
-        let voices = [];
-        function loadVoices() {
-            voices = window.speechSynthesis.getVoices();
-        }
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-
-        function speakCurrent() {
-            const item = state.queue[state.idx];
-            if(!item) return;
-            const msg = new SpeechSynthesisUtterance(item.en);
-            const lang = state.accent === 'us' ? 'en-US' : 'en-GB';
-            
-            // 高质量语音匹配逻辑
-            const preferredKeywords = state.accent === 'us' ? ['Google US', 'Samantha', 'Natural'] : ['Google UK', 'Daniel', 'Natural'];
-            let voice = voices.find(v => preferredKeywords.some(k => v.name.includes(k)) && v.lang.startsWith(lang));
-            if(!voice) voice = voices.find(v => v.lang.startsWith(lang));
-            
-            if(voice) msg.voice = voice;
-            msg.rate = 0.85;
-            window.speechSynthesis.speak(msg);
-        }
-
-        function handleManualImport() {
-            const en = document.getElementById('in-en').value.trim();
-            const zh = document.getElementById('in-zh').value.trim();
-            const bn = document.getElementById('import-book-select').value;
-            
-            if(!en || !zh) return alert("英文和中文是必填项！");
-            
-            const newItem = {
-                id: 'item_' + Date.now(),
-                cat: 'CUSTOM',
-                en, zh,
-                d: document.getElementById('in-d').value || '',
-                scene: { 
-                    en: document.getElementById('in-scene-en').value || '', 
-                    zh: document.getElementById('in-scene-zh').value || '' 
-                }
-            };
-            
-            state.books[bn].items.push(newItem);
-            save();
-            ['in-en','in-zh','in-d','in-scene-en', 'in-scene-zh'].forEach(id => document.getElementById(id).value = '');
-            alert(`已存入词书：${bn}`);
-            updateDashboard();
-        }
-
-        function handleLearn(score) {
-            const item = state.queue[state.idx];
-            if(!state.mem[item.id]) state.mem[item.id] = { lv: 0, next: 0 };
-            const m = state.mem[item.id];
-            
-            // SRS 算法边界
-            if(score === 3) m.lv += 1; 
-            else if(score === 1) m.lv = Math.max(0, m.lv - 1);
-            
-            // 经典的艾宾浩斯/SRS 步长
-            const intervals = [0, 1, 1440, 4320, 10080]; // mins
-            m.next = Date.now() + (intervals[Math.min(m.lv, 4)] * 60000);
-            
-            save();
-            state.idx++;
-            if(state.idx < state.queue.length) renderCard(); 
-            else closeStudy();
-        }
-
-        // --- 通用逻辑 ---
-        function switchTab(t) {
-            ['home','explore','learned','books','import','book-detail'].forEach(v => {
-                const el = document.getElementById('view-'+v);
-                if(el) el.classList.add('hide');
-            });
-            document.getElementById('view-'+t).classList.remove('hide');
-            
-            document.querySelectorAll('nav button').forEach(b => b.classList.add('opacity-20'));
-            const navMap = { 'books':'btn-books', 'book-detail':'btn-books', 'import':'btn-books' };
-            const activeId = navMap[t] || 'btn-'+t;
-            document.getElementById(activeId)?.classList.remove('opacity-20');
-            document.getElementById(activeId)?.classList.add('active-tab');
-
-            if(t==='explore') renderExplore();
-            if(t==='learned') { state.editMode = false; renderLearned(); }
-            if(t==='books') renderBookshelf();
-            if(t==='book-detail') renderBookDetail();
-            if(t==='import') {
-                document.getElementById('import-book-select').innerHTML = Object.keys(state.books).map(k => `<option value="${k}" ${k===state.activeBookKey?'selected':''}>${k}</option>`).join('');
-            }
-        }
-
-        function startStudy(mode) {
-            let list = [];
-            const now = Date.now();
-            Object.keys(state.books).forEach(k => {
-                const b = state.books[k];
-                const sub = (mode==='new') 
-                    ? b.items.filter(i => !state.mem[i.id] || state.mem[i.id].lv === 0).slice(0, 15)
-                    : b.items.filter(i => state.mem[i.id]?.lv > 0 && state.mem[i.id].lv < 5 && now >= state.mem[i.id].next);
-                list.push(...sub.map(i => ({...i, bookTag: k})));
-            });
-            
-            if(!list.length) return alert("目前没有待处理的词条，去导入一些吧！");
-            state.queue = list.sort(() => Math.random() - 0.5);
-            state.idx = 0;
-            document.getElementById('study-layer').classList.remove('hide');
-            renderCard();
-        }
-
-        function renderCard() {
-            const item = state.queue[state.idx];
-            document.getElementById('studyCardMain').classList.remove('flipped');
-            document.getElementById('card-en').innerText = item.en;
-            document.getElementById('card-zh').innerText = item.zh;
-            document.getElementById('card-d').innerText = item.d || '暂无详细背景释义';
-            document.getElementById('study-progress').innerText = `${state.idx + 1} / ${state.queue.length}`;
-            document.getElementById('study-book-tag').innerText = item.bookTag;
-            
-            const hasScene = item.scene && (item.scene.en || item.scene.zh);
-            document.getElementById('card-scene-box').classList.toggle('hide', !hasScene);
-            document.getElementById('card-scene-en').innerText = item.scene.en || '';
-            document.getElementById('card-scene-zh').innerText = item.scene.zh || '';
-        }
-
-        function createNewBook() {
-            const n = prompt("输入新词书名称（如：政府工作报告术语）:");
-            if(n && !state.books[n]) {
-                const colors = ['from-indigo-600 to-indigo-800', 'from-rose-500 to-rose-700', 'from-emerald-600 to-emerald-800', 'from-amber-500 to-amber-700', 'from-violet-600 to-violet-900'];
-                state.books[n] = { id: 'bk_'+Date.now(), color: colors[Math.floor(Math.random()*colors.length)], items: [] };
-                save(); renderBookshelf();
-            }
-        }
-
-        function saveNote(id, v) { state.notes[id] = v; save(); }
-        function save() {
-            localStorage.setItem('lexi_v175_mem', JSON.stringify(state.mem));
-            localStorage.setItem('lexi_v175_books', JSON.stringify(state.books));
-            localStorage.setItem('lexi_v175_notes', JSON.stringify(state.notes));
-        }
-
-        function updateDashboard() {
-            let n = 0, r = 0;
-            Object.values(state.books).forEach(b => {
-                n += b.items.filter(i => !state.mem[i.id] || state.mem[i.id].lv === 0).length;
-                r += b.items.filter(i => state.mem[i.id]?.lv > 0 && state.mem[i.id].lv < 5 && Date.now() >= state.mem[i.id].next).length;
-            });
-            document.getElementById('num-new').innerText = n;
-            document.getElementById('num-review').innerText = r;
-        }
-
-        function updateAccent(a) { state.accent = a; localStorage.setItem('lexi_v175_accent', a); updateAccentUI(); }
-        function updateAccentUI() {
-            const isUs = state.accent === 'us';
-            document.getElementById('acc-us').className = `flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${isUs ? 'bg-indigo-600 text-white shadow-lg' : 'opacity-30'}`;
-            document.getElementById('acc-uk').className = `flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${!isUs ? 'bg-indigo-600 text-white shadow-lg' : 'opacity-30'}`;
-        }
-        function toggleDarkMode() { state.isDark = !state.isDark; document.body.classList.toggle('dark', state.isDark); localStorage.setItem('lexi_v175_dark', state.isDark); }
-        function toggleSidebar(s) { document.getElementById('settings-sidebar').classList.toggle('open', s); document.getElementById('settings-overlay').classList.toggle('hide', !s); }
-        function closeStudy() { document.getElementById('study-layer').classList.add('hide'); updateDashboard(); }
 
         init();
     </script>
